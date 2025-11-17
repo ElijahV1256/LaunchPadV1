@@ -441,6 +441,17 @@ export default function Onboarding() {
                   </div>
                 )}
 
+                {currentStep > 0 && (
+                  <div className="mt-6 text-center">
+                    <button
+                      onClick={handleBack}
+                      className="text-gray-600 hover:text-gray-900 font-medium transition-colors inline-flex items-center gap-2"
+                    >
+                      ← Back to previous question
+                    </button>
+                  </div>
+                )}
+
                 <AnimatePresence>
                   {showEncouragement && (
                     <motion.div
