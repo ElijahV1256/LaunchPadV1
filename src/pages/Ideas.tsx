@@ -247,6 +247,7 @@ export default function Ideas() {
     if (!currentUser) return;
 
     try {
+      console.log('Starting idea generation...');
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
 
@@ -257,8 +258,9 @@ export default function Ideas() {
       const previousIdeaNames = ideas.map((idea) => idea.name);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      const timeoutId = setTimeout(() => controller.abort(), 90000); // Increased timeout
 
+      console.log('Calling edge function...');
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-business-ideas`,
         {
@@ -278,14 +280,24 @@ export default function Ideas() {
 
       clearTimeout(timeoutId);
 
+      console.log('Response received:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Edge function error:', errorData);
         throw new Error(errorData.error || 'Failed to generate ideas');
       }
 
-      const { ideas: generatedIdeas } = await response.json();
-      setIdeas(generatedIdeas);
+      const result = await response.json();
+      console.log('Ideas generated:', result);
+
+      if (!result.ideas || result.ideas.length === 0) {
+        throw new Error('No ideas were generated');
+      }
+
+      setIdeas(result.ideas);
     } catch (err: any) {
+      console.error('Generate ideas error:', err);
       if (err.name === 'AbortError') {
         setError('Request timed out. Please try again.');
       } else {
@@ -697,9 +709,35 @@ export default function Ideas() {
         )}
 
         {error && (
-          <div className="mb-8 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-3 max-w-2xl mx-auto">
-            <AlertCircle className="text-red-400" size={20} />
-            <p className="text-red-400">{error}</p>
+          <div className="mb-8 p-6 bg-red-500/10 border border-red-500/30 rounded-lg max-w-2xl mx-auto">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="text-red-400 flex-shrink-0 mt-0.5" size={24} />
+              <div>
+                <h3 className="text-red-400 font-bold mb-2">Failed to Generate Ideas</h3>
+                <p className="text-red-300 mb-3">{error}</p>
+                <button
+                  onClick={handleRegenerate}
+                  disabled={regenerating}
+                  className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 rounded-lg text-sm font-semibold transition-all disabled:opacity-50"
+                >
+                  {regenerating ? 'Retrying...' : 'Try Again'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {ideas.length === 0 && !error && !loading && (
+          <div className="text-center py-12">
+            <Sparkles className="text-gray-500 mx-auto mb-4" size={48} />
+            <p className="text-gray-400 text-lg">No ideas generated yet.</p>
+            <button
+              onClick={handleRegenerate}
+              disabled={regenerating}
+              className="mt-4 px-6 py-3 bg-[#2979FF] hover:bg-[#2979FF]/80 text-white rounded-lg font-semibold transition-all disabled:opacity-50"
+            >
+              {regenerating ? 'Generating...' : 'Generate Ideas'}
+            </button>
           </div>
         )}
 

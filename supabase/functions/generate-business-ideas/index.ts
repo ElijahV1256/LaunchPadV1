@@ -23,6 +23,8 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  console.log('=== Edge Function Called ===');
+
   try {
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -168,18 +170,32 @@ Return ONLY a valid JSON object with an "ideas" array. No other text.`;
     }
 
     const openaiData = await openaiResponse.json();
-    const content = openaiData.choices[0].message.content || "[]";
+    console.log('OpenAI response data:', JSON.stringify(openaiData, null, 2));
+
+    const content = openaiData.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No content returned from OpenAI');
+    }
+
     const cleanContent = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    console.log('Cleaned content:', cleanContent);
+
     const parsedResponse = JSON.parse(cleanContent);
     const ideas = parsedResponse.ideas || parsedResponse;
 
+    if (!Array.isArray(ideas) || ideas.length === 0) {
+      throw new Error('No ideas array found in OpenAI response');
+    }
+
     const generatedIdeas: BusinessIdea[] = ideas.map((idea: any, index: number) => ({
       id: `idea-${Date.now()}-${index}`,
-      name: idea.name,
-      description: idea.description,
-      difficulty: idea.difficulty,
-      costRange: idea.costRange,
+      name: idea.name || 'Unnamed Idea',
+      description: idea.description || 'No description provided',
+      difficulty: idea.difficulty || 3,
+      costRange: idea.costRange || idea.cost_range || '$500-$1000',
     }));
+
+    console.log('Generated ideas:', generatedIdeas.length, 'ideas');
 
     await supabaseClient
       .from("business_ideas")
@@ -201,8 +217,11 @@ Return ONLY a valid JSON object with an "ideas" array. No other text.`;
       .insert(inserts);
 
     if (insertError) {
+      console.error('Database insert error:', insertError);
       throw insertError;
     }
+
+    console.log('Successfully stored ideas in database');
 
     return new Response(
       JSON.stringify({ ideas: generatedIdeas }),
