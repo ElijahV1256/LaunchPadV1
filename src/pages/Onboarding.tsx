@@ -295,21 +295,31 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
-      {currentStep >= 0 && (
+      {currentStep >= -1 && (
         <div className="w-full bg-white shadow-sm">
           <div className="max-w-2xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-gray-600">
-                {currentStep + 1} of {questions.length}
+                {currentStep >= 0 ? `${currentStep + 1} of ${questions.length}` : 'Welcome'}
               </span>
-              {currentStep > 0 && (
-                <button
-                  onClick={handleBack}
-                  className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-                >
-                  ← Back
-                </button>
-              )}
+              <div className="flex gap-3">
+                {currentStep > 0 && (
+                  <button
+                    onClick={handleBack}
+                    className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                  >
+                    ← Back
+                  </button>
+                )}
+                {currentUser && (
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className="text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    Profile
+                  </button>
+                )}
+              </div>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
               <motion.div
