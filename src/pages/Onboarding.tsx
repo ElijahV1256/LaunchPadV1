@@ -299,9 +299,18 @@ export default function Onboarding() {
         <div className="w-full bg-white shadow-sm">
           <div className="max-w-2xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-gray-600">
-                {currentStep >= 0 ? `${currentStep + 1} of ${questions.length}` : 'Welcome'}
-              </span>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors group"
+                  title="Launch Pad"
+                >
+                  <Rocket className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                </button>
+                <span className="text-sm font-semibold text-gray-600">
+                  {currentStep >= 0 ? `${currentStep + 1} of ${questions.length}` : 'Welcome'}
+                </span>
+              </div>
               <div className="flex gap-3">
                 {currentStep > 0 && (
                   <button
