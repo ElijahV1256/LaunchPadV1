@@ -518,21 +518,32 @@ export default function Ideas() {
     <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0A192F] to-[#0A192F] py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-10">
-          <div className="flex items-center justify-between mb-8">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            >
-              <Rocket className="text-[#2979FF]" size={32} />
-              <span className="text-2xl font-bold text-white font-['Montserrat']">Launch Pad</span>
-            </button>
+          <div className="flex flex-col gap-6 mb-8">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <Rocket className="text-[#2979FF]" size={32} />
+                <span className="text-2xl font-bold text-white font-['Montserrat']">Launch Pad</span>
+              </button>
 
-            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleRegenerate}
+                disabled={regenerating}
+                className="flex items-center gap-2 px-5 py-2.5 bg-white/10 border border-white/20 text-white rounded-lg font-semibold hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+              >
+                <RefreshCw className={regenerating ? 'animate-spin' : ''} size={18} />
+                Regenerate
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => navigate('/saved-ideas')}
-                className="flex items-center gap-1.5 px-4 py-2 bg-purple-500/20 border border-purple-500/30 text-purple-400 rounded-lg text-sm font-semibold hover:bg-purple-500/30 transition-all duration-300"
+                className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 border border-purple-500/30 text-purple-400 rounded-lg font-semibold hover:bg-purple-500/30 transition-all duration-300"
               >
-                <BookmarkCheck size={16} />
+                <BookmarkCheck size={18} />
                 Saved Ideas
                 {savedIdeaIds.size > 0 && (
                   <span className="bg-purple-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
@@ -542,44 +553,36 @@ export default function Ideas() {
               </button>
               <button
                 onClick={() => setShowPreferencesModal(true)}
-                className="flex items-center gap-1.5 px-4 py-2 bg-orange-500/20 border border-orange-500/30 text-orange-400 rounded-lg text-sm font-semibold hover:bg-orange-500/30 transition-all duration-300"
+                className="flex items-center gap-2 px-4 py-2 bg-orange-500/20 border border-orange-500/30 text-orange-400 rounded-lg font-semibold hover:bg-orange-500/30 transition-all duration-300"
               >
-                <Settings size={16} />
+                <Settings size={18} />
                 Get to Know You
               </button>
               <button
                 onClick={() => setShowCustomIdeaForm(!showCustomIdeaForm)}
-                className="flex items-center gap-1.5 px-4 py-2 bg-green-500/20 border border-green-500/30 text-green-400 rounded-lg text-sm font-semibold hover:bg-green-500/30 transition-all duration-300"
+                className="flex items-center gap-2 px-4 py-2 bg-green-500/20 border border-green-500/30 text-green-400 rounded-lg font-semibold hover:bg-green-500/30 transition-all duration-300"
               >
-                <PlusCircle size={16} />
+                <PlusCircle size={18} />
                 Add Idea
               </button>
               <button
                 onClick={handleLocalServices}
-                className="relative flex items-center gap-1.5 px-4 py-2 bg-[#06D6A0]/20 border border-[#06D6A0]/30 text-[#06D6A0] rounded-lg text-sm font-semibold hover:bg-[#06D6A0]/30 transition-all duration-300"
+                className="relative flex items-center gap-2 px-4 py-2 bg-[#06D6A0]/20 border border-[#06D6A0]/30 text-[#06D6A0] rounded-lg font-semibold hover:bg-[#06D6A0]/30 transition-all duration-300"
               >
-                <MapPin size={16} />
+                <MapPin size={18} />
                 Local Services
                 {userPlan === 'free' && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-[#EF476F] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  <span className="absolute -top-2 -right-2 bg-[#EF476F] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                     PRO
                   </span>
                 )}
               </button>
               <button
                 onClick={() => setShowKeywordInput(!showKeywordInput)}
-                className="flex items-center gap-1.5 px-4 py-2 bg-[#2979FF]/20 border border-[#2979FF]/30 text-[#2979FF] rounded-lg text-sm font-semibold hover:bg-[#2979FF]/30 transition-all duration-300"
+                className="flex items-center gap-2 px-4 py-2 bg-[#2979FF]/20 border border-[#2979FF]/30 text-[#2979FF] rounded-lg font-semibold hover:bg-[#2979FF]/30 transition-all duration-300"
               >
-                <Sparkles size={16} />
+                <Sparkles size={18} />
                 AI Keywords
-              </button>
-              <button
-                onClick={handleRegenerate}
-                disabled={regenerating}
-                className="flex items-center gap-1.5 px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg text-sm font-semibold hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-              >
-                <RefreshCw className={regenerating ? 'animate-spin' : ''} size={16} />
-                Regenerate
               </button>
             </div>
           </div>
