@@ -301,18 +301,42 @@ export default function Onboarding() {
     setSaving(true);
 
     try {
-      const { error } = await supabase
+      // First check if profile exists
+      const { data: existingProfile } = await supabase
         .from('user_profiles')
-        .upsert({
-          user_id: currentUser.id,
-          onboarding_completed: true,
-          onboarding_answers: answers,
-          interests: answers.industries || 'General business',
-          problems: answers.energizing_work || 'Problem solving',
-          budget: answers.budget || '$0–$500',
-          availability: answers.time_commitment || null,
-          updated_at: new Date().toISOString(),
-        });
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      const profileData = {
+        onboarding_completed: true,
+        onboarding_answers: answers,
+        interests: answers.industries || 'General business',
+        problems: answers.energizing_work || 'Problem solving',
+        budget: answers.budget || '$0–$500',
+        availability: answers.time_commitment || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      let error;
+
+      if (existingProfile) {
+        // Update existing profile
+        const result = await supabase
+          .from('user_profiles')
+          .update(profileData)
+          .eq('user_id', currentUser.id);
+        error = result.error;
+      } else {
+        // Insert new profile
+        const result = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: currentUser.id,
+            ...profileData,
+          });
+        error = result.error;
+      }
 
       if (error) {
         console.error('Supabase error:', error);
