@@ -83,11 +83,43 @@ export default function Homepage() {
     }
   };
 
-  const handleGetStarted = () => {
-    if (currentUser) {
-      navigate('/ideas');
-    } else {
+  const handleGetStarted = async () => {
+    if (!currentUser) {
       navigate('/auth');
+      return;
+    }
+
+    try {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('onboarding_completed, onboarding_answers')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      if (!profile || !profile.onboarding_completed) {
+        navigate('/onboarding');
+        return;
+      }
+
+      const { data: ideas } = await supabase
+        .from('business_ideas')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .limit(1);
+
+      if (!ideas || ideas.length === 0) {
+        navigate('/ideas');
+        return;
+      }
+
+      if (lastProgress && lastProgress.link) {
+        navigate(lastProgress.link);
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      console.error('Error determining start point:', err);
+      navigate('/dashboard');
     }
   };
 
