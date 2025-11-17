@@ -86,7 +86,17 @@ For each idea, provide:
 3. Difficulty rating (1-5, where 1 is easiest)
 4. Estimated cost range to start
 
-Return ONLY a valid JSON object with an "ideas" array. No other text.${previousSection}`;
+Return ONLY a valid JSON object in this EXACT format:
+{
+  "ideas": [
+    {
+      "name": "Business Name Here",
+      "description": "Description here",
+      "difficulty": 3,
+      "costRange": "$500-$1000"
+    }
+  ]
+}${previousSection}`;
     } else {
       const onboardingAnswers = profile.onboarding_answers;
 
@@ -134,7 +144,17 @@ For each idea provide:
 3. Difficulty (1-5)
 4. Cost range
 
-Return ONLY a valid JSON object with an "ideas" array. No other text.`;
+Return ONLY a valid JSON object in this EXACT format:
+{
+  "ideas": [
+    {
+      "name": "Business Name Here",
+      "description": "Description here",
+      "difficulty": 3,
+      "costRange": "$500-$1000"
+    }
+  ]
+}`;
     }
 
     console.log("Starting OpenAI request...");
