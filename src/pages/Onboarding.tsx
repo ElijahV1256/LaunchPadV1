@@ -307,14 +307,18 @@ export default function Onboarding() {
           user_id: currentUser.id,
           onboarding_completed: true,
           onboarding_answers: answers,
-          interests: answers.industries || 'Not specified',
-          problems: answers.energizing_work || 'Not specified',
-          budget: answers.budget || 'Not specified',
-          availability: answers.time_commitment || 'Not specified',
+          interests: answers.industries || 'General business',
+          problems: answers.energizing_work || 'Problem solving',
+          budget: answers.budget || '$0–$500',
+          availability: answers.time_commitment || null,
           updated_at: new Date().toISOString(),
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        alert('Failed to save your answers. Please try again.');
+        throw error;
+      }
 
       navigate('/ideas');
     } catch (err: any) {
