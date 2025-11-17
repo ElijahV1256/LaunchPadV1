@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../config/supabase';
@@ -217,12 +217,54 @@ export default function Onboarding() {
   const totalSteps = questions.length + 2;
   const progress = ((currentStep + 2) / totalSteps) * 100;
 
+  useEffect(() => {
+    if (currentUser) {
+      loadSavedAnswers();
+    }
+  }, [currentUser]);
+
+  const loadSavedAnswers = async () => {
+    if (!currentUser) return;
+
+    try {
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('onboarding_answers, onboarding_completed')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      if (data?.onboarding_answers) {
+        setAnswers(data.onboarding_answers);
+      }
+    } catch (err) {
+      console.error('Failed to load saved answers:', err);
+    }
+  };
+
+  const saveAnswersToDatabase = async (updatedAnswers: Record<string, string>) => {
+    if (!currentUser) return;
+
+    try {
+      await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: currentUser.id,
+          onboarding_answers: updatedAnswers,
+          updated_at: new Date().toISOString(),
+        });
+    } catch (err) {
+      console.error('Failed to save answers:', err);
+    }
+  };
+
   const handleAnswer = (questionId: string, answer: string) => {
     const randomEncouragement = encouragements[Math.floor(Math.random() * encouragements.length)];
     setEncouragementText(randomEncouragement);
     setShowEncouragement(true);
 
-    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+    const updatedAnswers = { ...answers, [questionId]: answer };
+    setAnswers(updatedAnswers);
+    saveAnswersToDatabase(updatedAnswers);
 
     setTimeout(() => {
       setShowEncouragement(false);
