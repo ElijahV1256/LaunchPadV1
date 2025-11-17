@@ -208,6 +208,8 @@ export default function Onboarding() {
   const [saving, setSaving] = useState(false);
   const [direction, setDirection] = useState(1);
   const [textInput, setTextInput] = useState('');
+  const [showOtherIndustry, setShowOtherIndustry] = useState(false);
+  const [otherIndustryInput, setOtherIndustryInput] = useState('');
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -241,6 +243,8 @@ export default function Onboarding() {
     if (currentStep > -1) {
       setDirection(-1);
       setCurrentStep(prev => prev - 1);
+      setShowOtherIndustry(false);
+      setOtherIndustryInput('');
     }
   };
 
@@ -438,10 +442,73 @@ export default function Onboarding() {
                         {option}
                       </motion.button>
                     ))}
+
+                    {questions[currentStep].id === 'industries' && (
+                      <>
+                        <motion.button
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: (questions[currentStep].options?.length || 0) * 0.05 }}
+                          onClick={() => setShowOtherIndustry(true)}
+                          disabled={showEncouragement || showOtherIndustry}
+                          className="w-full p-5 bg-white rounded-xl text-left text-gray-900 font-medium border-2 border-gray-200 hover:border-blue-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Other (specify your own)
+                        </motion.button>
+
+                        {showOtherIndustry && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="space-y-3"
+                          >
+                            <input
+                              type="text"
+                              value={otherIndustryInput}
+                              onChange={(e) => setOtherIndustryInput(e.target.value)}
+                              placeholder="Enter your industry..."
+                              className="w-full p-4 bg-white rounded-xl text-gray-900 border-2 border-blue-500 focus:border-blue-600 focus:outline-none"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && otherIndustryInput.trim()) {
+                                  handleAnswer(questions[currentStep].id, otherIndustryInput.trim());
+                                  setShowOtherIndustry(false);
+                                  setOtherIndustryInput('');
+                                }
+                              }}
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  if (otherIndustryInput.trim()) {
+                                    handleAnswer(questions[currentStep].id, otherIndustryInput.trim());
+                                    setShowOtherIndustry(false);
+                                    setOtherIndustryInput('');
+                                  }
+                                }}
+                                disabled={!otherIndustryInput.trim()}
+                                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              >
+                                Continue
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setShowOtherIndustry(false);
+                                  setOtherIndustryInput('');
+                                }}
+                                className="px-4 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </>
+                    )}
                   </div>
                 )}
 
-                {currentStep > 0 && (
+                {currentStep >= 0 && (
                   <div className="mt-6 text-center">
                     <button
                       onClick={handleBack}
