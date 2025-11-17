@@ -28,21 +28,24 @@ Deno.serve(async (req: Request) => {
     const flyerTypes = [
       {
         title: "Grand Opening Flyer",
-        style: "Bold grand opening announcement with eye-catching design",
-        focus: "excitement and celebration with prominent business name",
-        extraDetails: "Include 'GRAND OPENING' or 'NOW OPEN' text, contact info placeholder"
+        style: "Bold grand opening announcement with geometric shapes and clean design",
+        focus: "excitement and celebration with prominent business name, no people or faces",
+        extraDetails: "Include 'GRAND OPENING' or 'NOW OPEN' text in large English letters, contact info icons",
+        visualElements: "abstract shapes, icons, patterns, or product photography only"
       },
       {
         title: "Service Showcase Flyer",
-        style: "Clean professional layout showcasing offerings",
-        focus: "benefits and value proposition",
-        extraDetails: "Include service/product highlights, pricing tiers or 'Call for Quote'"
+        style: "Clean professional layout with icons and graphics",
+        focus: "benefits and value proposition using symbols and illustrations",
+        extraDetails: "Include service icons or product images, pricing sections or 'Call for Quote'",
+        visualElements: "professional icons, abstract illustrations, product photos, no human faces"
       },
       {
         title: "Social Media Story Template",
-        style: "Vertical mobile-optimized bold design",
-        focus: "eye-catching visuals perfect for Instagram/Facebook stories",
-        extraDetails: "Optimized for 9:16 aspect ratio, minimal text, strong visual impact"
+        style: "Vertical mobile-optimized bold design with graphics",
+        focus: "eye-catching geometric visuals perfect for Instagram/Facebook stories",
+        extraDetails: "Optimized for 9:16 aspect ratio, bold English text, strong visual hierarchy",
+        visualElements: "abstract patterns, shapes, icons, lifestyle product shots, no people"
       }
     ];
 
@@ -51,33 +54,44 @@ Deno.serve(async (req: Request) => {
     for (let i = 0; i < flyerTypes.length; i++) {
       const flyerType = flyerTypes[i];
 
-      const prompt = `Professional marketing flyer for business: "${businessName}"
-Business offers: ${descriptionText}
+      const prompt = `Create a professional marketing flyer design for "${businessName}" - ${descriptionText}
 
-Design Type: ${flyerType.title}
-Style: ${flyerType.style}
-Focus: ${flyerType.focus}
-
-BRAND COLORS (use these exact colors):
-- Primary: ${brandColors.primary}
-- Secondary: ${brandColors.secondary || brandColors.primary}
-- Accent: ${brandColors.accent || brandColors.primary}
-
-REQUIRED ELEMENTS:
-- Business name "${businessName}" prominently displayed in large, bold, modern sans-serif font
-- Logo style: ${logoText} - integrate naturally into the design
+CRITICAL TEXT REQUIREMENTS:
+- ALL text must be in ENGLISH ONLY
+- Business name "${businessName}" in large, bold, clean sans-serif font
 - ${flyerType.extraDetails}
-- Contact information placeholder (phone, website, email icons)
-- Clean margins and professional spacing
+- Use readable, modern typography
+- Contact icons (phone, email, website symbols)
 
-DESIGN REQUIREMENTS:
-- Use the brand colors prominently throughout
-- High contrast for excellent readability
-- Modern, professional, print-ready quality
-- Balanced composition with clear visual hierarchy
-- White or very light background for text readability
+VISUAL STYLE - ${flyerType.title}:
+${flyerType.style}
+${flyerType.focus}
 
-Style: Professional graphic design, marketing material, corporate identity, modern aesthetic.`;
+VISUAL ELEMENTS TO USE:
+${flyerType.visualElements}
+
+STRICT REQUIREMENTS - NO EXCEPTIONS:
+❌ NO human faces, people, or portraits
+❌ NO text in Arabic, Chinese, or any non-English language
+❌ NO distorted or unclear text
+✅ USE abstract shapes, geometric patterns, icons, or product photography
+✅ USE English language only for all text elements
+✅ USE clean, readable fonts in English
+
+BRAND COLORS (integrate throughout design):
+Primary: ${brandColors.primary}
+Secondary: ${brandColors.secondary || brandColors.primary}
+Accent: ${brandColors.accent || brandColors.primary}
+
+LAYOUT REQUIREMENTS:
+- Clean white or light neutral background for text areas
+- High contrast between text and background
+- Professional margins and spacing
+- Balanced visual hierarchy
+- Modern, minimalist aesthetic
+- Print-ready quality at high resolution
+
+Style reference: Modern professional graphic design, corporate marketing material, clean contemporary branding, minimalist business flyer, professional promotional design.`;
 
       try {
         const response = await openai.images.generate({
@@ -85,7 +99,7 @@ Style: Professional graphic design, marketing material, corporate identity, mode
           prompt: prompt,
           n: 1,
           size: i === 2 ? "1024x1792" : "1024x1024",
-          quality: "standard",
+          quality: "hd",
           style: "natural",
         });
 
