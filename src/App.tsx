@@ -21,6 +21,7 @@ import MarketingAssets from './pages/MarketingAssets';
 import WebsiteBuilder from './pages/WebsiteBuilder';
 import Operations from './pages/Operations';
 import ScaleOptimize from './pages/ScaleOptimize';
+import SavedIdeas from './pages/SavedIdeas';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
@@ -176,6 +177,14 @@ function App() {
             element={
               <PrivateRoute>
                 <ScaleOptimize />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/saved-ideas"
+            element={
+              <PrivateRoute>
+                <SavedIdeas />
               </PrivateRoute>
             }
           />

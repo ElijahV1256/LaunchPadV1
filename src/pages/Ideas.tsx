@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { BusinessIdea } from '../services/openai';
-import { Rocket, Sparkles, TrendingUp, DollarSign, AlertCircle, Loader2, RefreshCw, PlusCircle, Lightbulb, ArrowRight, CheckCircle2, MapPin, Settings, X, Clock, Briefcase } from 'lucide-react';
+import { Rocket, Sparkles, TrendingUp, DollarSign, AlertCircle, Loader2, RefreshCw, PlusCircle, Lightbulb, ArrowRight, CheckCircle2, MapPin, Settings, X, Clock, Briefcase, Bookmark, BookmarkCheck } from 'lucide-react';
 import { trackMilestone, trackActivity } from '../services/tracking';
 
 export default function Ideas() {
@@ -33,6 +33,8 @@ export default function Ideas() {
   const [workUnsure, setWorkUnsure] = useState(false);
   const [lifestyleUnsure, setLifestyleUnsure] = useState(false);
   const [lastUsedKeywords, setLastUsedKeywords] = useState<string>('');
+  const [savedIdeaIds, setSavedIdeaIds] = useState<Set<string>>(new Set());
+  const [savingIdeaId, setSavingIdeaId] = useState<string | null>(null);
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -43,6 +45,7 @@ export default function Ideas() {
       loadLastProgress();
       loadUserPlan();
       loadUserPreferences();
+      loadSavedIdeas();
     }
   }, [currentUser]);
 
@@ -118,6 +121,67 @@ export default function Ideas() {
       setError(err.message || 'Failed to save preferences');
     } finally {
       setSavingPreferences(false);
+    }
+  };
+
+  const loadSavedIdeas = async () => {
+    if (!currentUser) return;
+
+    try {
+      const { data } = await supabase
+        .from('saved_ideas')
+        .select('original_idea_id')
+        .eq('user_id', currentUser.id);
+
+      if (data) {
+        setSavedIdeaIds(new Set(data.map(item => item.original_idea_id)));
+      }
+    } catch (err) {
+      console.error('Failed to load saved ideas:', err);
+    }
+  };
+
+  const handleSaveIdea = async (idea: BusinessIdea) => {
+    if (!currentUser) return;
+
+    setSavingIdeaId(idea.id);
+    try {
+      const isSaved = savedIdeaIds.has(idea.id);
+
+      if (isSaved) {
+        // Unsave
+        const { error } = await supabase
+          .from('saved_ideas')
+          .delete()
+          .eq('user_id', currentUser.id)
+          .eq('original_idea_id', idea.id);
+
+        if (error) throw error;
+
+        setSavedIdeaIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(idea.id);
+          return newSet;
+        });
+      } else {
+        // Save
+        const { error } = await supabase
+          .from('saved_ideas')
+          .insert({
+            user_id: currentUser.id,
+            original_idea_id: idea.id,
+            idea_data: idea,
+          });
+
+        if (error) throw error;
+
+        setSavedIdeaIds(prev => new Set(prev).add(idea.id));
+      }
+    } catch (err: any) {
+      console.error('Failed to save/unsave idea:', err);
+      setError(err.message || 'Failed to save idea');
+    } finally {
+      setSavingIdeaId(null);
     }
   };
 
@@ -465,6 +529,18 @@ export default function Ideas() {
 
             <div className="flex flex-wrap gap-2">
               <button
+                onClick={() => navigate('/saved-ideas')}
+                className="flex items-center gap-1.5 px-4 py-2 bg-purple-500/20 border border-purple-500/30 text-purple-400 rounded-lg text-sm font-semibold hover:bg-purple-500/30 transition-all duration-300"
+              >
+                <BookmarkCheck size={16} />
+                Saved Ideas
+                {savedIdeaIds.size > 0 && (
+                  <span className="bg-purple-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {savedIdeaIds.size}
+                  </span>
+                )}
+              </button>
+              <button
                 onClick={() => setShowPreferencesModal(true)}
                 className="flex items-center gap-1.5 px-4 py-2 bg-orange-500/20 border border-orange-500/30 text-orange-400 rounded-lg text-sm font-semibold hover:bg-orange-500/30 transition-all duration-300"
               >
@@ -781,13 +857,27 @@ export default function Ideas() {
                 </div>
               </div>
 
-              <button
-                onClick={() => handleViewRoadmap(idea.id)}
-                className="w-full py-3 bg-[#2979FF] text-[#0A192F] rounded-lg font-bold hover:bg-[#2979FF]/90 transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                <TrendingUp size={20} />
-                View Roadmap
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleSaveIdea(idea)}
+                  disabled={savingIdeaId === idea.id}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-bold transition-all duration-300 ${
+                    savedIdeaIds.has(idea.id)
+                      ? 'bg-purple-500 text-white hover:bg-purple-600'
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                  } disabled:opacity-50`}
+                  title={savedIdeaIds.has(idea.id) ? 'Saved' : 'Save idea'}
+                >
+                  {savedIdeaIds.has(idea.id) ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
+                </button>
+                <button
+                  onClick={() => handleViewRoadmap(idea.id)}
+                  className="flex-1 py-3 bg-[#2979FF] text-[#0A192F] rounded-lg font-bold hover:bg-[#2979FF]/90 transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  <TrendingUp size={20} />
+                  View Roadmap
+                </button>
+              </div>
             </div>
           ))}
         </div>
