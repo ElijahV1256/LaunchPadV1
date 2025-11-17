@@ -368,7 +368,7 @@ export default function Onboarding() {
                 )}
                 {currentUser && (
                   <button
-                    onClick={() => navigate('/profile')}
+                    onClick={() => navigate('/dashboard')}
                     className="text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
                   >
                     Profile
