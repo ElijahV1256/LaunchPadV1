@@ -295,6 +295,44 @@ export default function Dashboard() {
                 Generate Ideas
               </button>
             </div>
+          ) : roadmapData.roadmap.stages.length === 0 ? (
+            <div className="space-y-6">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-12 text-center">
+                <Target className="text-[#2979FF] mx-auto mb-6" size={64} />
+                <h2 className="text-3xl font-bold text-white mb-4 font-['Montserrat']">
+                  No idea yet. Generate ideas to get your roadmap.
+                </h2>
+                <p className="text-gray-300 mb-8 text-lg">
+                  Start your journey by creating personalized business ideas tailored to your skills
+                  and interests
+                </p>
+                <button
+                  onClick={() => navigate('/ideas')}
+                  className="px-8 py-4 bg-[#2979FF] text-[#0A192F] rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all duration-300"
+                >
+                  Generate Ideas
+                </button>
+              </div>
+
+              <div className="bg-gradient-to-br from-[#2979FF]/20 to-purple-500/20 backdrop-blur-sm border border-[#2979FF]/30 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Rocket className="text-[#2979FF]" size={24} />
+                  <h2 className="text-2xl font-bold text-white font-['Montserrat']">
+                    In Progress
+                  </h2>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6">
+                  <h3 className="text-xl font-bold text-white mb-2">{roadmapData.idea.name}</h3>
+                  <p className="text-gray-300 mb-4">{roadmapData.idea.description}</p>
+                  <button
+                    onClick={() => navigate(`/first-revenue?ideaKey=${roadmapData.idea.id}`)}
+                    className="w-full py-3 bg-[#2979FF] text-white rounded-lg font-bold hover:bg-[#2979FF]/90 transition-all duration-300"
+                  >
+                    Continue Journey
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : (
             <div className="space-y-6">
               <div className="bg-gradient-to-br from-[#2979FF]/20 to-purple-500/20 backdrop-blur-sm border border-[#2979FF]/30 rounded-2xl p-8">
