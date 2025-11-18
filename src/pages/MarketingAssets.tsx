@@ -177,6 +177,10 @@ export default function MarketingAssets() {
         logoDescription,
         businessDescription,
         logoUrl,
+        targetAudience: (brandData as any).target_audience,
+        brandVoice: (brandData as any).brand_voice,
+        tagline: (brandData as any).selected_tagline,
+        contactInfo: undefined
       });
 
       clearInterval(progressInterval);
@@ -524,11 +528,81 @@ export default function MarketingAssets() {
                     ) : (
                       <div className="space-y-6">
                         {data.flyers.map((flyer: any, idx: number) => (
-                          <div key={idx} className="bg-white/5 border border-white/10 rounded-lg p-4">
-                            <h4 className="text-white font-semibold mb-2">{flyer.title}</h4>
-                            <p className="text-gray-400 text-sm mb-4">{flyer.description}</p>
+                          <div key={idx} className="bg-white/5 border border-white/10 rounded-lg p-6">
+                            <div className="flex items-start justify-between mb-4">
+                              <div>
+                                <h4 className="text-white font-semibold text-lg mb-1">{flyer.title}</h4>
+                                <p className="text-gray-400 text-sm">{flyer.description}</p>
+                                {flyer.size && <p className="text-gray-500 text-xs mt-1">Size: {flyer.size}</p>}
+                              </div>
+                            </div>
 
-                            {flyer.imageUrl && (
+                            {flyer.template ? (
+                              <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-6">
+                                {/* Headline */}
+                                <div>
+                                  <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Headline</label>
+                                  <div className="text-white text-2xl font-bold">{flyer.template.headline}</div>
+                                </div>
+
+                                {/* Subheadline */}
+                                <div>
+                                  <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Subheadline</label>
+                                  <div className="text-gray-200 text-lg">{flyer.template.subheadline}</div>
+                                </div>
+
+                                {/* Body Content */}
+                                <div>
+                                  <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Body Content</label>
+                                  <div className="text-gray-300 text-sm leading-relaxed">{flyer.template.bodyContent}</div>
+                                </div>
+
+                                {/* Features */}
+                                {flyer.template.features && flyer.template.features.length > 0 && (
+                                  <div>
+                                    <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Features & Benefits</label>
+                                    <ul className="space-y-2">
+                                      {flyer.template.features.map((feature: string, fIdx: number) => (
+                                        <li key={fIdx} className="text-gray-300 text-sm flex items-start gap-2">
+                                          <span className="text-[#06D6A0] mt-0.5">✓</span>
+                                          {feature}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {/* Call to Action */}
+                                <div>
+                                  <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Call to Action</label>
+                                  <div className="bg-[#2979FF]/20 border border-[#2979FF]/40 rounded-lg px-6 py-3 text-[#2979FF] font-bold text-center">
+                                    {flyer.template.cta}
+                                  </div>
+                                </div>
+
+                                {/* Footer */}
+                                <div>
+                                  <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Footer / Contact Info</label>
+                                  <div className="text-gray-400 text-sm whitespace-pre-line">{flyer.template.footer}</div>
+                                </div>
+
+                                {/* Design Notes */}
+                                <div className="border-t border-white/10 pt-4 space-y-3">
+                                  <div>
+                                    <label className="text-xs text-gray-400 uppercase tracking-wide mb-1 block">Layout Notes</label>
+                                    <p className="text-gray-500 text-xs">{flyer.template.layoutNotes}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-gray-400 uppercase tracking-wide mb-1 block">Color Usage</label>
+                                    <p className="text-gray-500 text-xs">{flyer.template.colorNotes}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-gray-400 uppercase tracking-wide mb-1 block">Font Usage</label>
+                                    <p className="text-gray-500 text-xs">{flyer.template.fontNotes}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : flyer.imageUrl && (
                               <div className="mb-4 rounded-lg overflow-hidden border border-white/20">
                                 <img
                                   src={flyer.imageUrl}
@@ -538,29 +612,25 @@ export default function MarketingAssets() {
                               </div>
                             )}
 
-                            <div className="flex flex-wrap gap-2">
-                              {flyer.imageUrl && (
-                                <button
-                                  onClick={() => window.open(flyer.imageUrl, '_blank')}
-                                  className="px-4 py-2 bg-[#2979FF] text-white rounded-lg text-sm font-semibold hover:bg-[#2979FF]/90 transition-colors flex items-center gap-2"
-                                >
-                                  <FileText size={16} />
-                                  View Full Size
-                                </button>
-                              )}
+                            <div className="flex flex-wrap gap-2 mt-4">
                               <button
                                 onClick={() => window.open(flyer.canvaUrl, '_blank')}
                                 className="px-4 py-2 bg-[#00C4CC] text-white rounded-lg text-sm font-semibold hover:bg-[#00C4CC]/90 transition-colors flex items-center gap-2"
                               >
                                 <FileText size={16} />
-                                Edit in Canva
+                                Create in Canva
                               </button>
                               <button
-                                onClick={() => copyToClipboard(flyer.description, idx)}
+                                onClick={() => {
+                                  const textToCopy = flyer.template ?
+                                    `${flyer.template.headline}\n\n${flyer.template.subheadline}\n\n${flyer.template.bodyContent}\n\n${flyer.template.features?.join('\n') || ''}\n\n${flyer.template.cta}\n\n${flyer.template.footer}` :
+                                    flyer.description;
+                                  copyToClipboard(textToCopy, idx);
+                                }}
                                 className="px-4 py-2 bg-white/10 text-white rounded-lg text-sm font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
                               >
                                 <Copy size={16} />
-                                {copiedIndex === idx ? 'Copied!' : 'Copy Text'}
+                                {copiedIndex === idx ? 'Copied!' : 'Copy Template'}
                               </button>
                             </div>
                           </div>
