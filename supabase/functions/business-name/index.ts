@@ -81,14 +81,14 @@ Deno.serve(async (req: Request) => {
 
       const { data: brandData } = await supabase
         .from('brand_identity')
-        .select('generated_names')
+        .select('business_names')
         .eq('user_id', userId)
         .eq('idea_key', ideaKey)
         .maybeSingle();
 
-      if (brandData?.generated_names) {
-        const previousNames = Array.isArray(brandData.generated_names)
-          ? brandData.generated_names.map((n: any) => n.name || n)
+      if (brandData?.business_names) {
+        const previousNames = Array.isArray(brandData.business_names)
+          ? brandData.business_names.map((n: any) => n.name || n)
           : [];
         existingNames = [...existingNames, ...previousNames];
       }
