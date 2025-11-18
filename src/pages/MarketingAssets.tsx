@@ -155,11 +155,13 @@ export default function MarketingAssets() {
       setGeneratingStep('Creating flyer 1 of 3 with AI...');
 
       const progressUpdates = [
-        { step: 15, message: 'Generating Grand Opening flyer...' },
-        { step: 45, message: 'Creating flyer 2 of 3...' },
-        { step: 50, message: 'Generating Service Showcase flyer...' },
-        { step: 75, message: 'Creating flyer 3 of 3...' },
-        { step: 80, message: 'Generating Social Media Story template...' },
+        { step: 15, message: 'Generating content for flyer 1...' },
+        { step: 25, message: 'Creating flyer image 1 with DALL·E 3...' },
+        { step: 40, message: 'Generating content for flyer 2...' },
+        { step: 50, message: 'Creating flyer image 2 with DALL·E 3...' },
+        { step: 65, message: 'Generating content for flyer 3...' },
+        { step: 75, message: 'Creating flyer image 3 with DALL·E 3...' },
+        { step: 85, message: 'Finalizing designs (this may take 30-60 seconds)...' },
       ];
 
       let updateIndex = 0;
@@ -170,6 +172,13 @@ export default function MarketingAssets() {
           updateIndex++;
         }
       }, 8000);
+
+      console.log('Calling flyer generation with:', {
+        businessName: brandData.selected_name,
+        hasColors: !!brandData.brand_colors,
+        hasLogoUrl: !!logoUrl,
+        hasDescription: !!businessDescription
+      });
 
       const flyers = await generateMarketingContent({
         type: 'flyers',
@@ -183,6 +192,8 @@ export default function MarketingAssets() {
         tagline: (brandData as any).selected_tagline,
         contactInfo: undefined
       });
+
+      console.log('Flyers generated successfully:', flyers);
 
       clearInterval(progressInterval);
 
