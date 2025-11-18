@@ -563,29 +563,42 @@ export async function generateMarketingContent(params: {
   const { type, businessName, businessDescription, brandColors, logoDescription, logoUrl, targetAudience, brandVoice, tagline, contactInfo } = params;
 
   if (type === 'flyers') {
-    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-flyers`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        businessName,
-        brandColors,
-        businessDescription,
-        targetAudience,
-        brandVoice,
-        tagline,
-        contactInfo
-      }),
-    });
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-flyers`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName,
+          brandColors,
+          businessDescription,
+          targetAudience,
+          brandVoice,
+          tagline,
+          contactInfo
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to generate flyers');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Edge function error response:', errorText);
+        console.error('Edge function status:', response.status);
+        throw new Error(`Failed to generate flyers (${response.status}): ${errorText.substring(0, 200)}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.flyers || result.flyers.length === 0) {
+        throw new Error('No flyers returned from edge function');
+      }
+
+      return result.flyers;
+    } catch (error: any) {
+      console.error('Error calling generate-flyers edge function:', error);
+      throw new Error(`Flyer generation failed: ${error.message}`);
     }
-
-    const result = await response.json();
-    return result.flyers || [];
   }
 
   if (type === 'social_posts') {

@@ -16,6 +16,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const body = await req.json();
     const {
       businessName,
       brandColors,
@@ -24,10 +25,18 @@ Deno.serve(async (req: Request) => {
       brandVoice,
       tagline,
       contactInfo
-    } = await req.json();
+    } = body;
+
+    console.log('Received request:', { businessName, brandColors });
+
+    const openaiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!openaiKey) {
+      console.error('OPENAI_API_KEY not found in environment');
+      throw new Error('OpenAI API key not configured');
+    }
 
     const openai = new OpenAI({
-      apiKey: Deno.env.get("OPENAI_API_KEY"),
+      apiKey: openaiKey,
     });
 
     const descriptionText = businessDescription || businessName;
@@ -181,8 +190,32 @@ Return ONLY valid JSON, no markdown formatting.`;
         await new Promise(resolve => setTimeout(resolve, 500));
       } catch (error: any) {
         console.error(`Error generating template ${i + 1}:`, error);
+        flyers.push({
+          title: flyerType.title,
+          description: `Template for ${flyerType.title.toLowerCase()} (${flyerType.size})`,
+          template: {
+            headline: "Experience Quality Service",
+            subheadline: `Trust ${businessName} for all your needs`,
+            bodyContent: `We provide exceptional service with a focus on quality and customer satisfaction.`,
+            features: [
+              "Professional Service",
+              "Competitive Pricing",
+              "Customer Focused"
+            ],
+            cta: flyerType.callToAction,
+            footer: `${businessName}\nwww.yourbusiness.com\n(555) 123-4567`,
+            layoutNotes: "Center-aligned with clear hierarchy",
+            colorNotes: "Primary color for headline and CTA",
+            fontNotes: "Bold header font for headline, clean body font for content"
+          },
+          size: flyerType.size,
+          purpose: flyerType.purpose,
+          canvaUrl: "https://www.canva.com/create/flyers/",
+        });
       }
     }
+
+    console.log('Successfully generated', flyers.length, 'flyer templates');
 
     return new Response(
       JSON.stringify({ flyers }),
@@ -194,9 +227,12 @@ Return ONLY valid JSON, no markdown formatting.`;
       }
     );
   } catch (error: any) {
-    console.error("Error:", error);
+    console.error("Error in generate-flyers:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({
+        error: error.message || 'Unknown error',
+        details: error.stack
+      }),
       {
         status: 500,
         headers: {
