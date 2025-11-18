@@ -201,7 +201,8 @@ export default function Ideas() {
       const latestIdea = ideas[0];
       const ideaKey = latestIdea.idea_id;
 
-      const [brandData, marketingData, websiteData, operationsData] = await Promise.all([
+      const [firstRevenueData, brandData, marketingData, websiteData, operationsData] = await Promise.all([
+        supabase.from('first_dollar').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
         supabase.from('brand_identity').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
         supabase.from('marketing_assets').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
         supabase.from('websites').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
@@ -213,18 +214,23 @@ export default function Ideas() {
       let link = '';
       let isComplete = false;
 
+      const firstRevenueComplete = firstRevenueData.data && firstRevenueData.data.completed && firstRevenueData.data.completed.length >= 5;
       const brandComplete = brandData.data && brandData.data.selected_name && brandData.data.brand_colors && brandData.data.logo_data?.selected;
       const marketingComplete = marketingData.data && marketingData.data.completed_steps && marketingData.data.completed_steps.length >= 4;
       const websiteComplete = websiteData.data && websiteData.data.completed_steps && websiteData.data.completed_steps.length >= 5;
       const operationsStarted = operationsData.data && operationsData.data.length > 0;
 
-      const hasAnyProgress = brandData.data || marketingData.data || websiteData.data || operationsStarted;
+      const hasAnyProgress = firstRevenueData.data || brandData.data || marketingData.data || websiteData.data || operationsStarted;
 
       if (!hasAnyProgress) {
         return;
       }
 
-      if (!brandComplete) {
+      if (!firstRevenueComplete) {
+        currentStage = 'First Revenue';
+        stageName = 'Get Your First Dollar';
+        link = `/first-revenue?ideaKey=${ideaKey}`;
+      } else if (!brandComplete) {
         currentStage = 'Brand Identity';
         stageName = 'Brand Identity';
         link = `/brand-identity?ideaKey=${ideaKey}`;
