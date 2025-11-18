@@ -94,13 +94,34 @@ export default function SavedNames() {
 
       if (updateError) throw updateError;
 
+      const { data: existingBrand } = await supabase
+        .from('brand_identity')
+        .select('business_names')
+        .eq('user_id', currentUser.id)
+        .eq('idea_key', ideaKey)
+        .maybeSingle();
+
+      const nameEntry = {
+        name: selectedName.name,
+        tagline: selectedName.tagline,
+        reason: selectedName.description
+      };
+
+      let updatedBusinessNames = existingBrand?.business_names || [];
+      const nameExists = Array.isArray(updatedBusinessNames) &&
+        updatedBusinessNames.some((n: any) => n.name === selectedName.name);
+
+      if (!nameExists) {
+        updatedBusinessNames = [...updatedBusinessNames, nameEntry];
+      }
+
       const { error: brandError } = await supabase
         .from('brand_identity')
         .upsert({
           user_id: currentUser.id,
           idea_key: ideaKey,
+          business_names: updatedBusinessNames,
           selected_name: selectedName.name,
-          tagline: selectedName.tagline,
           updated_at: new Date().toISOString(),
         }, {
           onConflict: 'user_id,idea_key'
