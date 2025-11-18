@@ -332,7 +332,7 @@ export async function generateLogoConcepts(
   const descriptionText = businessDescription || `A business called ${businessName}`;
   const personalityText = brandPersonality || 'professional, modern, trustworthy';
 
-  const basePrompt = `Ultra-modern, minimalist logo for "${businessName}". ${descriptionText}. Style: ${personalityText}. Colors: ${brandColors.primary}, ${brandColors.secondary}, ${brandColors.accent}. CRITICAL REQUIREMENTS: Clean, contemporary design. Simple geometric shapes. Lots of white space. Sans-serif font. Flat design. Professional tech startup aesthetic. NO gradients, NO 3D effects, NO vintage elements, NO ornate details. Modern and sleek only. Text must spell "${businessName}" exactly. White background.`;
+  const basePrompt = `Create a professional logo design for a business. CRITICAL SPELLING REQUIREMENT: The business name must be spelled EXACTLY as "${businessName}" with perfect spelling and grammar - letter by letter, no typos, no variations. ${descriptionText}. Brand personality: ${personalityText}. Color palette: primary ${brandColors.primary}, secondary ${brandColors.secondary}, accent ${brandColors.accent}. Design style: Ultra-modern, minimalist, clean contemporary design with simple geometric shapes, generous white space, sans-serif typography, flat design, professional aesthetic. AVOID: gradients, 3D effects, vintage elements, ornate details. Background: clean white. Double-check spelling: "${businessName}".`;
 
   const variations = [
     'minimal geometric icon with clean typography',
@@ -389,7 +389,15 @@ export async function regenerateLogoWithChanges(
   brandColors: { primary: string; secondary: string; accent: string },
   changeRequest: string
 ): Promise<LogoConcept> {
-  const modifiedPrompt = `${originalLogo.prompt} Modifications: ${changeRequest}. Apply these changes while maintaining professional quality. CRITICAL: Ensure the business name "${businessName}" is spelled exactly correctly in the logo.`;
+  const modifiedPrompt = `${originalLogo.prompt}
+
+REQUESTED CHANGES: ${changeRequest}
+
+CRITICAL REQUIREMENTS:
+1. The business name MUST be spelled EXACTLY as "${businessName}" - letter by letter, no typos
+2. Apply the requested changes while maintaining professional quality
+3. Keep the design clean and modern
+4. Verify spelling: "${businessName}"`;
 
   const response = await openai.images.generate({
     model: 'dall-e-3',
@@ -404,8 +412,8 @@ export async function regenerateLogoWithChanges(
   const imageUrl = response.data[0].url;
 
   return {
-    name: `${originalLogo.name} (Modified)`,
-    description: `Updated design incorporating: ${changeRequest}`,
+    name: originalLogo.name,
+    description: `${originalLogo.description} (Modified: ${changeRequest})`,
     imageUrl: imageUrl || originalLogo.imageUrl,
     prompt: modifiedPrompt,
   };
