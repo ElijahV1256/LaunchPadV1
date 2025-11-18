@@ -121,20 +121,24 @@ export default function Dashboard() {
     }
 
     const latestIdea = ideas[0];
+    const ideaKey = latestIdea.idea_id;
 
-    const { data: roadmap } = await supabase
-      .from('roadmaps')
-      .select('*')
-      .eq('user_id', currentUser.id)
-      .eq('idea_id', latestIdea.idea_id)
-      .maybeSingle();
+    const [roadmapData, firstRevenueData, brandData, marketingData, websiteData] = await Promise.all([
+      supabase.from('roadmaps').select('*').eq('user_id', currentUser.id).eq('idea_id', ideaKey).maybeSingle(),
+      supabase.from('first_dollar').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
+      supabase.from('brand_identity').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
+      supabase.from('marketing_assets').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
+      supabase.from('websites').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
+    ]);
 
-    if (roadmap) {
+    const hasAnyProgress = roadmapData.data || firstRevenueData.data || brandData.data || marketingData.data || websiteData.data;
+
+    if (hasAnyProgress) {
       const data = {
         roadmap: {
-          id: roadmap.id,
-          stages: roadmap.stages,
-          completed_steps: roadmap.completed_steps || [],
+          id: roadmapData.data?.id || '',
+          stages: roadmapData.data?.stages || [],
+          completed_steps: roadmapData.data?.completed_steps || [],
         },
         idea: {
           id: latestIdea.idea_id,
