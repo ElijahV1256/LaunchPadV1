@@ -77,7 +77,7 @@ Deno.serve(async (req: Request) => {
 
       try {
         // Step 1: Text Cleanup & Brand Enforcement with GPT-4
-        const contentPrompt = `You are a professional brand designer and copywriter.
+        const contentPrompt = `You are a professional brand copywriter with expertise in grammar and spelling.
 
 BRAND GUIDE:
 - Business Name: ${businessName}
@@ -89,25 +89,26 @@ BRAND GUIDE:
 TASK:
 Create flyer content for: ${flyerType.purpose}
 
-STRICT BRAND REQUIREMENTS:
-1. Correct ALL grammar and spelling
-2. Rewrite in the brand's voice: ${voiceText}
-3. Keep sentences short, clear, and professional
-4. Use brand-appropriate vocabulary and tone
-5. NO extra creativity - follow brand voice exactly
-6. Apply professional formatting
+CRITICAL REQUIREMENTS:
+1. PERFECT GRAMMAR - No errors whatsoever
+2. PERFECT SPELLING - Double-check every word
+3. Brand Voice: ${voiceText}
+4. Short, clear, professional sentences
+5. Brand-appropriate vocabulary only
+6. Professional formatting
+7. Proofread everything before responding
 
 OUTPUT FORMAT - Return ONLY valid JSON:
 {
-  "headline": "Powerful 5-8 word headline in brand voice",
-  "subheadline": "Supporting 8-12 word subheadline",
-  "body": "2-3 clear sentences (30-50 words) explaining value",
-  "features": ["Benefit 1 (2-5 words)", "Benefit 2", "Benefit 3", "Benefit 4"],
+  "headline": "Powerful 5-8 word headline (perfect grammar)",
+  "subheadline": "Supporting 8-12 word subheadline (perfect grammar)",
+  "body": "2-3 clear sentences explaining value (perfect grammar, 30-50 words)",
+  "features": ["Benefit 1", "Benefit 2", "Benefit 3", "Benefit 4"],
   "cta": "${flyerType.callToAction}",
   "footer": "${contactText}"
 }
 
-Return ONLY valid JSON with clean, brand-aligned text. No markdown.`;
+IMPORTANT: Proofread all text for spelling and grammar errors before returning. Return ONLY valid JSON with perfect grammar and spelling.`;
 
         console.log(`Step 1: Cleaning text with brand voice for ${flyerType.title}...`);
 
@@ -148,52 +149,54 @@ Return ONLY valid JSON with clean, brand-aligned text. No markdown.`;
         const secondaryColor = brandColors?.secondary || '#06D6A0';
         const accentColor = brandColors?.accent || '#FF6B6B';
 
-        const imagePrompt = `Professional flyer design using ONLY the branded text below.
+        const imagePrompt = `Create a professional marketing flyer with EXACT text and colors specified below.
 
-FORMAT: ${flyerType.size}
+SIZE: ${flyerType.size}
 
-BRAND COLORS (USE ONLY THESE):
-- Primary: ${primaryColor}
-- Secondary: ${secondaryColor}
-- Accent: ${accentColor}
+MANDATORY COLOR PALETTE - USE THESE EXACT COLORS ONLY:
+• Headline color: ${primaryColor}
+• Button/CTA background: ${accentColor}
+• Bullet point icons: ${secondaryColor}
+• Background: White (#FFFFFF)
+• Body text: Dark gray (#333333)
 
-LAYOUT (TOP TO BOTTOM):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. HEADLINE (Large, bold, primary color):
-"${templateData.headline}"
+EXACT TEXT CONTENT (USE WORD-FOR-WORD):
 
-2. SUBHEADLINE (Medium, dark gray):
-"${templateData.subheadline}"
+[HEADLINE - Large, bold, ${primaryColor} color]
+${templateData.headline}
 
-3. BODY (Clean paragraphs):
-"${templateData.body}"
+[SUBHEADLINE - Medium weight, #333333 color]
+${templateData.subheadline}
 
-4. FEATURES (Bullet points, accent icons):
+[BODY TEXT - Regular weight, #333333 color]
+${templateData.body}
+
+[FEATURES LIST - Bullet points with ${secondaryColor} icons]
 ${templateData.features?.map((f: string) => `• ${f}`).join('\n') || '• Professional Service\n• Quality Guaranteed\n• Customer Focused'}
 
-5. CTA (Large button, accent color):
-"${templateData.cta}"
+[CALL TO ACTION - Large button with ${accentColor} background, white text]
+${templateData.cta}
 
-6. FOOTER (Small text):
+[FOOTER - Small text, #666666 color]
 ${templateData.footer.replace(/\n/g, ' | ')}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-STRICT DESIGN RULES:
-✓ Use ONLY brand colors listed above
-✓ Clean, minimal layout
-✓ Large headline at top
-✓ Generous white space (10% margins minimum)
-✓ Clean rectangular blocks
-✓ Professional sans-serif typography
-✓ Strong visual hierarchy
+DESIGN REQUIREMENTS:
+✓ Clean white background
+✓ Use ONLY the hex colors specified above
+✓ Large readable headline in ${primaryColor}
+✓ CTA button in ${accentColor} with white text
+✓ Bullet icons in ${secondaryColor}
+✓ Generous margins and spacing
+✓ Modern sans-serif font
+✓ Professional, minimal design
 
-✗ NO gradients
-✗ NO busy backgrounds
-✗ NO extra decorations
-✗ NO patterns
-✗ NO illustrations
+✗ NO additional colors beyond those specified
+✗ NO gradients or color variations
+✗ NO decorative elements
+✗ NO photos or illustrations
+✗ NO patterns or textures
 
-Focus on clean typography and branded layout.`;
+CRITICAL: Use the EXACT hex color codes provided. Do not interpret or modify them.`;
 
         console.log(`Generating image for ${flyerType.title}...`);
 
