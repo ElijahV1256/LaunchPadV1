@@ -22,6 +22,7 @@ import WebsiteBuilder from './pages/WebsiteBuilder';
 import Operations from './pages/Operations';
 import ScaleOptimize from './pages/ScaleOptimize';
 import SavedIdeas from './pages/SavedIdeas';
+import SavedNames from './pages/SavedNames';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
@@ -185,6 +186,14 @@ function App() {
             element={
               <PrivateRoute>
                 <SavedIdeas />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/saved-names"
+            element={
+              <PrivateRoute>
+                <SavedNames />
               </PrivateRoute>
             }
           />

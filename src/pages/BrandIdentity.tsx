@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Home, CheckCircle2, Circle, Loader2, Sparkles, RefreshCw, CreditCard as Edit2, X, Download, Upload } from 'lucide-react';
+import { Home, CheckCircle2, Circle, Loader2, Sparkles, RefreshCw, CreditCard as Edit2, X, Download, Upload, Bookmark, BookmarkCheck } from 'lucide-react';
 import { generateLogoConcepts, regenerateLogoWithChanges, generateSlogan } from '../services/openai';
 import { downloadBrandGuide } from '../utils/brandGuide';
 
@@ -352,6 +352,8 @@ export default function BrandIdentity() {
           idea,
           keywords: hasKeywords ? keywords : undefined,
           openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
+          ideaKey,
+          userId: currentUser?.id,
         }),
       });
 
@@ -405,6 +407,36 @@ export default function BrandIdentity() {
       console.error('Error generating names:', err);
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const saveName = async (nameOption: NameOption) => {
+    if (!currentUser || !ideaKey) return;
+
+    try {
+      const { error: saveError } = await supabase
+        .from('saved_business_names')
+        .insert({
+          user_id: currentUser.id,
+          idea_key: ideaKey,
+          name: nameOption.name,
+          tagline: nameOption.tagline || '',
+          description: nameOption.reason,
+        });
+
+      if (saveError) {
+        if (saveError.code === '23505') {
+          alert('This name is already saved!');
+        } else {
+          throw saveError;
+        }
+        return;
+      }
+
+      alert(`"${nameOption.name}" has been saved!`);
+    } catch (err: any) {
+      console.error('Error saving name:', err);
+      alert('Failed to save name. Please try again.');
     }
   };
 
@@ -1097,31 +1129,48 @@ export default function BrandIdentity() {
                   <div className="space-y-2 mt-4">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-sm text-gray-400">Select your favorite:</p>
-                      <button
-                        onClick={generateNames}
-                        disabled={generating}
-                        className="text-xs text-[#2979FF] hover:text-[#2979FF]/80 transition-colors flex items-center gap-1"
-                      >
-                        <RefreshCw size={12} className={generating ? 'animate-spin' : ''} />
-                        Regenerate
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => navigate(`/saved-names?ideaKey=${ideaKey}`)}
+                          className="text-xs text-[#06D6A0] hover:text-[#06D6A0]/80 transition-colors flex items-center gap-1"
+                        >
+                          <BookmarkCheck size={12} />
+                          View Saved
+                        </button>
+                        <button
+                          onClick={generateNames}
+                          disabled={generating}
+                          className="text-xs text-[#2979FF] hover:text-[#2979FF]/80 transition-colors flex items-center gap-1"
+                        >
+                          <RefreshCw size={12} className={generating ? 'animate-spin' : ''} />
+                          Regenerate
+                        </button>
+                      </div>
                     </div>
                     {data.business_names.map((nameOption, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => selectName(nameOption.name)}
-                        className={`w-full px-4 py-3 rounded-lg text-left transition-all ${
-                          data.selected_name === nameOption.name
-                            ? 'bg-[#2979FF] text-white border-2 border-[#2979FF]'
-                            : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
-                        }`}
-                      >
-                        <div className="font-semibold mb-1">{nameOption.name}</div>
-                        {nameOption.tagline && (
-                          <div className="text-sm italic mb-1 opacity-90">{nameOption.tagline}</div>
-                        )}
-                        <div className="text-xs opacity-75">{nameOption.reason}</div>
-                      </button>
+                      <div key={idx} className="flex gap-2">
+                        <button
+                          onClick={() => selectName(nameOption.name)}
+                          className={`flex-1 px-4 py-3 rounded-lg text-left transition-all ${
+                            data.selected_name === nameOption.name
+                              ? 'bg-[#2979FF] text-white border-2 border-[#2979FF]'
+                              : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+                          }`}
+                        >
+                          <div className="font-semibold mb-1">{nameOption.name}</div>
+                          {nameOption.tagline && (
+                            <div className="text-sm italic mb-1 opacity-90">{nameOption.tagline}</div>
+                          )}
+                          <div className="text-xs opacity-75">{nameOption.reason}</div>
+                        </button>
+                        <button
+                          onClick={() => saveName(nameOption)}
+                          className="px-3 py-3 bg-[#06D6A0]/20 border border-[#06D6A0]/30 text-[#06D6A0] rounded-lg hover:bg-[#06D6A0]/30 transition-all flex items-center justify-center"
+                          title="Save this name"
+                        >
+                          <Bookmark size={18} />
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )}

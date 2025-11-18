@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +11,8 @@ interface RequestBody {
   idea: string;
   keywords?: string;
   openaiApiKey?: string;
+  ideaKey?: string;
+  userId?: string;
 }
 
 interface NameResult {
@@ -31,7 +34,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { idea, keywords, openaiApiKey: providedApiKey }: RequestBody = await req.json();
+    const { idea, keywords, openaiApiKey: providedApiKey, ideaKey, userId }: RequestBody = await req.json();
 
     if (!idea || typeof idea !== "string" || idea.trim().length === 0) {
       return new Response(
@@ -60,9 +63,43 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+
+    let existingNames: string[] = [];
+    if (userId && ideaKey) {
+      const { data: savedNames } = await supabase
+        .from('saved_business_names')
+        .select('name')
+        .eq('user_id', userId)
+        .eq('idea_key', ideaKey);
+
+      if (savedNames && savedNames.length > 0) {
+        existingNames = savedNames.map((n: any) => n.name);
+      }
+
+      const { data: brandData } = await supabase
+        .from('brand_identity')
+        .select('generated_names')
+        .eq('user_id', userId)
+        .eq('idea_key', ideaKey)
+        .maybeSingle();
+
+      if (brandData?.generated_names) {
+        const previousNames = Array.isArray(brandData.generated_names)
+          ? brandData.generated_names.map((n: any) => n.name || n)
+          : [];
+        existingNames = [...existingNames, ...previousNames];
+      }
+    }
+
     let userMessage = `Generate 5 creative business names for ${idea.trim()}.`;
     if (keywords && keywords.trim()) {
       userMessage += ` Consider these keywords: ${keywords.trim()}.`;
+    }
+    if (existingNames.length > 0) {
+      userMessage += ` IMPORTANT: DO NOT generate any of these names that were already generated: ${existingNames.join(', ')}.`;
     }
     userMessage += ` For each name, include reasoning and a short, catchy tagline (5-8 words max).`;
 
