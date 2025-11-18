@@ -78,13 +78,33 @@ Deno.serve(async (req: Request) => {
     let prompt: string;
 
     if (keywords) {
-      prompt = `Generate 3 unique business ideas based on these keywords/focus areas: ${keywords}
+      prompt = `You are the Launch Pad Business Generator. Generate 3 business ideas based on: ${keywords}
 
-For each idea, provide:
-1. A catchy business name
-2. A 2-3 sentence description
-3. Difficulty rating (1-5, where 1 is easiest)
-4. Estimated cost range to start
+Your business ideas must be:
+- Proven to work in the real world with many successful examples
+- Currently trending upward, not declining
+- Relatively simple to start and operate
+- Low to medium startup cost (under $5000)
+- Quick to become profitable
+- Beginner-friendly
+
+Every business idea must:
+1. Already exist in the real world with many successful examples
+2. Be validated by a large number of entrepreneurs
+3. Have clear demand and paying customers
+4. Be feasible for solo founders or small teams
+
+Avoid:
+- Extremely complex tech startups
+- High-risk ideas that depend on luck or virality
+- Anything requiring large upfront capital
+- Unproven or experimental business models
+
+For each idea provide:
+1. Simple, clear business name (not overly creative)
+2. 2-sentence description focusing on proven success and simplicity
+3. Difficulty (1-5, keep most 1-3 for beginners)
+4. Realistic cost range (keep it low to medium)
 
 Return ONLY a valid JSON object in this EXACT format:
 {
@@ -92,7 +112,7 @@ Return ONLY a valid JSON object in this EXACT format:
     {
       "name": "Business Name Here",
       "description": "Description here",
-      "difficulty": 3,
+      "difficulty": 2,
       "costRange": "$500-$1000"
     }
   ]
@@ -133,16 +153,39 @@ Work that energizes them: ${energizingWork}
 Lifestyle goals: ${lifestyle}`;
       }
 
-      prompt = `Generate 3 highly personalized business ideas based on this profile:
+      prompt = `You are the Launch Pad Business Generator. Your job is to generate business ideas that are:
+- Proven to work in the real world
+- Currently trending upward, not declining
+- Relatively simple to start and operate
+- Low to medium startup cost
+- Quick to become profitable
+- Beginner-friendly unless otherwise specified
+
+User Profile:
 ${profileContext}${previousSection}
 
-IMPORTANT: Use their passionate problems, specific skills, and ideal customer to create HIGHLY targeted business ideas. The ideas should directly leverage their unique experience and serve their preferred customer type.
+Use the user's profile to personalize the ideas, but you are allowed to suggest ideas outside of their answers when:
+- They click "I'm not sure"
+- Their answers are conflicting or unclear
+- A different proven business would serve them better
 
-For each idea provide:
-1. Catchy business name
-2. 2-sentence description (must connect their skills to solving problems for their ideal customer)
-3. Difficulty (1-5)
-4. Cost range
+Every business idea must:
+1. Already exist in the real world with many successful examples.
+2. Be validated by a large number of entrepreneurs.
+3. Have clear demand and paying customers.
+4. Be feasible for solo founders or small teams.
+
+Avoid:
+- Extremely complex tech startups
+- High-risk ideas that depend on luck or virality
+- Anything that requires large upfront capital
+- Unproven or experimental business models
+
+For each of the 3 ideas provide:
+1. Simple, clear business name (not overly creative)
+2. 2-sentence description focusing on what makes it proven and simple to start
+3. Difficulty (1-5, keep most ideas 1-3 unless user wants challenge)
+4. Realistic cost range (keep it low to medium)
 
 Return ONLY a valid JSON object in this EXACT format:
 {
@@ -150,7 +193,7 @@ Return ONLY a valid JSON object in this EXACT format:
     {
       "name": "Business Name Here",
       "description": "Description here",
-      "difficulty": 3,
+      "difficulty": 2,
       "costRange": "$500-$1000"
     }
   ]
