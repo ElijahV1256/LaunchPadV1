@@ -492,18 +492,16 @@ export default function FirstRevenue() {
               );
             })}
 
-            {allComplete && (
-              <button
-                onClick={() => navigate(`/brand-identity?ideaKey=${ideaKey}`)}
-                className="w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 bg-[#2979FF]/10 border border-[#2979FF]/30 text-white"
-              >
-                <span className="text-xl">🎉</span>
-                <div className="flex-1">
-                  <div className="font-semibold text-sm">Next Phase</div>
-                  <div className="text-xs opacity-70">Brand Identity</div>
-                </div>
-              </button>
-            )}
+            <button
+              onClick={() => navigate(`/brand-identity?ideaKey=${ideaKey}`)}
+              className="w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 bg-[#2979FF]/10 border border-[#2979FF]/30 text-white hover:bg-[#2979FF]/20"
+            >
+              <span className="text-xl">{allComplete ? '🎉' : '⏭️'}</span>
+              <div className="flex-1">
+                <div className="font-semibold text-sm">{allComplete ? 'Next Phase' : 'Skip Ahead'}</div>
+                <div className="text-xs opacity-70">Brand Identity</div>
+              </div>
+            </button>
           </nav>
         </div>
 
@@ -860,16 +858,14 @@ export default function FirstRevenue() {
           </div>
         </div>
 
-        {allComplete && (
-          <div className="mt-8 text-center">
-            <button
-              onClick={() => navigate(`/brand-identity?ideaKey=${ideaKey}`)}
-              className="px-8 py-4 bg-[#2979FF] text-[#0A192F] rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all duration-300 inline-flex items-center gap-2"
-            >
-              Next: Brand & Identity →
-            </button>
-          </div>
-        )}
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => navigate(`/brand-identity?ideaKey=${ideaKey}`)}
+            className="px-8 py-4 bg-[#2979FF] text-[#0A192F] rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all duration-300 inline-flex items-center gap-2"
+          >
+            {allComplete ? 'Next: Brand & Identity →' : 'Skip to Brand & Identity →'}
+          </button>
+        </div>
 
         {toast && (
           <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-[#2979FF] text-[#0A192F] px-6 py-3 rounded-full font-semibold shadow-lg animate-fade-in-up z-50">
