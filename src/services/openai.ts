@@ -332,19 +332,43 @@ export async function generateLogoConcepts(
   const descriptionText = businessDescription || `A business called ${businessName}`;
   const personalityText = brandPersonality || 'professional, modern, trustworthy';
 
-  const basePrompt = `Create a professional logo design for a business. CRITICAL SPELLING REQUIREMENT: The business name must be spelled EXACTLY as "${businessName}" with perfect spelling and grammar - letter by letter, no typos, no variations. ${descriptionText}. Brand personality: ${personalityText}. Color palette: primary ${brandColors.primary}, secondary ${brandColors.secondary}, accent ${brandColors.accent}. Design style: Ultra-modern, minimalist, clean contemporary design with simple geometric shapes, generous white space, sans-serif typography, flat design, professional aesthetic. AVOID: gradients, 3D effects, vintage elements, ornate details. Background: clean white. Double-check spelling: "${businessName}".`;
+  const basePrompt = `You are the Launch Pad Logo Generator. Create a SIMPLE, CLEAN, MINIMAL logo.
+
+BUSINESS NAME (MUST BE SPELLED EXACTLY): "${businessName}"
+Business description: ${descriptionText}
+Brand personality: ${personalityText}
+Colors: ${brandColors.primary}, ${brandColors.secondary}, ${brandColors.accent}
+
+STRICT REQUIREMENTS:
+- Logo must contain ONLY: business name + one very small simple icon
+- Icon must be: line art, geometric shape, or single simple shape
+- NO detailed illustrations, NO mascots, NO characters, NO complex graphics
+- NO gradients (unless very simple), NO 3D effects, NO multiple icons
+- NO busy compositions
+- Clean, minimal, flat design
+- Modern sans-serif typography
+- Balanced spacing and white space
+- Professional and trustworthy look
+- Easy to recreate in Canva, Adobe Express, or Figma
+- White or transparent background
+
+CRITICAL: Verify spelling is EXACTLY "${businessName}" letter-by-letter.`;
 
   const variations = [
-    'minimal geometric icon with clean typography',
-    'simple abstract lettermark, ultra minimal',
-    'modern tech logo, simple shapes only'
+    'business name with one minimal geometric icon (circle, square, or triangle based)',
+    'business name with one simple line art icon',
+    'business name with one clean abstract symbol'
   ];
 
   const concepts: LogoConcept[] = [];
 
   for (let i = 0; i < variations.length; i++) {
     const variation = variations[i];
-    const fullPrompt = `${basePrompt} Style: ${variation}. Professional vector logo.`;
+    const fullPrompt = `${basePrompt}
+
+SPECIFIC VARIATION: ${variation}
+
+Remember: Keep it minimal, clean, and simple. Business name "${businessName}" spelled exactly + one small simple icon only.`;
 
     console.log(`Generating logo ${i + 1}/${variations.length}:`, variation);
     onProgress?.(i, variations.length);
@@ -394,10 +418,13 @@ export async function regenerateLogoWithChanges(
 REQUESTED CHANGES: ${changeRequest}
 
 CRITICAL REQUIREMENTS:
-1. The business name MUST be spelled EXACTLY as "${businessName}" - letter by letter, no typos
-2. Apply the requested changes while maintaining professional quality
-3. Keep the design clean and modern
-4. Verify spelling: "${businessName}"`;
+1. Business name MUST be spelled EXACTLY as "${businessName}" - letter by letter, no typos
+2. Apply the requested changes
+3. MAINTAIN minimal, clean, simple design
+4. Logo must still be: business name + ONE small simple icon only
+5. NO detailed illustrations, NO mascots, NO complex graphics
+6. Keep it easy to recreate in Canva/Figma
+7. Verify spelling: "${businessName}"`;
 
   const response = await openai.images.generate({
     model: 'dall-e-3',
