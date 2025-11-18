@@ -826,6 +826,49 @@ export default function Ideas() {
           </div>
         )}
 
+        {lastProgress && ideas.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-4 font-['Montserrat'] flex items-center gap-2">
+              <Briefcase className="text-[#2979FF]" size={28} />
+              In Progress
+            </h2>
+            <div className={`backdrop-blur-sm border rounded-2xl p-6 ${
+              lastProgress.isComplete
+                ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/30'
+                : 'bg-gradient-to-br from-[#2979FF]/20 to-purple-500/20 border-[#2979FF]/30'
+            }`}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 className={lastProgress.isComplete ? "text-green-400" : "text-[#06D6A0]"} size={20} />
+                    <h3 className="text-white font-bold text-lg">
+                      {lastProgress.ideaName}
+                    </h3>
+                  </div>
+                  <p className="text-gray-300 text-sm">
+                    {lastProgress.isComplete ? (
+                      'All stages complete!'
+                    ) : (
+                      <>Current stage: <span className="text-white font-semibold">{lastProgress.stageName}</span></>
+                    )}
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate(lastProgress.link)}
+                  className={`flex items-center gap-2 px-5 py-3 rounded-lg font-semibold transition-all duration-300 whitespace-nowrap ${
+                    lastProgress.isComplete
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-[#2979FF] text-white hover:bg-[#2979FF]/90'
+                  }`}
+                >
+                  {lastProgress.isComplete ? 'View Progress' : 'Continue Journey'}
+                  <ArrowRight size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid md:grid-cols-3 gap-8">
           {ideas.map((idea) => (
             <div
