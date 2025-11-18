@@ -577,7 +577,8 @@ export async function generateMarketingContent(params: {
           targetAudience,
           brandVoice,
           tagline,
-          contactInfo
+          contactInfo,
+          openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY
         }),
       });
 

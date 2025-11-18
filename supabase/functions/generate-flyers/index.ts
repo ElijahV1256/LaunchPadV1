@@ -24,14 +24,15 @@ Deno.serve(async (req: Request) => {
       targetAudience,
       brandVoice,
       tagline,
-      contactInfo
+      contactInfo,
+      openaiApiKey
     } = body;
 
     console.log('Received request:', { businessName, brandColors });
 
-    const openaiKey = Deno.env.get("OPENAI_API_KEY");
+    const openaiKey = openaiApiKey || Deno.env.get("OPENAI_API_KEY");
     if (!openaiKey) {
-      console.error('OPENAI_API_KEY not found in environment');
+      console.error('OPENAI_API_KEY not found in environment or request');
       throw new Error('OpenAI API key not configured');
     }
 
