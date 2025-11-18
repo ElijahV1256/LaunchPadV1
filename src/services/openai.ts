@@ -337,10 +337,7 @@ export async function generateLogoConcepts(
   const variations = [
     'minimal geometric icon with clean typography',
     'simple abstract lettermark, ultra minimal',
-    'modern tech logo, simple shapes only',
-    'sleek contemporary design, maximum simplicity',
-    'minimalist symbol with modern sans-serif text',
-    'clean linear design, professional and modern'
+    'modern tech logo, simple shapes only'
   ];
 
   const concepts: LogoConcept[] = [];

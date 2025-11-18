@@ -573,7 +573,7 @@ export default function BrandIdentity() {
     }
 
     setGeneratingLogoConcepts(true);
-    setLogoProgress({ current: 0, total: 6 });
+    setLogoProgress({ current: 0, total: 3 });
 
     try {
       const businessDescription = logoAnswers.businessDescription.trim()
