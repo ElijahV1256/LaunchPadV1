@@ -14,7 +14,8 @@ import {
   Mail,
   MessageCircle,
   Sparkles,
-  Download
+  Download,
+  RefreshCw
 } from 'lucide-react';
 import { generateMarketingContent } from '../services/openai';
 
@@ -786,6 +787,36 @@ export default function MarketingAssets() {
                             ) : null}
                           </div>
                         ))}
+
+                        <div className="mt-6 pt-6 border-t border-white/10">
+                          <button
+                            onClick={() => {
+                              if (confirm('Generate new flyers? This will replace your current flyers.')) {
+                                generateFlyers();
+                              }
+                            }}
+                            disabled={generating}
+                            className="px-6 py-2 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          >
+                            <RefreshCw size={18} />
+                            Regenerate All Flyers
+                          </button>
+                          {generating && (
+                            <div className="space-y-2 mt-4">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-300">{generatingStep}</span>
+                                <span className="text-[#2979FF] font-semibold">{progress}%</span>
+                              </div>
+                              <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                                <div
+                                  className="bg-gradient-to-r from-[#2979FF] to-[#06D6A0] h-full transition-all duration-300"
+                                  style={{ width: `${progress}%` }}
+                                ></div>
+                              </div>
+                              <p className="text-gray-400 text-xs">Feel free to explore other sections while this generates.</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
