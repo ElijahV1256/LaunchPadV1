@@ -25,7 +25,8 @@ Deno.serve(async (req: Request) => {
       brandVoice,
       tagline,
       contactInfo,
-      openaiApiKey
+      openaiApiKey,
+      logoUrl
     } = body;
 
     console.log('Received request:', { businessName, brandColors });
@@ -43,24 +44,28 @@ Deno.serve(async (req: Request) => {
     const descriptionText = businessDescription || businessName;
     const voiceText = brandVoice || "professional, approachable, and trustworthy";
     const audienceText = targetAudience || "general customers";
+    const contactText = contactInfo || `${businessName}\nwww.yourbusiness.com\n(555) 123-4567`;
 
     const flyerTypes = [
       {
         title: "EDDM Postcard",
         purpose: "Direct mail campaign to local residents",
         size: "6x11 inches",
+        imageSize: "1792x1024" as const,
         callToAction: "Call Today for Your Free Quote"
       },
       {
         title: "Social Media Post",
         purpose: "Instagram/Facebook post to drive engagement",
         size: "1080x1080px square",
+        imageSize: "1024x1024" as const,
         callToAction: "Book Now - Limited Spots Available"
       },
       {
         title: "Service Flyer",
         purpose: "Print flyer for community boards and handouts",
         size: "8.5x11 inches",
+        imageSize: "1024x1792" as const,
         callToAction: "Get Started Today"
       }
     ];
@@ -70,94 +75,53 @@ Deno.serve(async (req: Request) => {
     for (let i = 0; i < flyerTypes.length; i++) {
       const flyerType = flyerTypes[i];
 
-      const prompt = `You are a professional brand designer and copywriter.
-Using the brand information provided, create a clean, modern flyer template for "${businessName}".
+      try {
+        // Step 1: Generate clean text content with GPT-4
+        const contentPrompt = `You are a professional brand copywriter.
+Create clean, compelling flyer content for "${businessName}".
 
 BRAND INFORMATION:
-Business: ${businessName}
-Tagline: ${tagline || "Quality Service You Can Trust"}
-Description: ${descriptionText}
-Target Audience: ${audienceText}
-Brand Voice: ${voiceText}
-Primary Color: ${brandColors.primary}
-Secondary Color: ${brandColors.secondary || brandColors.primary}
-Accent Color: ${brandColors.accent || brandColors.primary}
+- Business: ${businessName}
+- Tagline: ${tagline || "Quality Service You Can Trust"}
+- Description: ${descriptionText}
+- Target Audience: ${audienceText}
+- Brand Voice: ${voiceText}
+- Flyer Purpose: ${flyerType.purpose}
+- Call to Action: ${flyerType.callToAction}
 
-TEMPLATE TYPE: ${flyerType.title} (${flyerType.purpose})
-SIZE: ${flyerType.size}
+CONTENT REQUIREMENTS:
+- Headline: Powerful, attention-grabbing (5-8 words max)
+- Subheadline: Supporting text that reinforces the headline (8-12 words)
+- Body Content: Brief description of value proposition (2-3 sentences, 30-50 words)
+- Features: 3-4 key benefits or services (each 2-5 words)
+- CTA: Use the provided call to action
+- Footer: Contact info (use: ${contactText})
 
-Create a complete ${flyerType.title} template following these STRICT REQUIREMENTS:
-
-1. HEADLINE
-- Short, bold, benefit-driven (5-8 words max)
-- Uses brand header font
-- Follows brand voice: ${voiceText}
-
-2. SUB-HEADLINE
-- One sentence that supports the headline
-- Clean and easy to understand
-
-3. MAIN BODY CONTENT
-- 2-5 lines describing the offer, service, or message
-- Perfect grammar
-- Uses the brand's tone: ${voiceText}
-- No long paragraphs — keep spacing clean
-
-4. FEATURES / BENEFITS SECTION
-- 3-5 bullet points
-- Clear and concise
-- Directly tied to the business
-
-5. CALL TO ACTION
-- Simple and action-oriented: "${flyerType.callToAction}"
-- Follows brand color rules
-
-6. FOOTER / CONTACT INFO
-- Business name: ${businessName}
-${contactInfo ? `- Contact: ${contactInfo}` : "- Website: www.yourbusiness.com\n- Phone: (555) 123-4567"}
-- Formatted cleanly and consistently
-
-DESIGN RULES TO FOLLOW:
-✓ Use brand color palette only (Primary: ${brandColors.primary}, Secondary: ${brandColors.secondary || brandColors.primary}, Accent: ${brandColors.accent || brandColors.primary})
-✓ Use brand fonts only (Header: Bold Sans-Serif, Body: Clean Sans-Serif)
-✓ Simple shapes: rectangles, clean lines, soft corners
-✓ Plenty of spacing and margins
-✓ Keep everything symmetrical and aligned
-✓ No clutter, no busy backgrounds
-✓ Use minimal icons consistent with brand
-
-✗ NEVER add extra colors outside brand guide
-✗ NEVER use overly creative or messy designs
-✗ NEVER repeat sentences or add unnecessary filler
-
-OUTPUT FORMAT - Provide as structured JSON:
+OUTPUT FORMAT - Return ONLY valid JSON:
 {
   "headline": "Your headline here",
   "subheadline": "Your subheadline here",
-  "bodyContent": "2-5 lines of body text here",
-  "features": ["Feature 1", "Feature 2", "Feature 3"],
-  "cta": "Call to action text",
-  "footer": "Contact information formatted",
-  "layoutNotes": "Brief description of layout structure and spacing",
-  "colorNotes": "Which colors to use where (Primary for X, Secondary for Y, etc.)",
-  "fontNotes": "Which fonts to use where (Header font for X, Body font for Y)"
+  "bodyContent": "2-3 sentences of body text",
+  "features": ["Feature 1", "Feature 2", "Feature 3", "Feature 4"],
+  "cta": "${flyerType.callToAction}",
+  "footer": "${contactText}"
 }
 
 Return ONLY valid JSON, no markdown formatting.`;
 
-      try {
-        const response = await openai.chat.completions.create({
+        console.log(`Generating content for ${flyerType.title}...`);
+
+        const contentResponse = await openai.chat.completions.create({
           model: "gpt-4o-mini",
-          messages: [{ role: "user", content: prompt }],
+          messages: [{ role: "user", content: contentPrompt }],
           temperature: 0.7,
-          max_tokens: 1000,
+          max_tokens: 800,
         });
 
-        const content = response.choices[0].message.content?.trim() || '{}';
+        const content = contentResponse.choices[0].message.content?.trim() || '{}';
 
         let templateData;
         try {
-          // Remove markdown code blocks if present
           const jsonContent = content.replace(/```json\n?|\n?```/g, '').trim();
           templateData = JSON.parse(jsonContent);
         } catch (e) {
@@ -165,53 +129,114 @@ Return ONLY valid JSON, no markdown formatting.`;
           templateData = {
             headline: "Experience Quality Service",
             subheadline: `Trust ${businessName} for all your needs`,
-            bodyContent: `We provide exceptional ${descriptionText} with a focus on quality and customer satisfaction.`,
+            bodyContent: `We provide exceptional service with a focus on quality and customer satisfaction. Our team is dedicated to exceeding your expectations.`,
             features: [
               "Professional Service",
               "Competitive Pricing",
-              "Customer Focused"
+              "Customer Focused",
+              "Quality Guaranteed"
             ],
             cta: flyerType.callToAction,
-            footer: `${businessName}\nwww.yourbusiness.com\n(555) 123-4567`,
-            layoutNotes: "Center-aligned with clear hierarchy",
-            colorNotes: "Primary color for headline and CTA",
-            fontNotes: "Bold header font for headline, clean body font for content"
+            footer: contactText,
           };
+        }
+
+        // Step 2: Generate actual flyer image with DALL·E 3
+        const primaryColor = brandColors?.primary || '#2979FF';
+        const secondaryColor = brandColors?.secondary || '#06D6A0';
+        const accentColor = brandColors?.accent || '#FF6B6B';
+
+        const imagePrompt = `Create a professional, modern flyer design.
+
+DESIGN SPECIFICATIONS:
+- Format: ${flyerType.size}
+- Style: Clean, minimal, modern, and professional
+- Layout: Structured grid with plenty of white space
+
+COLOR PALETTE (USE ONLY THESE EXACT COLORS):
+- Primary: ${primaryColor}
+- Secondary: ${secondaryColor}
+- Accent: ${accentColor}
+- Use white or light gray for backgrounds
+- Use black or dark gray for body text
+
+CONTENT LAYOUT (TOP TO BOTTOM):
+1. HEADER: Large bold headline in primary color: "${templateData.headline}"
+2. SUBHEADER: Medium text in dark gray: "${templateData.subheadline}"
+3. BODY: Clean paragraphs with good spacing: "${templateData.bodyContent}"
+4. FEATURES: Display as bullet points with accent color icons:
+${templateData.features?.map((f: string) => `   • ${f}`).join('\n') || '   • Professional Service\n   • Quality Guaranteed\n   • Customer Focused'}
+5. CTA BUTTON: Large button in accent color with white text: "${templateData.cta}"
+6. FOOTER: Small text at bottom: "${templateData.footer.replace(/\n/g, ' | ')}"
+
+DESIGN RULES (CRITICAL):
+- Use ONLY the specified brand colors
+- Simple, minimal layout with no clutter
+- NO gradients, NO patterns, NO busy backgrounds
+- Clean rectangular sections to organize content
+- Strong visual hierarchy with clear spacing
+- Professional sans-serif fonts
+- Generous margins and padding (at least 10% on all sides)
+- High contrast between text and background
+- NO extra illustrations or decorative elements
+- Focus on typography and clean layout`;
+
+        console.log(`Generating image for ${flyerType.title}...`);
+
+        const imageResponse = await openai.images.generate({
+          model: "dall-e-3",
+          prompt: imagePrompt,
+          n: 1,
+          size: flyerType.imageSize,
+          quality: "standard",
+        });
+
+        const imageUrl = imageResponse.data[0]?.url;
+        if (!imageUrl) {
+          throw new Error('No image URL returned from DALL·E');
         }
 
         flyers.push({
           title: flyerType.title,
-          description: `A professionally designed ${flyerType.title.toLowerCase()} template (${flyerType.size}) following your brand guidelines.`,
+          description: `${flyerType.purpose} (${flyerType.size})`,
           template: templateData,
+          imageUrl: imageUrl,
           size: flyerType.size,
           purpose: flyerType.purpose,
           canvaUrl: "https://www.canva.com/create/flyers/",
         });
 
-        await new Promise(resolve => setTimeout(resolve, 500));
+        console.log(`Successfully generated ${flyerType.title}`);
+
+        // Rate limiting delay between DALL·E calls
+        if (i < flyerTypes.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
       } catch (error: any) {
-        console.error(`Error generating template ${i + 1}:`, error);
+        console.error(`Error generating ${flyerType.title}:`, error);
+
+        // Add fallback template without image
         flyers.push({
           title: flyerType.title,
           description: `Template for ${flyerType.title.toLowerCase()} (${flyerType.size})`,
           template: {
             headline: "Experience Quality Service",
             subheadline: `Trust ${businessName} for all your needs`,
-            bodyContent: `We provide exceptional service with a focus on quality and customer satisfaction.`,
+            bodyContent: `We provide exceptional service with a focus on quality and customer satisfaction. Our team is dedicated to exceeding your expectations.`,
             features: [
               "Professional Service",
               "Competitive Pricing",
-              "Customer Focused"
+              "Customer Focused",
+              "Quality Guaranteed"
             ],
             cta: flyerType.callToAction,
-            footer: `${businessName}\nwww.yourbusiness.com\n(555) 123-4567`,
-            layoutNotes: "Center-aligned with clear hierarchy",
-            colorNotes: "Primary color for headline and CTA",
-            fontNotes: "Bold header font for headline, clean body font for content"
+            footer: contactText,
           },
           size: flyerType.size,
           purpose: flyerType.purpose,
           canvaUrl: "https://www.canva.com/create/flyers/",
+          error: error.message
         });
       }
     }

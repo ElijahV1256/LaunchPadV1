@@ -578,6 +578,7 @@ export async function generateMarketingContent(params: {
           brandVoice,
           tagline,
           contactInfo,
+          logoUrl,
           openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY
         }),
       });

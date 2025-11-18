@@ -13,7 +13,8 @@ import {
   Copy,
   Mail,
   MessageCircle,
-  Sparkles
+  Sparkles,
+  Download
 } from 'lucide-react';
 import { generateMarketingContent } from '../services/openai';
 
@@ -537,25 +538,40 @@ export default function MarketingAssets() {
                               </div>
                             </div>
 
-                            {flyer.template ? (
+                            {flyer.imageUrl ? (
                               <div className="space-y-6">
-                                {/* Brand Colors & Logo Section */}
-                                <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                                  <label className="text-xs text-gray-400 uppercase tracking-wide mb-3 block">Brand Assets</label>
-                                  <div className="flex items-center gap-4 flex-wrap">
-                                    {/* Logo */}
-                                    {brandData?.logo_data?.selected?.imageUrl && (
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-xs text-gray-500">Logo:</span>
-                                        <div className="bg-white p-2 rounded-lg">
-                                          <img
-                                            src={brandData.logo_data.selected.imageUrl}
-                                            alt="Brand Logo"
-                                            className="h-12 w-auto"
-                                          />
-                                        </div>
-                                      </div>
-                                    )}
+                                {/* Generated Flyer Image */}
+                                <div className="rounded-lg overflow-hidden border-2 border-white/20 bg-white">
+                                  <img
+                                    src={flyer.imageUrl}
+                                    alt={flyer.title}
+                                    className="w-full h-auto"
+                                  />
+                                </div>
+
+                                {/* Text Content Details (Collapsible) */}
+                                <details className="bg-white/5 border border-white/10 rounded-lg">
+                                  <summary className="px-4 py-3 cursor-pointer text-sm font-semibold text-white hover:bg-white/5 transition-colors">
+                                    View Text Content & Brand Assets
+                                  </summary>
+                                  <div className="p-4 space-y-4 border-t border-white/10">
+                                    {/* Brand Colors & Logo Section */}
+                                    <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                                      <label className="text-xs text-gray-400 uppercase tracking-wide mb-3 block">Brand Assets</label>
+                                      <div className="flex items-center gap-4 flex-wrap">
+                                        {/* Logo */}
+                                        {brandData?.logo_data?.selected?.imageUrl && (
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-500">Logo:</span>
+                                            <div className="bg-white p-2 rounded-lg">
+                                              <img
+                                                src={brandData.logo_data.selected.imageUrl}
+                                                alt="Brand Logo"
+                                                className="h-12 w-auto"
+                                              />
+                                            </div>
+                                          </div>
+                                        )}
 
                                     {/* Color Palette */}
                                     <div className="flex items-center gap-2">
@@ -683,30 +699,45 @@ export default function MarketingAssets() {
                                   <div className="text-gray-400 text-sm whitespace-pre-line">{flyer.template.footer}</div>
                                 </div>
 
-                                {/* Design Notes */}
-                                <div className="border-t border-white/10 pt-4 space-y-3">
-                                  <div>
-                                    <label className="text-xs text-gray-400 uppercase tracking-wide mb-1 block">Layout Notes</label>
-                                    <p className="text-gray-500 text-xs">{flyer.template.layoutNotes}</p>
+                                {flyer.template.layoutNotes && (
+                                  <div className="border-t border-white/10 pt-4 space-y-3">
+                                    <div>
+                                      <label className="text-xs text-gray-400 uppercase tracking-wide mb-1 block">Layout Notes</label>
+                                      <p className="text-gray-500 text-xs">{flyer.template.layoutNotes}</p>
+                                    </div>
+                                    {flyer.template.colorNotes && (
+                                      <div>
+                                        <label className="text-xs text-gray-400 uppercase tracking-wide mb-1 block">Color Usage</label>
+                                        <p className="text-gray-500 text-xs">{flyer.template.colorNotes}</p>
+                                      </div>
+                                    )}
+                                    {flyer.template.fontNotes && (
+                                      <div>
+                                        <label className="text-xs text-gray-400 uppercase tracking-wide mb-1 block">Font Usage</label>
+                                        <p className="text-gray-500 text-xs">{flyer.template.fontNotes}</p>
+                                      </div>
+                                    )}
                                   </div>
-                                  <div>
-                                    <label className="text-xs text-gray-400 uppercase tracking-wide mb-1 block">Color Usage</label>
-                                    <p className="text-gray-500 text-xs">{flyer.template.colorNotes}</p>
-                                  </div>
-                                  <div>
-                                    <label className="text-xs text-gray-400 uppercase tracking-wide mb-1 block">Font Usage</label>
-                                    <p className="text-gray-500 text-xs">{flyer.template.fontNotes}</p>
-                                  </div>
-                                </div>
+                                )}
                               </div>
+                                  </div>
+                                </details>
 
                               <div className="flex flex-wrap gap-2 mt-4">
+                                <a
+                                  href={flyer.imageUrl}
+                                  download={`${flyer.title.replace(/\s+/g, '-')}.png`}
+                                  className="px-4 py-2 bg-[#06D6A0] text-white rounded-lg text-sm font-semibold hover:bg-[#06D6A0]/90 transition-colors flex items-center gap-2"
+                                >
+                                  <Download size={16} />
+                                  Download PNG
+                                </a>
                                 <button
                                   onClick={() => window.open(flyer.canvaUrl, '_blank')}
                                   className="px-4 py-2 bg-[#00C4CC] text-white rounded-lg text-sm font-semibold hover:bg-[#00C4CC]/90 transition-colors flex items-center gap-2"
                                 >
                                   <FileText size={16} />
-                                  Create in Canva
+                                  Edit in Canva
                                 </button>
                                 <button
                                   onClick={() => {
@@ -718,11 +749,11 @@ export default function MarketingAssets() {
                                   className="px-4 py-2 bg-white/10 text-white rounded-lg text-sm font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
                                 >
                                   <Copy size={16} />
-                                  {copiedIndex === idx ? 'Copied!' : 'Copy Template'}
+                                  {copiedIndex === idx ? 'Copied!' : 'Copy Text'}
                                 </button>
                               </div>
                             </div>
-                            ) : flyer.imageUrl ? (
+                            ) : flyer.template ? (
                               <div>
                                 <div className="mb-4 rounded-lg overflow-hidden border border-white/20">
                                   <img
