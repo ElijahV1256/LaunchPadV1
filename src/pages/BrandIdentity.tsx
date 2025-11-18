@@ -29,6 +29,7 @@ interface BrandData {
   id: string;
   business_names: NameOption[];
   selected_name: string | null;
+  selected_tagline?: string | null;
   brand_colors: {
     primary?: string;
     secondary?: string;
@@ -85,6 +86,7 @@ export default function BrandIdentity() {
   const [generatingPersonality, setGeneratingPersonality] = useState(false);
   const [generatingIndustry, setGeneratingIndustry] = useState(false);
   const [generatingStyle, setGeneratingStyle] = useState(false);
+  const [generatingTagline, setGeneratingTagline] = useState(false);
   const [uploadedLogoUrl, setUploadedLogoUrl] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -452,11 +454,15 @@ export default function BrandIdentity() {
         newCompletedSteps.push('generate-names');
       }
 
+      const selectedNameOption = updatedNames.find(n => n.name === name);
+      const taglineToUse = selectedNameOption?.tagline || null;
+
       const { error: updateError } = await supabase
         .from('brand_identity')
         .update({
           business_names: updatedNames,
           selected_name: name,
+          selected_tagline: taglineToUse,
           completed_steps: newCompletedSteps,
           updated_at: new Date().toISOString(),
         })
@@ -468,9 +474,44 @@ export default function BrandIdentity() {
         return;
       }
 
-      setData({ ...data!, business_names: updatedNames, selected_name: name, completed_steps: newCompletedSteps });
+      setData({ ...data!, business_names: updatedNames, selected_name: name, selected_tagline: taglineToUse, completed_steps: newCompletedSteps });
     } catch (err) {
       console.error('Error selecting name:', err);
+    }
+  };
+
+  const handleGenerateTagline = async () => {
+    if (!data?.selected_name) {
+      alert('Please select a business name first');
+      return;
+    }
+
+    setGeneratingTagline(true);
+    try {
+      const businessDesc = logoAnswers.businessDescription || offerDescription || `A business called ${data.selected_name}`;
+      const audience = logoAnswers.targetAudience || targetAudience;
+
+      const tagline = await generateSlogan(
+        data.selected_name,
+        businessDesc,
+        audience,
+        logoAnswers.brandPersonality
+      );
+
+      await supabase
+        .from('brand_identity')
+        .update({
+          selected_tagline: tagline,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', data.id);
+
+      setData({ ...data, selected_tagline: tagline });
+    } catch (err) {
+      console.error('Error generating tagline:', err);
+      alert('Failed to generate tagline. Please try again.');
+    } finally {
+      setGeneratingTagline(false);
     }
   };
 
@@ -1172,6 +1213,38 @@ export default function BrandIdentity() {
                         </button>
                       </div>
                     ))}
+
+                    {data.selected_name && (
+                      <div className="mt-4 p-4 bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <div className="text-white font-bold text-lg mb-2">{data.selected_name}</div>
+                            {data.selected_tagline ? (
+                              <div className="text-gray-300 italic text-sm">"{data.selected_tagline}"</div>
+                            ) : (
+                              <div className="text-gray-400 text-sm">No tagline yet</div>
+                            )}
+                          </div>
+                          <button
+                            onClick={handleGenerateTagline}
+                            disabled={generatingTagline}
+                            className="px-4 py-2 bg-[#2979FF] text-white rounded-lg text-sm font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                          >
+                            {generatingTagline ? (
+                              <>
+                                <Loader2 size={14} className="animate-spin" />
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw size={14} />
+                                {data.selected_tagline ? 'Regenerate' : 'Generate'} Tagline
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1725,12 +1798,17 @@ export default function BrandIdentity() {
                               : 'bg-white/5 border border-white/10 hover:bg-white/10'
                           }`}
                         >
-                          <div className="w-full aspect-square mb-3 bg-white rounded-lg overflow-hidden">
-                            <img
-                              src={concept.imageUrl}
-                              alt={concept.name}
-                              className="w-full h-full object-contain"
-                            />
+                          <div className="w-full aspect-square mb-3 bg-white rounded-lg overflow-hidden flex items-center justify-center p-4">
+                            <div className="text-center">
+                              <img
+                                src={concept.imageUrl}
+                                alt={concept.name}
+                                className="w-full h-auto object-contain mb-2"
+                              />
+                              {data.selected_tagline && (
+                                <p className="text-xs text-gray-600 italic mt-2">"{data.selected_tagline}"</p>
+                              )}
+                            </div>
                           </div>
                           <p className="text-sm font-semibold text-white text-center mb-1">{concept.name}</p>
                           <p className="text-xs text-gray-400 text-center">{concept.description}</p>
