@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Home, CheckCircle2, Circle, Loader2, Sparkles, RefreshCw, CreditCard as Edit2, X, Download, Upload, Bookmark, BookmarkCheck } from 'lucide-react';
-import { generateLogoConcepts, regenerateLogoWithChanges, generateSlogan } from '../services/openai';
+import { generateLogoConcepts, regenerateLogoWithChanges, generateSlogan, generateCompleteBrandFoundation } from '../services/openai';
 import { downloadBrandGuide } from '../utils/brandGuide';
 
 interface ColorPalette {
@@ -749,11 +749,19 @@ export default function BrandIdentity() {
       const businessDesc = logoAnswers.businessDescription || offerDescription || `A business called ${data.selected_name}`;
       const audience = logoAnswers.targetAudience || targetAudience;
 
-      const slogan = await generateSlogan(
+      const slogan = data.selected_tagline || await generateSlogan(
         data.selected_name,
         businessDesc,
         audience,
         logoAnswers.brandPersonality
+      );
+
+      const brandFoundation = await generateCompleteBrandFoundation(
+        data.selected_name,
+        businessDesc,
+        audience,
+        logoAnswers.brandPersonality,
+        logoAnswers.industry
       );
 
       downloadBrandGuide({
@@ -769,6 +777,7 @@ export default function BrandIdentity() {
         targetAudience: audience,
         brandPersonality: logoAnswers.brandPersonality,
         industry: logoAnswers.industry,
+        brandFoundation: brandFoundation,
       });
     } catch (err) {
       console.error('Error generating brand guide:', err);

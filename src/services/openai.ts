@@ -478,6 +478,76 @@ Return ONLY the slogan text, nothing else.`;
   return response.choices[0].message.content?.trim() || 'Your Business, Your Way';
 }
 
+export async function generateCompleteBrandFoundation(
+  businessName: string,
+  businessDescription: string,
+  targetAudience?: string,
+  brandPersonality?: string,
+  industry?: string
+): Promise<{
+  mission: string;
+  vision: string;
+  coreValues: string[];
+  uvp: string;
+  voiceDescription: string;
+  voiceExamples: string[];
+  elevatorPitch: string;
+  messagingDos: string[];
+  messagingDonts: string[];
+}> {
+  const audienceText = targetAudience ? `Target audience: ${targetAudience}.` : '';
+  const personalityText = brandPersonality ? `Brand personality: ${brandPersonality}.` : '';
+  const industryText = industry ? `Industry: ${industry}.` : '';
+
+  const prompt = `You are an expert brand strategist. Create comprehensive brand foundation content for "${businessName}".
+
+Business: ${businessDescription}
+${audienceText}
+${personalityText}
+${industryText}
+
+Generate the following in JSON format:
+{
+  "mission": "A clear mission statement (1-2 sentences about what the business does and why)",
+  "vision": "An inspiring vision statement (1-2 sentences about future goals)",
+  "coreValues": ["Value 1", "Value 2", "Value 3", "Value 4", "Value 5"] (5 core values),
+  "uvp": "A unique value proposition (1 sentence explaining what makes this business different)",
+  "voiceDescription": "Brand voice description (professional, friendly, etc. - 1 sentence)",
+  "voiceExamples": ["Example 1", "Example 2"] (2 sample sentences in the brand voice),
+  "elevatorPitch": "A compelling elevator pitch (2-3 sentences)",
+  "messagingDos": ["Do 1", "Do 2", "Do 3"] (3 messaging do's),
+  "messagingDonts": ["Don't 1", "Don't 2", "Don't 3"] (3 messaging don'ts)
+}
+
+Return ONLY valid JSON, no markdown formatting.`;
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.7,
+    max_tokens: 800,
+  });
+
+  const content = response.choices[0].message.content?.trim() || '{}';
+
+  try {
+    return JSON.parse(content);
+  } catch (e) {
+    console.error('Failed to parse brand foundation JSON:', e);
+    return {
+      mission: `To provide exceptional ${businessDescription}`,
+      vision: `To become a leading provider in our industry`,
+      coreValues: ['Quality', 'Integrity', 'Innovation', 'Customer Focus', 'Excellence'],
+      uvp: `Delivering outstanding value through ${businessDescription}`,
+      voiceDescription: 'Professional, approachable, and trustworthy',
+      voiceExamples: ['We make it easy for you.', 'Your success is our priority.'],
+      elevatorPitch: `${businessName} helps ${targetAudience || 'customers'} by providing ${businessDescription}. We stand out through our commitment to quality and customer satisfaction.`,
+      messagingDos: ['Be clear and concise', 'Focus on customer benefits', 'Maintain consistency'],
+      messagingDonts: ['Use jargon', 'Make false promises', 'Ignore customer feedback']
+    };
+  }
+}
+
 export async function generateMarketingContent(params: {
   type: 'flyers' | 'social_posts' | 'message_templates' | 'ad_strategy';
   businessName: string;
