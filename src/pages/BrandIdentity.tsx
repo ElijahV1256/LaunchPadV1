@@ -79,6 +79,7 @@ export default function BrandIdentity() {
     industry: '',
     preferredStyle: '',
   });
+  const [logoSuggestions, setLogoSuggestions] = useState('');
   const [generatingGuide, setGeneratingGuide] = useState(false);
   const [generatingOffer, setGeneratingOffer] = useState(false);
   const [generatingAudience, setGeneratingAudience] = useState(false);
@@ -628,6 +629,7 @@ export default function BrandIdentity() {
         logoAnswers.brandPersonality && `Brand personality: ${logoAnswers.brandPersonality}`,
         logoAnswers.industry && `Industry: ${logoAnswers.industry}`,
         logoAnswers.preferredStyle && `Preferred style: ${logoAnswers.preferredStyle}`,
+        logoSuggestions.trim() && `Additional requirements: ${logoSuggestions}`,
       ].filter(Boolean).join('. ');
 
       console.log('Calling logo generation...');
@@ -1718,6 +1720,20 @@ export default function BrandIdentity() {
                       </div>
                     </div>
 
+                    <div>
+                      <label className="text-sm text-gray-400 mb-2 block">Additional Suggestions/Changes</label>
+                      <textarea
+                        value={logoSuggestions}
+                        onChange={(e) => setLogoSuggestions(e.target.value)}
+                        placeholder="E.g., include a specific element, avoid certain shapes, prefer minimalist style, use geometric shapes, etc."
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none"
+                        rows={3}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Describe any specific requirements or changes you'd like in your logo design
+                      </p>
+                    </div>
+
                     <div className="flex gap-3 pt-2">
                       <button
                         onClick={handleGenerateLogoConcepts}
@@ -1736,6 +1752,7 @@ export default function BrandIdentity() {
                             industry: '',
                             preferredStyle: '',
                           });
+                          setLogoSuggestions('');
                         }}
                         className="px-4 py-2 bg-white/5 text-white rounded-lg text-sm hover:bg-white/10 transition-colors"
                       >
