@@ -76,46 +76,46 @@ Deno.serve(async (req: Request) => {
       const flyerType = flyerTypes[i];
 
       try {
-        // Step 1: Generate clean text content with GPT-4
-        const contentPrompt = `You are a professional brand copywriter.
-Create clean, compelling flyer content for "${businessName}".
+        // Step 1: Text Cleanup & Brand Enforcement with GPT-4
+        const contentPrompt = `You are a professional brand designer and copywriter.
 
-BRAND INFORMATION:
-- Business: ${businessName}
+BRAND GUIDE:
+- Business Name: ${businessName}
 - Tagline: ${tagline || "Quality Service You Can Trust"}
-- Description: ${descriptionText}
-- Target Audience: ${audienceText}
 - Brand Voice: ${voiceText}
-- Flyer Purpose: ${flyerType.purpose}
-- Call to Action: ${flyerType.callToAction}
+- Target Audience: ${audienceText}
+- Business Description: ${descriptionText}
 
-CONTENT REQUIREMENTS:
-- Headline: Powerful, attention-grabbing (5-8 words max)
-- Subheadline: Supporting text that reinforces the headline (8-12 words)
-- Body Content: Brief description of value proposition (2-3 sentences, 30-50 words)
-- Features: 3-4 key benefits or services (each 2-5 words)
-- CTA: Use the provided call to action
-- Footer: Contact info (use: ${contactText})
+TASK:
+Create flyer content for: ${flyerType.purpose}
+
+STRICT BRAND REQUIREMENTS:
+1. Correct ALL grammar and spelling
+2. Rewrite in the brand's voice: ${voiceText}
+3. Keep sentences short, clear, and professional
+4. Use brand-appropriate vocabulary and tone
+5. NO extra creativity - follow brand voice exactly
+6. Apply professional formatting
 
 OUTPUT FORMAT - Return ONLY valid JSON:
 {
-  "headline": "Your headline here",
-  "subheadline": "Your subheadline here",
-  "bodyContent": "2-3 sentences of body text",
-  "features": ["Feature 1", "Feature 2", "Feature 3", "Feature 4"],
+  "headline": "Powerful 5-8 word headline in brand voice",
+  "subheadline": "Supporting 8-12 word subheadline",
+  "body": "2-3 clear sentences (30-50 words) explaining value",
+  "features": ["Benefit 1 (2-5 words)", "Benefit 2", "Benefit 3", "Benefit 4"],
   "cta": "${flyerType.callToAction}",
   "footer": "${contactText}"
 }
 
-Return ONLY valid JSON, no markdown formatting.`;
+Return ONLY valid JSON with clean, brand-aligned text. No markdown.`;
 
-        console.log(`Generating content for ${flyerType.title}...`);
+        console.log(`Step 1: Cleaning text with brand voice for ${flyerType.title}...`);
 
         const contentResponse = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-4o",
           messages: [{ role: "user", content: contentPrompt }],
-          temperature: 0.7,
-          max_tokens: 800,
+          temperature: 0.3,
+          max_tokens: 600,
         });
 
         const content = contentResponse.choices[0].message.content?.trim() || '{}';
@@ -129,7 +129,7 @@ Return ONLY valid JSON, no markdown formatting.`;
           templateData = {
             headline: "Experience Quality Service",
             subheadline: `Trust ${businessName} for all your needs`,
-            bodyContent: `We provide exceptional service with a focus on quality and customer satisfaction. Our team is dedicated to exceeding your expectations.`,
+            body: `We provide exceptional service with a focus on quality and customer satisfaction. Our team is dedicated to exceeding your expectations.`,
             features: [
               "Professional Service",
               "Competitive Pricing",
@@ -141,45 +141,59 @@ Return ONLY valid JSON, no markdown formatting.`;
           };
         }
 
-        // Step 2: Generate actual flyer image with DALL·E 3
+        console.log(`Step 2: Generating flyer image with branded text for ${flyerType.title}...`);
+
+        // Step 2: Flyer Image Generation with DALL-E 3 (using cleaned, branded text)
         const primaryColor = brandColors?.primary || '#2979FF';
         const secondaryColor = brandColors?.secondary || '#06D6A0';
         const accentColor = brandColors?.accent || '#FF6B6B';
 
-        const imagePrompt = `Create a professional, modern flyer design.
+        const imagePrompt = `Professional flyer design using ONLY the branded text below.
 
-DESIGN SPECIFICATIONS:
-- Format: ${flyerType.size}
-- Style: Clean, minimal, modern, and professional
-- Layout: Structured grid with plenty of white space
+FORMAT: ${flyerType.size}
 
-COLOR PALETTE (USE ONLY THESE EXACT COLORS):
+BRAND COLORS (USE ONLY THESE):
 - Primary: ${primaryColor}
 - Secondary: ${secondaryColor}
 - Accent: ${accentColor}
-- Use white or light gray for backgrounds
-- Use black or dark gray for body text
 
-CONTENT LAYOUT (TOP TO BOTTOM):
-1. HEADER: Large bold headline in primary color: "${templateData.headline}"
-2. SUBHEADER: Medium text in dark gray: "${templateData.subheadline}"
-3. BODY: Clean paragraphs with good spacing: "${templateData.bodyContent}"
-4. FEATURES: Display as bullet points with accent color icons:
-${templateData.features?.map((f: string) => `   • ${f}`).join('\n') || '   • Professional Service\n   • Quality Guaranteed\n   • Customer Focused'}
-5. CTA BUTTON: Large button in accent color with white text: "${templateData.cta}"
-6. FOOTER: Small text at bottom: "${templateData.footer.replace(/\n/g, ' | ')}"
+LAYOUT (TOP TO BOTTOM):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. HEADLINE (Large, bold, primary color):
+"${templateData.headline}"
 
-DESIGN RULES (CRITICAL):
-- Use ONLY the specified brand colors
-- Simple, minimal layout with no clutter
-- NO gradients, NO patterns, NO busy backgrounds
-- Clean rectangular sections to organize content
-- Strong visual hierarchy with clear spacing
-- Professional sans-serif fonts
-- Generous margins and padding (at least 10% on all sides)
-- High contrast between text and background
-- NO extra illustrations or decorative elements
-- Focus on typography and clean layout`;
+2. SUBHEADLINE (Medium, dark gray):
+"${templateData.subheadline}"
+
+3. BODY (Clean paragraphs):
+"${templateData.body}"
+
+4. FEATURES (Bullet points, accent icons):
+${templateData.features?.map((f: string) => `• ${f}`).join('\n') || '• Professional Service\n• Quality Guaranteed\n• Customer Focused'}
+
+5. CTA (Large button, accent color):
+"${templateData.cta}"
+
+6. FOOTER (Small text):
+${templateData.footer.replace(/\n/g, ' | ')}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STRICT DESIGN RULES:
+✓ Use ONLY brand colors listed above
+✓ Clean, minimal layout
+✓ Large headline at top
+✓ Generous white space (10% margins minimum)
+✓ Clean rectangular blocks
+✓ Professional sans-serif typography
+✓ Strong visual hierarchy
+
+✗ NO gradients
+✗ NO busy backgrounds
+✗ NO extra decorations
+✗ NO patterns
+✗ NO illustrations
+
+Focus on clean typography and branded layout.`;
 
         console.log(`Generating image for ${flyerType.title}...`);
 
@@ -223,7 +237,7 @@ DESIGN RULES (CRITICAL):
           template: {
             headline: "Experience Quality Service",
             subheadline: `Trust ${businessName} for all your needs`,
-            bodyContent: `We provide exceptional service with a focus on quality and customer satisfaction. Our team is dedicated to exceeding your expectations.`,
+            body: `We provide exceptional service with a focus on quality and customer satisfaction. Our team is dedicated to exceeding your expectations.`,
             features: [
               "Professional Service",
               "Competitive Pricing",
