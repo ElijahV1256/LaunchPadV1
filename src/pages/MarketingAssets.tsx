@@ -906,6 +906,24 @@ export default function MarketingAssets() {
                             </button>
                           </div>
                         ))}
+
+                        <button
+                          onClick={generateSocialPosts}
+                          disabled={generating}
+                          className="w-full px-4 py-2 bg-[#2979FF]/20 text-[#2979FF] border border-[#2979FF]/30 rounded-lg text-sm font-semibold hover:bg-[#2979FF]/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {generating ? (
+                            <>
+                              <Loader2 size={16} className="animate-spin" />
+                              Regenerating...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw size={16} />
+                              Regenerate New Posts
+                            </>
+                          )}
+                        </button>
                       </div>
                     )}
                   </div>
