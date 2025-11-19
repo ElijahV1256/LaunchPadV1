@@ -45,6 +45,7 @@ interface WebsiteData {
     brandPersonality: string;
     industry: string;
     preferredStyle: string;
+    exampleWebsites?: string[];
   } | null;
   subdomain: string | null;
   payment_link: string | null;
@@ -83,6 +84,7 @@ export default function WebsiteBuilder() {
     brandPersonality: '',
     industry: '',
     preferredStyle: '',
+    exampleWebsites: ['', '', ''],
   });
   const [wixCopied, setWixCopied] = useState(false);
 
@@ -255,6 +257,7 @@ export default function WebsiteBuilder() {
             businessName: brandData.selected_name,
             ideaKey,
             designPreferences: data.design_preferences,
+            brandData: brandData,
             apiKey: import.meta.env.VITE_OPENAI_API_KEY,
           }),
         }
@@ -1003,6 +1006,29 @@ export default function WebsiteBuilder() {
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
                   placeholder="e.g., Modern and minimalist, bold and colorful, clean and professional..."
                 />
+              </div>
+
+              <div>
+                <label className="block text-white mb-2">Example Websites (Optional)</label>
+                <p className="text-gray-400 text-sm mb-3">
+                  Provide up to 3 example website URLs that you like for style inspiration.
+                </p>
+                <div className="space-y-2">
+                  {designAnswers.exampleWebsites.map((url, idx) => (
+                    <input
+                      key={idx}
+                      type="url"
+                      value={url}
+                      onChange={(e) => {
+                        const newExamples = [...designAnswers.exampleWebsites];
+                        newExamples[idx] = e.target.value;
+                        setDesignAnswers({ ...designAnswers, exampleWebsites: newExamples });
+                      }}
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] text-sm"
+                      placeholder={`Example website ${idx + 1} (e.g., https://example.com)`}
+                    />
+                  ))}
+                </div>
               </div>
 
               <div className="flex gap-3">

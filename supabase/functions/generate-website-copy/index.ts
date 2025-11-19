@@ -15,9 +15,9 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { businessName, ideaKey, apiKey } = await req.json();
+    const { businessName, ideaKey, designPreferences, brandData, apiKey } = await req.json();
 
-    console.log("Received request:", { businessName, ideaKey });
+    console.log("Received request:", { businessName, ideaKey, designPreferences });
 
     if (!businessName) {
       return new Response(
@@ -43,25 +43,110 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const prompt = `You are a conversion copywriter creating website copy for a business called "${businessName}".
+    // Build context from design preferences and brand data
+    const brandContext = brandData ? `
+BRAND GUIDE:
+- Brand Colors: Primary: ${brandData.brand_colors?.primary || 'N/A'}, Secondary: ${brandData.brand_colors?.secondary || 'N/A'}, Accent: ${brandData.brand_colors?.accent || 'N/A'}
+- Brand Voice: ${brandData.brand_voice || 'Professional and approachable'}
+- Target Audience: ${brandData.target_audience || 'General customers'}
+- Tagline: ${brandData.selected_tagline || 'N/A'}
+- Business Description: ${brandData.offer_description || 'N/A'}
+` : '';
 
-Create compelling, conversion-optimized copy for a one-page website including:
+    const designContext = designPreferences ? `
+DESIGN PREFERENCES:
+- Business Description: ${designPreferences.businessDescription || 'N/A'}
+- Target Audience: ${designPreferences.targetAudience || 'N/A'}
+- Brand Personality: ${designPreferences.brandPersonality || 'N/A'}
+- Industry: ${designPreferences.industry || 'N/A'}
+- Preferred Style: ${designPreferences.preferredStyle || 'N/A'}
+${designPreferences.exampleWebsites && designPreferences.exampleWebsites.filter((url: string) => url).length > 0 ? `- Example Websites for Inspiration: ${designPreferences.exampleWebsites.filter((url: string) => url).join(', ')}` : ''}
+` : '';
 
-1. Hero Headline: A punchy, benefit-driven headline (8-12 words)
-2. Hero Subheadline: Expands on the headline, addresses pain point (15-25 words)
-3. Benefits: 3 key benefits (each 10-15 words)
-4. Offer Section: Clear description of what they're buying (30-50 words)
-5. Pricing: Simple pricing presentation (20-30 words)
-6. Testimonials: 2 realistic customer testimonials with names
-7. FAQs: 3 common questions with answers
+    const prompt = `You are a professional web designer and brand strategist.
+Using the user's brand guide and chosen business${designPreferences?.exampleWebsites ? ', and example websites they provided' : ''}, create a clean, modern one-page website layout that follows the brand's colors, typography, voice, structure, and overall style.
+
+Business: "${businessName}"
+${brandContext}
+${designContext}
+
+${designPreferences?.exampleWebsites && designPreferences.exampleWebsites.filter((url: string) => url).length > 0 ? `
+WEBSITE STYLE INTERPRETATION:
+Analyze the example websites and identify key style elements like layout structure, spacing, typography, color usage, button/CTA style, and overall vibe. Combine these with the brand guide to create a consistent design direction.
+` : ''}
+
+Create a complete one-page website structure with the following sections:
+
+1. HERO SECTION
+   - Clean, bold headline (brand voice aligned, 8-12 words)
+   - Short sub-headline (15-25 words)
+   - Primary CTA button text
+   - Visual description (no image generation, just describe what image should show)
+
+2. ABOUT SECTION
+   - 2-3 sentence introduction to the business
+   - What they do / who they help
+   - Simple, friendly, brand-aligned tone
+
+3. FEATURES/SERVICES SECTION
+   - List 3-6 features or services with:
+     * Title
+     * One-sentence description
+     * Icon description (matching brand style)
+
+4. VALUE SECTION
+   - Main value proposition
+   - Key benefits
+   - Social proof hooks
+
+5. GALLERY/VISUAL SECTION
+   - Descriptions of what images should look like based on brand guide
+
+6. PRICING SECTION (if applicable)
+   - Simple tier layout (1-3 tiers)
+   - Clear bullet points for each
+   - CTA under each tier
+
+7. TESTIMONIALS SECTION
+   - 2-3 short sample testimonials in brand tone
+   - Include customer names
+
+8. FAQ SECTION
+   - 3-6 beginner-friendly FAQ questions and answers
+
+9. CONTACT SECTION
+   - Contact info layout description
+   - Contact form description
+   - CTA text
+
+CRITICAL REQUIREMENTS:
+- Perfect grammar throughout
+- Follow brand voice: ${brandData?.brand_voice || 'professional and approachable'}
+- Use brand colors: ${brandData?.brand_colors?.primary || 'blue'}, ${brandData?.brand_colors?.secondary || 'gray'}, ${brandData?.brand_colors?.accent || 'green'}
+- Keep language simple and motivating
+- No long paragraphs
+- Beginner-friendly
+- Clean formatting
 
 Return ONLY valid JSON in this exact format:
 {
+  "style_summary": "Brief description of the overall website style and design approach",
   "hero_headline": "string",
   "hero_subheadline": "string",
-  "benefits": ["string", "string", "string"],
-  "offer_section": "string",
-  "pricing": "string",
+  "hero_cta": "string",
+  "hero_visual_description": "string",
+  "about_text": "string (2-3 sentences)",
+  "features": [
+    {"title": "string", "description": "string", "icon_description": "string"},
+    {"title": "string", "description": "string", "icon_description": "string"},
+    {"title": "string", "description": "string", "icon_description": "string"}
+  ],
+  "value_proposition": "string",
+  "value_benefits": ["string", "string", "string"],
+  "gallery_description": "string",
+  "pricing_tiers": [
+    {"name": "string", "price": "string", "features": ["string", "string"], "cta": "string"}
+  ],
   "testimonials": [
     {"name": "string", "text": "string", "rating": 5},
     {"name": "string", "text": "string", "rating": 5}
@@ -70,7 +155,9 @@ Return ONLY valid JSON in this exact format:
     {"question": "string", "answer": "string"},
     {"question": "string", "answer": "string"},
     {"question": "string", "answer": "string"}
-  ]
+  ],
+  "contact_cta": "string",
+  "contact_description": "string"
 }`;
 
     console.log("Calling OpenAI API...");
@@ -81,18 +168,19 @@ Return ONLY valid JSON in this exact format:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
-            content: "You are a professional conversion copywriter. Always respond with valid JSON only.",
+            content: "You are a professional web designer and brand strategist. Always respond with valid JSON only. Use perfect grammar and follow brand voice guidelines.",
           },
           {
             role: "user",
             content: prompt,
           },
         ],
-        temperature: 0.8,
+        temperature: 0.7,
+        max_tokens: 4000,
       }),
     });
 
