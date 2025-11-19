@@ -259,6 +259,10 @@ export default function MarketingAssets() {
         type: 'social_posts',
         businessName: brandData.selected_name,
         brandColors: brandData.brand_colors,
+        businessDescription: (brandData as any).offer_description,
+        targetAudience: (brandData as any).target_audience,
+        brandVoice: (brandData as any).brand_voice,
+        storyBrandData: storyBrandData?.step_answers || null
       });
 
       if (!posts || posts.length === 0) {

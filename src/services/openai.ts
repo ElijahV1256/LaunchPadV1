@@ -606,27 +606,51 @@ export async function generateMarketingContent(params: {
   }
 
   if (type === 'social_posts') {
-    const prompt = `Generate 3 Instagram post ideas for "${businessName}".
+    const storyBrandContext = storyBrandData ? `
+
+STORYBRAND FRAMEWORK (Use this to inform your messaging):
+${Object.entries(storyBrandData).map(([key, value]) => `- ${key}: ${value}`).join('\n')}` : '';
+
+    const prompt = `Generate 3 Instagram post ideas for "${businessName}" using StoryBrand principles.
 ${businessDescription || ''}
+Target Audience: ${targetAudience || 'general customers'}
+Brand Voice: ${brandVoice || 'professional and approachable'}${storyBrandContext}
+
+STORYBRAND INSTAGRAM POST RULES:
+1. Focus on the CUSTOMER as the hero (not the business)
+2. Address a problem or pain point the customer faces
+3. Position the business as the helpful guide
+4. Show transformation or success
+5. Use "you" language, not "we" language
+6. Include a clear call to action
+7. Make it relatable and engaging
+
+CRITICAL REQUIREMENTS:
+- PERFECT GRAMMAR - No errors whatsoever
+- PERFECT SPELLING - Check every word
+- Customer-focused messaging
+- Problem-aware content
+- Transformation-focused
+- Engaging and authentic tone
 
 For each post, provide:
-1. An engaging caption (2-3 sentences, include call to action)
+1. An engaging caption using StoryBrand principles (2-3 sentences addressing customer pain points, showing transformation, clear CTA)
 2. Relevant hashtags (8-12 hashtags)
 
 Format as JSON array with objects containing: caption, hashtags
 
-Make them engaging and suited for Instagram.`;
+IMPORTANT: Focus on the customer's problems and transformation, not the business features. Use perfect grammar and spelling.`;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: 'You are a social media expert creating Instagram content. Always respond with valid JSON only.',
+          content: 'You are a StoryBrand certified social media expert creating customer-focused Instagram content. Always respond with valid JSON only.',
         },
         { role: 'user', content: prompt },
       ],
-      temperature: 0.8,
+      temperature: 0.7,
     });
 
     const content = response.choices[0].message.content || '[]';
