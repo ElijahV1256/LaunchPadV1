@@ -185,7 +185,7 @@ export default function Homepage() {
             <Rocket className="text-[#2979FF]" size={80} />
           </div>
           <h1 className="text-5xl md:text-7xl font-bold text-[#0A192F] mb-6 font-['Montserrat'] leading-tight">
-            From Idea to Revenue<br />Powered by AI
+            From idea to income — all in one place.
           </h1>
           <p className="text-2xl md:text-3xl text-gray-700 mb-4 font-semibold">
             Your dream, your plan, your first dollar.
