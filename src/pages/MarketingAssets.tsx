@@ -361,6 +361,11 @@ export default function MarketingAssets() {
         type: 'ad_strategy',
         businessName: brandData.selected_name,
         brandColors: brandData.brand_colors,
+        businessDescription: (brandData as any).offer_description,
+        targetAudience: (brandData as any).target_audience,
+        brandVoice: (brandData as any).brand_voice,
+        tagline: (brandData as any).selected_tagline,
+        storyBrandData: storyBrandData?.step_answers || null
       });
 
       if (!strategy) {
@@ -1062,47 +1067,191 @@ export default function MarketingAssets() {
                       </button>
                     ) : (
                       <div className="space-y-6">
-                        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                          <h4 className="text-white font-semibold mb-2">Target Audience</h4>
-                          <p className="text-gray-300 text-sm">{data.ad_strategy.targetAudience}</p>
-                        </div>
-
-                        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                          <h4 className="text-white font-semibold mb-3">Budget Suggestion</h4>
-                          {data.ad_strategy.budget && typeof data.ad_strategy.budget === 'object' ? (
+                        {/* Core Messaging */}
+                        {data.ad_strategy.coreMessaging && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                            <h4 className="text-white font-semibold mb-3">1. Core Messaging</h4>
                             <div className="space-y-3">
-                              <div className="flex justify-between items-center pb-2 border-b border-white/10">
-                                <span className="text-gray-300 text-sm">Total Budget:</span>
-                                <span className="text-white font-semibold">${data.ad_strategy.budget.total}</span>
+                              <div>
+                                <span className="text-[#2979FF] text-xs font-semibold uppercase">Headline</span>
+                                <p className="text-white text-lg font-bold mt-1">{data.ad_strategy.coreMessaging.headline}</p>
                               </div>
-                              {data.ad_strategy.budget.breakdown && Object.entries(data.ad_strategy.budget.breakdown).map(([key, value]: [string, any]) => (
-                                <div key={key} className="space-y-1">
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-gray-400 text-sm capitalize">{key.replace(/_/g, ' ')}:</span>
-                                    <span className="text-[#2979FF] font-semibold">${value.amount}</span>
+                              <div>
+                                <span className="text-[#2979FF] text-xs font-semibold uppercase">Sub-headline</span>
+                                <p className="text-gray-300 text-sm mt-1">{data.ad_strategy.coreMessaging.subheadline}</p>
+                              </div>
+                              <div>
+                                <span className="text-[#2979FF] text-xs font-semibold uppercase">Value Proposition</span>
+                                <p className="text-gray-300 text-sm mt-1">{data.ad_strategy.coreMessaging.valueProposition}</p>
+                              </div>
+                              <div>
+                                <span className="text-[#2979FF] text-xs font-semibold uppercase">Talking Points</span>
+                                <ul className="list-disc list-inside text-gray-300 text-sm mt-2 space-y-1">
+                                  {data.ad_strategy.coreMessaging.talkingPoints.map((point: string, idx: number) => (
+                                    <li key={idx}>{point}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Target Audience Summary */}
+                        {data.ad_strategy.targetAudienceSummary && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                            <h4 className="text-white font-semibold mb-3">2. Target Audience Summary</h4>
+                            <div className="space-y-2">
+                              <div>
+                                <span className="text-[#2979FF] text-xs font-semibold">Who: </span>
+                                <span className="text-gray-300 text-sm">{data.ad_strategy.targetAudienceSummary.who}</span>
+                              </div>
+                              <div>
+                                <span className="text-[#2979FF] text-xs font-semibold">What They Care About: </span>
+                                <span className="text-gray-300 text-sm">{data.ad_strategy.targetAudienceSummary.whatTheyCareAbout}</span>
+                              </div>
+                              <div>
+                                <span className="text-[#2979FF] text-xs font-semibold">What Motivates Them: </span>
+                                <span className="text-gray-300 text-sm">{data.ad_strategy.targetAudienceSummary.whatMotivatesThem}</span>
+                              </div>
+                              <div>
+                                <span className="text-[#2979FF] text-xs font-semibold">Where Online: </span>
+                                <span className="text-gray-300 text-sm">{data.ad_strategy.targetAudienceSummary.whereTheyAreOnline}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Recommended Channels */}
+                        {data.ad_strategy.recommendedChannels && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                            <h4 className="text-white font-semibold mb-3">3. Recommended Advertising Channels</h4>
+                            <div className="space-y-2">
+                              {data.ad_strategy.recommendedChannels.map((channel: any, idx: number) => (
+                                <div key={idx} className="flex gap-2">
+                                  <span className="text-[#06D6A0] font-semibold text-sm">•</span>
+                                  <div>
+                                    <span className="text-white font-semibold text-sm">{channel.name}</span>
+                                    <span className="text-gray-400 text-sm"> – {channel.reason}</span>
                                   </div>
-                                  {value.recommendations && (
-                                    <p className="text-gray-400 text-xs ml-4">{value.recommendations}</p>
-                                  )}
                                 </div>
                               ))}
                             </div>
-                          ) : (
-                            <p className="text-gray-300 text-sm">{String(data.ad_strategy.budget)}</p>
-                          )}
-                        </div>
-
-                        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                          <h4 className="text-white font-semibold mb-3">Daily Content Calendar</h4>
-                          <div className="space-y-3">
-                            {data.ad_strategy.calendar.map((day: any, idx: number) => (
-                              <div key={idx} className="flex gap-3">
-                                <div className="text-[#2979FF] font-semibold text-sm w-24">{day.day}</div>
-                                <div className="text-gray-300 text-sm flex-1">{day.activity}</div>
-                              </div>
-                            ))}
                           </div>
-                        </div>
+                        )}
+
+                        {/* Channel Strategies */}
+                        {data.ad_strategy.channelStrategies && data.ad_strategy.channelStrategies.length > 0 && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                            <h4 className="text-white font-semibold mb-3">4. Ad Strategy for Each Channel</h4>
+                            <div className="space-y-4">
+                              {data.ad_strategy.channelStrategies.map((strategy: any, idx: number) => (
+                                <div key={idx} className="border-l-2 border-[#2979FF] pl-4">
+                                  <h5 className="text-[#2979FF] font-bold text-sm mb-2">{strategy.channel}</h5>
+                                  <div className="space-y-1 text-sm">
+                                    <p><span className="text-gray-400">Goal:</span> <span className="text-gray-300">{strategy.goal}</span></p>
+                                    <p><span className="text-gray-400">Target:</span> <span className="text-gray-300">{strategy.targeting}</span></p>
+                                    <p><span className="text-gray-400">Format:</span> <span className="text-gray-300">{strategy.format}</span></p>
+                                    <p><span className="text-gray-400">Message:</span> <span className="text-gray-300">{strategy.adContent}</span></p>
+                                    {strategy.budgetRanges && (
+                                      <p><span className="text-gray-400">Budget:</span> <span className="text-gray-300">Low: {strategy.budgetRanges.low}, Medium: {strategy.budgetRanges.medium}, High: {strategy.budgetRanges.high}</span></p>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Ad Concepts */}
+                        {data.ad_strategy.adConcepts && data.ad_strategy.adConcepts.length > 0 && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                            <h4 className="text-white font-semibold mb-3">5. Ready-to-Use Ad Concepts</h4>
+                            <div className="space-y-4">
+                              {data.ad_strategy.adConcepts.map((concept: any, idx: number) => (
+                                <div key={idx} className="bg-white/5 border border-white/10 rounded-lg p-4">
+                                  <h5 className="text-white font-bold mb-2">Ad Concept {idx + 1}</h5>
+                                  <div className="space-y-2 text-sm">
+                                    <p><span className="text-[#2979FF] font-semibold">Headline:</span> <span className="text-white">{concept.headline}</span></p>
+                                    <p><span className="text-[#2979FF] font-semibold">Sub-headline:</span> <span className="text-gray-300">{concept.subheadline}</span></p>
+                                    <p><span className="text-[#2979FF] font-semibold">Body:</span> <span className="text-gray-300">{concept.bodyCopy}</span></p>
+                                    <p><span className="text-[#2979FF] font-semibold">CTA:</span> <span className="text-[#06D6A0]">{concept.cta}</span></p>
+                                    <p><span className="text-[#2979FF] font-semibold">Image Idea:</span> <span className="text-gray-400 italic">{concept.imageIdea}</span></p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 30-Day Plan */}
+                        {data.ad_strategy.thirtyDayPlan && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                            <h4 className="text-white font-semibold mb-3">6. 30-Day Advertising Plan</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {Object.entries(data.ad_strategy.thirtyDayPlan).map(([weekKey, weekData]: [string, any]) => (
+                                <div key={weekKey} className="bg-white/5 border border-white/10 rounded-lg p-3">
+                                  <h5 className="text-[#2979FF] font-bold text-sm mb-2">{weekData.title}</h5>
+                                  <ul className="space-y-1">
+                                    {weekData.steps.map((step: string, idx: number) => (
+                                      <li key={idx} className="text-gray-300 text-xs flex gap-2">
+                                        <span className="text-[#06D6A0]">✓</span>
+                                        <span>{step}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Hustle Now */}
+                        {data.ad_strategy.hustleNow && data.ad_strategy.hustleNow.length > 0 && (
+                          <div className="bg-gradient-to-r from-[#06D6A0]/20 to-[#2979FF]/20 border border-[#06D6A0]/30 rounded-lg p-4">
+                            <h4 className="text-white font-semibold mb-3">7. Hustle Now — Quick Ways to Grow Today</h4>
+                            <div className="space-y-3">
+                              {data.ad_strategy.hustleNow.map((hustle: any, idx: number) => (
+                                <div key={idx} className="bg-[#0A192F]/50 border border-white/10 rounded-lg p-3">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <h5 className="text-[#06D6A0] font-bold text-sm">{hustle.title}</h5>
+                                    <div className="text-xs text-gray-400 flex gap-2">
+                                      <span>{hustle.estimatedTime}</span>
+                                      <span>•</span>
+                                      <span>{hustle.cost}</span>
+                                    </div>
+                                  </div>
+                                  <p className="text-gray-300 text-xs mb-2">{hustle.description}</p>
+                                  <div className="space-y-1">
+                                    {hustle.steps.map((step: string, stepIdx: number) => (
+                                      <div key={stepIdx} className="flex gap-2 text-xs text-gray-400">
+                                        <span className="text-[#2979FF] font-semibold">{stepIdx + 1}.</span>
+                                        <span>{step}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={generateAdStrategy}
+                          disabled={generating}
+                          className="w-full px-4 py-2 bg-[#2979FF]/20 text-[#2979FF] border border-[#2979FF]/30 rounded-lg text-sm font-semibold hover:bg-[#2979FF]/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {generating ? (
+                            <>
+                              <Loader2 size={16} className="animate-spin" />
+                              Regenerating...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw size={16} />
+                              Regenerate Strategy
+                            </>
+                          )}
+                        </button>
                       </div>
                     )}
                   </div>

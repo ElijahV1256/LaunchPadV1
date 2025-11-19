@@ -689,28 +689,116 @@ Make them friendly, professional, and include a clear call to action.`;
   }
 
   if (type === 'ad_strategy') {
-    const prompt = `Create a simple advertising strategy for "${businessName}".
-${businessDescription || ''}
+    const storyBrandContext = storyBrandData ? `
+STORYBRAND CONTEXT:
+${Object.entries(storyBrandData).map(([key, value]) => `- ${key}: ${value}`).join('\n')}` : '';
 
-Provide:
-1. Target audience description (2-3 sentences)
-2. Budget suggestion (detailed breakdown with recommendations)
-3. Daily content calendar (7 days of activities)
+    const prompt = `You are an expert marketing strategist. Using the user's selected business, brand guide, and target audience, create a simple, actionable, beginner-friendly advertising strategy that the user can start today.
 
-Format as JSON object with: targetAudience, budget, calendar (array of objects with day and activity)
+Business: "${businessName}"
+${businessDescription ? `Description: ${businessDescription}` : ''}
+${targetAudience ? `Target Audience: ${targetAudience}` : ''}
+${brandVoice ? `Brand Voice: ${brandVoice}` : ''}
+${tagline ? `Tagline: ${tagline}` : ''}
+${storyBrandContext}
 
-Make it practical and achievable for a new business.`;
+Keep everything clean, practical, and aligned with the brand guide. Avoid complicated marketing language.
+
+Format as JSON object with the following structure:
+{
+  "coreMessaging": {
+    "headline": "Main ad headline",
+    "subheadline": "Supporting sub-headline",
+    "valueProposition": "1-2 sentence value proposition",
+    "talkingPoints": ["Point 1", "Point 2", "Point 3"]
+  },
+  "targetAudienceSummary": {
+    "who": "Who to target",
+    "whatTheyCareAbout": "What they care about",
+    "whatMotivatesThem": "What motivates them",
+    "whereTheyAreOnline": "Where they spend time online"
+  },
+  "recommendedChannels": [
+    {
+      "name": "Channel name (e.g., Meta Ads, Google Search Ads, etc.)",
+      "reason": "One sentence why this fits the business"
+    }
+  ],
+  "channelStrategies": [
+    {
+      "channel": "Channel name",
+      "goal": "Goal for this channel",
+      "targeting": "Who to target",
+      "format": "Best ad format",
+      "adContent": "What the ad should say (1 short paragraph)",
+      "budgetRanges": {
+        "low": "$X-$Y/month",
+        "medium": "$X-$Y/month",
+        "high": "$X-$Y/month"
+      }
+    }
+  ],
+  "adConcepts": [
+    {
+      "headline": "Ad headline",
+      "subheadline": "Sub-headline",
+      "bodyCopy": "Body copy (2-4 lines)",
+      "cta": "Call to action",
+      "imageIdea": "Image description (no images, descriptions only)"
+    }
+  ],
+  "thirtyDayPlan": {
+    "week1": {
+      "title": "Setup",
+      "steps": ["Step 1", "Step 2", "Step 3"]
+    },
+    "week2": {
+      "title": "Launch",
+      "steps": ["Step 1", "Step 2", "Step 3"]
+    },
+    "week3": {
+      "title": "Optimize",
+      "steps": ["Step 1", "Step 2", "Step 3"]
+    },
+    "week4": {
+      "title": "Scale",
+      "steps": ["Step 1", "Step 2", "Step 3"]
+    }
+  },
+  "hustleNow": [
+    {
+      "title": "Quick hustle title",
+      "description": "Simple description",
+      "steps": ["Step 1", "Step 2", "Step 3"],
+      "estimatedTime": "5-20 minutes",
+      "cost": "Free or low-cost"
+    }
+  ]
+}
+
+CRITICAL REQUIREMENTS:
+- Perfect grammar throughout
+- Match brand voice: ${brandVoice || 'professional and approachable'}
+- Everything must be instantly usable
+- Keep language simple and motivating
+- No fluff - only actionable content
+- Beginner-friendly explanations
+- Include 3 full ad concepts
+- Include at least 8 hustle now items that are practical, real, and immediately actionable
+
+Make it practical and achievable for someone just starting out.`;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: 'You are an advertising strategist helping new businesses launch. Always respond with valid JSON only.',
+          content: 'You are an expert marketing strategist creating beginner-friendly, actionable advertising strategies. Always respond with valid JSON only. Use perfect grammar and clear, simple language.',
         },
         { role: 'user', content: prompt },
       ],
       temperature: 0.7,
+      max_tokens: 4000,
     });
 
     const content = response.choices[0].message.content || '{}';
