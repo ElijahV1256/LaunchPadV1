@@ -26,7 +26,8 @@ Deno.serve(async (req: Request) => {
       tagline,
       contactInfo,
       openaiApiKey,
-      logoUrl
+      logoUrl,
+      storyBrandData
     } = body;
 
     console.log('Received request:', { businessName, brandColors });
@@ -76,39 +77,50 @@ Deno.serve(async (req: Request) => {
       const flyerType = flyerTypes[i];
 
       try {
-        // Step 1: Text Cleanup & Brand Enforcement with GPT-4
-        const contentPrompt = `You are a professional brand copywriter with expertise in grammar and spelling.
+        // Step 1: Text Cleanup & Brand Enforcement with GPT-4 using StoryBrand
+        const storyBrandContext = storyBrandData ? `\n\nSTORYBRAND FRAMEWORK (Use this to inform your messaging):\n${Object.entries(storyBrandData).map(([key, value]) => `- ${key}: ${value}`).join('\\n')}` : '';
+
+        const contentPrompt = `You are a professional StoryBrand certified copywriter with expertise in grammar and spelling.
 
 BRAND GUIDE:
 - Business Name: ${businessName}
 - Tagline: ${tagline || "Quality Service You Can Trust"}
 - Brand Voice: ${voiceText}
 - Target Audience: ${audienceText}
-- Business Description: ${descriptionText}
+- Business Description: ${descriptionText}${storyBrandContext}
 
 TASK:
 Create flyer content for: ${flyerType.purpose}
 
+STORYBRAND MESSAGING RULES:
+1. Focus on the CUSTOMER as the hero (not the business)
+2. Clearly identify the problem you solve
+3. Position the business as the guide
+4. Present a clear plan
+5. Call them to action
+6. Show what success looks like
+
 CRITICAL REQUIREMENTS:
 1. PERFECT GRAMMAR - No errors whatsoever
 2. PERFECT SPELLING - Double-check every word
-3. Brand Voice: ${voiceText}
-4. Short, clear, professional sentences
-5. Brand-appropriate vocabulary only
-6. Professional formatting
-7. Proofread everything before responding
+3. Customer-focused language (\"you\" not \"we\")
+4. Problem-focused messaging
+5. Clear value proposition
+6. Brand Voice: ${voiceText}
+7. Short, clear, professional sentences
+8. Proofread everything before responding
 
 OUTPUT FORMAT - Return ONLY valid JSON:
 {
-  "headline": "Powerful 5-8 word headline (perfect grammar)",
-  "subheadline": "Supporting 8-12 word subheadline (perfect grammar)",
-  "body": "2-3 clear sentences explaining value (perfect grammar, 30-50 words)",
-  "features": ["Benefit 1", "Benefit 2", "Benefit 3", "Benefit 4"],
+  "headline": "Problem-focused headline addressing customer pain point (5-8 words, perfect grammar)",
+  "subheadline": "Solution-focused subheadline showing transformation (8-12 words, perfect grammar)",
+  "body": "Brief guide positioning + clear plan (2-3 sentences, 30-50 words, perfect grammar)",
+  "features": ["Customer Benefit 1", "Customer Benefit 2", "Customer Benefit 3", "Customer Benefit 4"],
   "cta": "${flyerType.callToAction}",
   "footer": "${contactText}"
 }
 
-IMPORTANT: Proofread all text for spelling and grammar errors before returning. Return ONLY valid JSON with perfect grammar and spelling.`;
+IMPORTANT: Use StoryBrand principles. Focus on customer transformation. Proofread all text for spelling and grammar errors. Return ONLY valid JSON with perfect grammar and spelling.`;
 
         console.log(`Step 1: Cleaning text with brand voice for ${flyerType.title}...`);
 

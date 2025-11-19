@@ -48,6 +48,7 @@ export default function MarketingAssets() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<MarketingAssetsData | null>(null);
   const [brandData, setBrandData] = useState<BrandData | null>(null);
+  const [storyBrandData, setStoryBrandData] = useState<any>(null);
   const [generating, setGenerating] = useState(false);
   const [generatingStep, setGeneratingStep] = useState('');
   const [progress, setProgress] = useState(0);
@@ -90,6 +91,16 @@ export default function MarketingAssets() {
       }
 
       setBrandData(brandIdentity);
+
+      // Fetch StoryBrand data
+      const { data: storyBrand } = await supabase
+        .from('storybrand_roadmap')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('idea_key', ideaKey!)
+        .maybeSingle();
+
+      setStoryBrandData(storyBrand);
 
       let { data: marketingData, error: marketingError } = await supabase
         .from('marketing_assets')
@@ -191,7 +202,8 @@ export default function MarketingAssets() {
         targetAudience: (brandData as any).target_audience,
         brandVoice: (brandData as any).brand_voice,
         tagline: (brandData as any).selected_tagline,
-        contactInfo: undefined
+        contactInfo: undefined,
+        storyBrandData: storyBrandData?.step_answers || null
       });
 
       console.log('Flyers generated successfully:', flyers);

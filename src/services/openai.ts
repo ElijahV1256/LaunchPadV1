@@ -559,8 +559,9 @@ export async function generateMarketingContent(params: {
   brandVoice?: string;
   tagline?: string;
   contactInfo?: string;
+  storyBrandData?: any;
 }): Promise<any> {
-  const { type, businessName, businessDescription, brandColors, logoDescription, logoUrl, targetAudience, brandVoice, tagline, contactInfo } = params;
+  const { type, businessName, businessDescription, brandColors, logoDescription, logoUrl, targetAudience, brandVoice, tagline, contactInfo, storyBrandData } = params;
 
   if (type === 'flyers') {
     try {
@@ -579,6 +580,7 @@ export async function generateMarketingContent(params: {
           tagline,
           contactInfo,
           logoUrl,
+          storyBrandData,
           openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY
         }),
       });
