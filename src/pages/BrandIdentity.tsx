@@ -1922,7 +1922,9 @@ export default function BrandIdentity() {
                           <div className="flex justify-end mt-6">
                             <button
                               onClick={() => {
-                                completionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                setTimeout(() => {
+                                  completionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }, 100);
                               }}
                               className="px-6 py-3 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors flex items-center gap-2"
                             >
