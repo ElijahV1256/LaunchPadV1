@@ -223,7 +223,7 @@ export default function WebsiteBuilder() {
 
       setData({ ...data, design_preferences: designAnswers });
       setShowDesignQuestionnaire(false);
-      alert('Design preferences saved! We will use these to create your website.');
+      alert("Perfect! Your style preferences are saved. We'll use these to create a website that matches your vision.");
     } catch (err: any) {
       console.error('Error saving design preferences:', err);
       alert('Failed to save design preferences');
@@ -593,34 +593,41 @@ export default function WebsiteBuilder() {
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
             {currentStep === 1 && (
               <div>
-                <h2 className="text-2xl font-bold text-white mb-4">Step 1: Generate Website Copy</h2>
+                <h2 className="text-2xl font-bold text-white mb-2">Create Your Website Content</h2>
                 <p className="text-gray-400 mb-6">
-                  AI will create conversion-optimized copy including hero section, benefits, pricing, testimonials, and FAQs.
+                  We'll craft professional copy for your entire one-page site — headlines, features, pricing, testimonials, and FAQs — all in your brand voice.
                 </p>
                 {!isStepComplete('copy') ? (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {!data.design_preferences && (
-                      <div className="bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-4 mb-4">
-                        <p className="text-gray-300 mb-3">
-                          Want a custom website design? Answer a few questions to help us create the perfect style for your brand.
+                      <div className="bg-gradient-to-r from-[#2979FF]/10 to-[#06D6A0]/10 border border-[#2979FF]/20 rounded-lg p-6">
+                        <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+                          <Sparkles size={18} className="text-[#2979FF]" />
+                          Get a Custom Design
+                        </h3>
+                        <p className="text-gray-300 mb-4 text-sm leading-relaxed">
+                          Tell us about your style preferences and share 3 websites you love. We'll analyze them and create a site that matches your vision perfectly.
                         </p>
                         <button
                           onClick={() => setShowDesignQuestionnaire(true)}
-                          className="px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors"
+                          className="px-5 py-2.5 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 transition-all font-medium"
                         >
-                          Set Design Preferences
+                          Customize Your Design
                         </button>
                       </div>
                     )}
                     {data.design_preferences && (
-                      <div className="bg-[#06D6A0]/10 border border-[#06D6A0]/30 rounded-lg p-4 mb-4 flex items-start justify-between">
+                      <div className="bg-[#06D6A0]/10 border border-[#06D6A0]/30 rounded-lg p-5 flex items-start justify-between">
                         <div>
-                          <p className="text-[#06D6A0] font-semibold mb-1">Design preferences set!</p>
-                          <p className="text-gray-400 text-sm">We'll use your preferences to create a custom design.</p>
+                          <p className="text-[#06D6A0] font-semibold mb-1 flex items-center gap-2">
+                            <CheckCircle2 size={16} />
+                            Design Preferences Saved
+                          </p>
+                          <p className="text-gray-400 text-sm">Your custom style will be applied to the website.</p>
                         </div>
                         <button
                           onClick={() => setShowDesignQuestionnaire(true)}
-                          className="text-sm text-gray-400 hover:text-white"
+                          className="text-sm text-gray-400 hover:text-white underline"
                         >
                           Edit
                         </button>
@@ -629,17 +636,17 @@ export default function WebsiteBuilder() {
                     <button
                       onClick={generateCopy}
                       disabled={generating}
-                      className="flex items-center gap-2 px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 disabled:opacity-50"
+                      className="flex items-center gap-2 px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 disabled:opacity-50 transition-all font-semibold"
                     >
                       {generating ? (
                         <>
                           <Loader2 className="animate-spin" size={20} />
-                          Generating...
+                          Creating Your Content...
                         </>
                       ) : (
                         <>
                           <Sparkles size={20} />
-                          Generate Copy
+                          Generate Website Content
                         </>
                       )}
                     </button>
@@ -942,11 +949,14 @@ export default function WebsiteBuilder() {
       {showDesignQuestionnaire && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-[#0F2847] border border-white/10 rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">Website Design Preferences</h2>
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-2">Tell Us About Your Style</h2>
+                <p className="text-gray-400 text-sm">Help us create a website that feels uniquely yours</p>
+              </div>
               <button
                 onClick={() => setShowDesignQuestionnaire(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white transition-colors"
               >
                 <X size={24} />
               </button>
@@ -954,64 +964,67 @@ export default function WebsiteBuilder() {
 
             <div className="space-y-6">
               <div>
-                <label className="block text-white mb-2">What does your business do?</label>
+                <label className="block text-white font-medium mb-2">What does your business do?</label>
+                <p className="text-gray-400 text-sm mb-2">Give us the quick version — what makes you special?</p>
                 <textarea
                   value={designAnswers.businessDescription}
                   onChange={(e) => setDesignAnswers({ ...designAnswers, businessDescription: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] transition-colors"
                   rows={3}
-                  placeholder="Describe your business and what makes it unique..."
+                  placeholder="We help local businesses get online with beautiful, simple websites..."
                 />
               </div>
 
               <div>
-                <label className="block text-white mb-2">Who is your target audience?</label>
+                <label className="block text-white font-medium mb-2">Who are you trying to reach?</label>
                 <input
                   type="text"
                   value={designAnswers.targetAudience}
                   onChange={(e) => setDesignAnswers({ ...designAnswers, targetAudience: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                  placeholder="e.g., Small business owners, millennials, tech enthusiasts..."
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] transition-colors"
+                  placeholder="Young professionals in their 30s, families with kids, freelancers..."
                 />
               </div>
 
               <div>
-                <label className="block text-white mb-2">What personality should your brand have?</label>
+                <label className="block text-white font-medium mb-2">How should your brand feel?</label>
+                <p className="text-gray-400 text-sm mb-2">Pick a few words that capture your vibe</p>
                 <input
                   type="text"
                   value={designAnswers.brandPersonality}
                   onChange={(e) => setDesignAnswers({ ...designAnswers, brandPersonality: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                  placeholder="e.g., Professional, fun, trustworthy, innovative..."
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] transition-colors"
+                  placeholder="Friendly and approachable, professional but not stuffy, energetic..."
                 />
               </div>
 
               <div>
-                <label className="block text-white mb-2">What industry are you in?</label>
+                <label className="block text-white font-medium mb-2">What industry are you in?</label>
                 <input
                   type="text"
                   value={designAnswers.industry}
                   onChange={(e) => setDesignAnswers({ ...designAnswers, industry: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                  placeholder="e.g., Technology, healthcare, education, retail..."
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] transition-colors"
+                  placeholder="Coffee & food, wellness & fitness, tech services, creative..."
                 />
               </div>
 
               <div>
-                <label className="block text-white mb-2">What design style do you prefer?</label>
+                <label className="block text-white font-medium mb-2">What design style speaks to you?</label>
+                <p className="text-gray-400 text-sm mb-2">Think about websites or brands you admire</p>
                 <input
                   type="text"
                   value={designAnswers.preferredStyle}
                   onChange={(e) => setDesignAnswers({ ...designAnswers, preferredStyle: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                  placeholder="e.g., Modern and minimalist, bold and colorful, clean and professional..."
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] transition-colors"
+                  placeholder="Clean and modern, bold with bright colors, minimalist and elegant..."
                 />
               </div>
 
               <div>
-                <label className="block text-white mb-2">Example Websites (Optional)</label>
+                <label className="block text-white font-medium mb-2">Show Us Some Inspiration</label>
                 <p className="text-gray-400 text-sm mb-3">
-                  Provide up to 3 example website URLs that you like for style inspiration.
+                  Share up to 3 websites you love. We'll study their style and blend it with your brand.
                 </p>
                 <div className="space-y-2">
                   {designAnswers.exampleWebsites.map((url, idx) => (
@@ -1024,23 +1037,23 @@ export default function WebsiteBuilder() {
                         newExamples[idx] = e.target.value;
                         setDesignAnswers({ ...designAnswers, exampleWebsites: newExamples });
                       }}
-                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] text-sm"
-                      placeholder={`Example website ${idx + 1} (e.g., https://example.com)`}
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] text-sm transition-colors"
+                      placeholder={idx === 0 ? "https://yourfavorite.com" : idx === 1 ? "https://another-you-like.com" : "https://one-more.com"}
                     />
                   ))}
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-2">
                 <button
                   onClick={saveDesignPreferences}
-                  className="flex-1 px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90"
+                  className="flex-1 px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 font-semibold transition-all"
                 >
-                  Save Preferences
+                  Save My Preferences
                 </button>
                 <button
                   onClick={() => setShowDesignQuestionnaire(false)}
-                  className="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10"
+                  className="px-6 py-3 bg-white/5 border border-white/10 text-gray-300 rounded-lg hover:bg-white/10 transition-all"
                 >
                   Cancel
                 </button>
