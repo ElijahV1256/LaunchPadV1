@@ -191,6 +191,7 @@ export default function WebsiteBuilder() {
             },
             body: JSON.stringify({
               websiteId: websiteData.id,
+              apiKey: import.meta.env.VITE_OPENAI_API_KEY,
             }),
           }
         );
@@ -325,6 +326,7 @@ export default function WebsiteBuilder() {
           },
           body: JSON.stringify({
             websiteId: data.id,
+            apiKey: import.meta.env.VITE_OPENAI_API_KEY,
           }),
         }
       );

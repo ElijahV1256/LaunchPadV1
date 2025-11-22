@@ -17,7 +17,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { websiteId } = await req.json();
+    const { websiteId, apiKey } = await req.json();
 
     console.log("Received request for websiteId:", websiteId);
 
@@ -26,6 +26,18 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Website ID is required" }),
         {
           status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const openaiApiKey = apiKey || Deno.env.get("OPENAI_API_KEY");
+
+    if (!openaiApiKey) {
+      return new Response(
+        JSON.stringify({ error: "OpenAI API key not configured" }),
+        {
+          status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
@@ -85,10 +97,10 @@ Deno.serve(async (req: Request) => {
     const theme = website.theme || { colors: { primary: "#2979FF", secondary: "#06D6A0", accent: "#FF6B6B" } };
     const designPrefs = website.design_preferences || {};
 
-    console.log("Generating 3 AI-powered website variations...");
+    console.log("Generating AI-powered website preview...");
 
     const openai = new OpenAI({
-      apiKey: Deno.env.get("OPENAI_API_KEY"),
+      apiKey: openaiApiKey,
     });
 
     const designStyles = [
