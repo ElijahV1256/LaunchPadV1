@@ -64,73 +64,111 @@ ${designPreferences.exampleWebsites && designPreferences.exampleWebsites.filter(
 ` : '';
 
     const prompt = `You are a professional web designer and brand strategist.
-Using the user's brand guide and chosen business${designPreferences?.exampleWebsites ? ', and example websites they provided' : ''}, create a clean, modern one-page website layout that follows the brand's colors, typography, voice, structure, and overall style.
+Using the user's brand guide, chosen business, and three website examples they provided, create a clean, modern one-page website layout that follows the brand's colors, typography, voice, structure, and overall style.
+
+The final output must be simple, professional, and easy to use as a starter website.
 
 Business: "${businessName}"
 ${brandContext}
 ${designContext}
 
+🌐 1. WEBSITE STYLE INTERPRETATION
+
 ${designPreferences?.exampleWebsites && designPreferences.exampleWebsites.filter((url: string) => url).length > 0 ? `
-WEBSITE STYLE INTERPRETATION:
-Analyze the example websites and identify key style elements like layout structure, spacing, typography, color usage, button/CTA style, and overall vibe. Combine these with the brand guide to create a consistent design direction.
-` : ''}
+Analyze the 3 example websites provided: ${designPreferences.exampleWebsites.filter((url: string) => url).join(', ')}
 
-Create a complete one-page website structure with the following sections:
+Identify and describe the key style elements:
+- Layout structure
+- Spacing & section flow
+- Typography style
+- Color usage
+- Button/CTA style
+- Imagery style
+- Overall vibe
 
-1. HERO SECTION
-   - Clean, bold headline (brand voice aligned, 8-12 words)
-   - Short sub-headline (15-25 words)
-   - Primary CTA button text
-   - Visual description (no image generation, just describe what image should show)
+Combine these elements with the brand guide to create a consistent design direction.
+` : `
+Create a professional design direction using the brand guide provided.
+Describe the overall style, layout approach, and visual elements that will work best for this business.
+`}
 
-2. ABOUT SECTION
-   - 2-3 sentence introduction to the business
-   - What they do / who they help
-   - Simple, friendly, brand-aligned tone
+🧱 2. ONE-PAGE WEBSITE STRUCTURE
 
-3. FEATURES/SERVICES SECTION
-   - List 3-6 features or services with:
-     * Title
-     * One-sentence description
-     * Icon description (matching brand style)
+Build a complete one-page website, including the following sections:
 
-4. VALUE SECTION
-   - Main value proposition
-   - Key benefits
-   - Social proof hooks
+HERO SECTION
+- Clean, bold headline (brand voice)
+- Short sub-headline
+- Primary CTA button
+- Optional supporting image/visual description (no image generation)
 
-5. GALLERY/VISUAL SECTION
-   - Descriptions of what images should look like based on brand guide
+ABOUT SECTION
+- 2–3 sentence introduction to the business
+- What they do / who they help
+- Simple, friendly, brand-aligned tone
 
-6. PRICING SECTION (if applicable)
-   - Simple tier layout (1-3 tiers)
-   - Clear bullet points for each
-   - CTA under each tier
+FEATURES / SERVICES SECTION
+- List 3–6 features or services:
+  * Title
+  * One-sentence description
+  * Optional icon description (must match brand style)
 
-7. TESTIMONIALS SECTION
-   - 2-3 short sample testimonials in brand tone
-   - Include customer names
+WHY CHOOSE US / VALUE SECTION
+- A short area explaining:
+  * Main value proposition
+  * Benefits
+  * Social proof hooks
 
-8. FAQ SECTION
-   - 3-6 beginner-friendly FAQ questions and answers
+GALLERY / VISUAL SECTION (Optional)
+- Provide descriptions of what images should look like based on the brand guide and example sites
 
-9. CONTACT SECTION
-   - Contact info layout description
-   - Contact form description
-   - CTA text
+PRICING SECTION (Optional)
+- If the business has pricing:
+  * Simple tier layout (1–3 tiers)
+  * Clear bullet points
+  * CTA under each
 
-CRITICAL REQUIREMENTS:
-- Perfect grammar throughout
-- Follow brand voice: ${brandData?.brand_voice || 'professional and approachable'}
-- Use brand colors: ${brandData?.brand_colors?.primary || 'blue'}, ${brandData?.brand_colors?.secondary || 'gray'}, ${brandData?.brand_colors?.accent || 'green'}
+TESTIMONIALS SECTION (Optional)
+- If relevant to the business:
+  * 2–3 short sample testimonials written in brand tone
+
+FAQ SECTION
+- Include 3–6 beginner-friendly FAQ questions and answers
+
+CONTACT SECTION
+- Include:
+  * Contact info
+  * Small contact form layout description
+  * CTA text: "Get in Touch" or equivalent
+
+🎨 3. STYLE RULES
+
+All website content must follow:
+
+BRAND GUIDE RULES:
+- Brand voice: ${brandData?.brand_voice || 'professional and approachable'}
+- Brand colors: Primary: ${brandData?.brand_colors?.primary || 'blue'}, Secondary: ${brandData?.brand_colors?.secondary || 'gray'}, Accent: ${brandData?.brand_colors?.accent || 'green'}
+- Target audience: ${brandData?.target_audience || 'general customers'}
+- Tagline: ${brandData?.selected_tagline || 'N/A'}
+
+EXAMPLE SITE INSPIRATION:
+- Apply the visual elements from the provided websites
+- Only use inspiration, never copy
+- Stay aligned with the brand's own aesthetic
+
+✔️ RULES:
+- Perfect grammar
+- Follow brand voice
 - Keep language simple and motivating
+- Use clean formatting
 - No long paragraphs
 - Beginner-friendly
-- Clean formatting
+- No added colors outside the brand guide
+- No complicated design or jargon
 
 Return ONLY valid JSON in this exact format:
 {
-  "style_summary": "Brief description of the overall website style and design approach",
+  "style_summary": "Brief description analyzing example sites and combining with brand guide to create design direction",
   "hero_headline": "string",
   "hero_subheadline": "string",
   "hero_cta": "string",
@@ -143,6 +181,7 @@ Return ONLY valid JSON in this exact format:
   ],
   "value_proposition": "string",
   "value_benefits": ["string", "string", "string"],
+  "social_proof_hooks": ["string", "string"],
   "gallery_description": "string",
   "pricing_tiers": [
     {"name": "string", "price": "string", "features": ["string", "string"], "cta": "string"}
@@ -157,7 +196,7 @@ Return ONLY valid JSON in this exact format:
     {"question": "string", "answer": "string"}
   ],
   "contact_cta": "string",
-  "contact_description": "string"
+  "contact_form_description": "string"
 }`;
 
     console.log("Calling OpenAI API...");
