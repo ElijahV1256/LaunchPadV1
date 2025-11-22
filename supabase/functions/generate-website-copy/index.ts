@@ -45,171 +45,149 @@ Deno.serve(async (req: Request) => {
 
     const brandContext = brandData ? `
 BRAND GUIDE:
-- Brand Colors: Primary: ${brandData.brand_colors?.primary || 'N/A'}, Secondary: ${brandData.brand_colors?.secondary || 'N/A'}, Accent: ${brandData.brand_colors?.accent || 'N/A'}
-- Brand Voice: ${brandData.brand_voice || 'Professional and approachable'}
+- Tone: ${brandData.brand_voice || 'Professional and approachable'}
+- Voice: ${brandData.brand_voice || 'Professional and approachable'}
+- Colors: Primary: ${brandData.brand_colors?.primary || 'N/A'}, Secondary: ${brandData.brand_colors?.secondary || 'N/A'}, Accent: ${brandData.brand_colors?.accent || 'N/A'}
+- Messaging Style: ${brandData.brand_voice || 'Professional and approachable'}
+- Value Proposition: ${brandData.offer_description || 'N/A'}
 - Target Audience: ${brandData.target_audience || 'General customers'}
 - Tagline: ${brandData.selected_tagline || 'N/A'}
-- Business Description: ${brandData.offer_description || 'N/A'}
 ` : '';
 
     const designContext = designPreferences ? `
-DESIGN PREFERENCES:
+BUSINESS DETAILS:
 - Business Description: ${designPreferences.businessDescription || 'N/A'}
 - Target Audience: ${designPreferences.targetAudience || 'N/A'}
 - Brand Personality: ${designPreferences.brandPersonality || 'N/A'}
 - Industry: ${designPreferences.industry || 'N/A'}
 - Preferred Style: ${designPreferences.preferredStyle || 'N/A'}
-${designPreferences.exampleWebsites && designPreferences.exampleWebsites.filter((url: string) => url).length > 0 ? `- Example Websites for Inspiration: ${designPreferences.exampleWebsites.filter((url: string) => url).join(', ')}` : ''}
 ` : '';
 
-    const prompt = `You are a professional web designer.
-Your job is to create a one-page website that STRICTLY follows:
-1. The brand guide
-2. The 3 website inspirations chosen by the user
-3. The Launch Pad one-page layout structure
+    const exampleWebsites = designPreferences?.exampleWebsites && designPreferences.exampleWebsites.filter((url: string) => url).length > 0
+      ? designPreferences.exampleWebsites.filter((url: string) => url)
+      : [];
 
-DO NOT add additional sections.
-DO NOT ignore any part of the brand guide.
-DO NOT invent colors, fonts, or messaging.
+    const prompt = `You are a professional web designer and website copywriter.
+Your job is to generate only the website content, not the layout or code.
+
+This content will be inserted into a pre-built HTML template, just like Wix's AI Website Builder.
+
+You MUST follow the rules below.
+
+🔥 PRIORITY RULES (Follow Exactly)
+
+Use the brand guide exactly as provided.
+${brandContext}
+
+${exampleWebsites.length > 0 ? `Analyze the 3 example websites the user provided and extract ONLY the following:
+${exampleWebsites.join('\n')}
+
+Extract from these sites:
+- Tone
+- Style
+- Structure
+- Section flow
+- Copywriting style
+- Vibe
+` : 'No example websites provided. Use clean, modern copywriting style similar to Notion, Stripe, Shopify, Linear, or Webflow.'}
+
+You are NOT allowed to generate HTML, CSS, layouts, spacing, or design instructions.
+Only create text content in the structured sections below.
 
 Business: "${businessName}"
-${brandContext}
 ${designContext}
 
-PRIORITY ORDER (if conflicts arise):
-1. Brand guide
-2. Website examples
-3. Simplicity
+Do NOT add sections that are not listed.
+Follow the structure EXACTLY.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. WEBSITE STYLE ANALYSIS (MANDATORY)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Grammar must be perfect
+No run-on sentences
+No filler
+No fluff
+No overly complex marketing jargon
 
-${designPreferences?.exampleWebsites && designPreferences.exampleWebsites.filter((url: string) => url).length > 0 ? `
-Review the 3 websites provided: ${designPreferences.exampleWebsites.filter((url: string) => url).join(', ')}
+Content must be extremely clean and modern
+Similar to brands like: Notion, Stripe, Shopify, Linear, Wix, Webflow
 
-Analyze and output these specific elements:
-- Layout patterns (grid, single column, multi-column)
-- Spacing rules (tight, airy, generous whitespace)
-- Typography style (serif, sans-serif, weight, size hierarchy)
-- Button style (rounded, sharp, filled, outlined, size)
-- Color energy (vibrant, muted, high contrast, subtle)
-- Imagery style (photos, illustrations, icons, minimalist)
-- Section flow (how sections connect and transition)
+🧱 GENERATE THESE SECTIONS ONLY (STRICT)
 
-Then explain EXACTLY how each of these will be applied to the generated website.
-This ensures you are actually using the inspiration sites.
-` : `
-No example websites provided. Create a professional design direction using ONLY the brand guide.
-Describe the layout approach and visual elements that match the brand personality.
-`}
+Produce ONLY the following:
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-2. ONE-PAGE WEBSITE LAYOUT (STRICT SECTIONS ONLY)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. HERO SECTION
+- Headline
+- Subheadline
+- Primary CTA
+- Secondary CTA (optional)
+Tone must match the brand guide + inspiration websites.
 
-Generate the website using ONLY these sections in this EXACT order:
+2. ABOUT SECTION
+Write 2–3 short, clean sentences explaining:
+- What the business does
+- Who it helps
+- Why it matters
+Use modern, simple, brand-appropriate language.
 
-HERO
-- Headline (strict brand voice: ${brandData?.brand_voice || 'professional and approachable'})
-- Subheadline (supporting the headline)
-- Primary CTA (action-oriented)
-- Image/visual description based on inspiration sites
-- Color + spacing rules from inspiration
+3. FEATURES / SERVICES
+Provide 3–6 features or services, each with:
+- Feature title
+- One-sentence explanation (No paragraphs longer than 2 lines.)
 
-ABOUT
-- 2–3 sentence business intro
-- What they do / who they help
-- Brand guide tone ENFORCED
+4. VALUE PROPOSITION
+3–5 clear, punchy benefit bullets that highlight:
+- Why customers should choose this business
+- What makes it unique
+- How it solves the customer's need
 
-FEATURES / SERVICES
-Generate 3–6 features with:
+5. PRICING (IF APPLICABLE)
+If the business has services or product tiers, generate up to 3 pricing tiers:
+For each tier:
 - Title
-- One-sentence description
-- Icon style (brand guide + inspiration sites)
+- Short description
+- 3–5 bullet points
+- CTA
+If pricing doesn't apply to the business model, write: "Pricing not applicable for this business type."
 
-VALUE / WHY CHOOSE US
-- Brand value proposition
-- 3 benefit bullets
-- Simple and clear
+6. TESTIMONIALS (OPTIONAL)
+If relevant, create 2–3 simple, believable testimonials written in modern tone.
+If irrelevant, return empty array.
 
-GALLERY (optional, follow inspiration sites EXACTLY)
-- Describe images the user should use
-- Style MUST match the example sites' visual language
+7. FAQ SECTION
+Provide 3–6 FAQs, each with:
+- Question
+- Short, helpful answer
+Keep answers short and modern.
 
-PRICING (if the business type supports it)
-- 1–3 pricing blocks
-- Matching layout from inspiration site styles
-- Clear features and CTA for each tier
-
-TESTIMONIALS (only if business type benefits from it)
-- 2–3 sample testimonials in brand tone
-- Keep realistic and professional
-
-FAQ
-- 3–6 simple questions and answers
-- Address common customer concerns
-
-CONTACT
-- Contact info
-- Contact form layout
-- Final CTA
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-3. HARD RULES (STRICTLY ENFORCE)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-These rules are NON-NEGOTIABLE:
-
-✓ Use ONLY brand guide colors:
-  - Primary: ${brandData?.brand_colors?.primary || 'blue'}
-  - Secondary: ${brandData?.brand_colors?.secondary || 'gray'}
-  - Accent: ${brandData?.brand_colors?.accent || 'green'}
-
-✓ Use ONLY brand guide typography style
-✓ Use inspiration sites ONLY for structure and visual style
-✓ NO extra creativity outside the brand
-✓ NO additional sections beyond what's listed
-✓ Perfect grammar
-✓ Perfect formatting
-✓ NO long paragraphs (keep sentences short and punchy)
-✓ NO filler language
-✓ Clean, modern layout style matching inspirations
-✓ All text MUST sound like: ${brandData?.brand_voice || 'professional and approachable'}
-✓ Target audience: ${brandData?.target_audience || 'general customers'}
-✓ Include tagline if appropriate: ${brandData?.selected_tagline || 'N/A'}
+8. CONTACT SECTION
+Include:
+- One short, brand-aligned closing message
+- CTA such as: "Get in Touch", "Book Now", "Request a Quote"
+Use the brand voice.
 
 Return ONLY valid JSON in this exact format:
 {
-  "style_summary": "Brief description analyzing example sites and combining with brand guide to create design direction",
   "hero_headline": "string",
   "hero_subheadline": "string",
-  "hero_cta": "string",
-  "hero_visual_description": "string",
+  "hero_cta_primary": "string",
+  "hero_cta_secondary": "string",
   "about_text": "string (2-3 sentences)",
   "features": [
-    {"title": "string", "description": "string", "icon_description": "string"},
-    {"title": "string", "description": "string", "icon_description": "string"},
-    {"title": "string", "description": "string", "icon_description": "string"}
+    {"title": "string", "description": "string"},
+    {"title": "string", "description": "string"},
+    {"title": "string", "description": "string"}
   ],
   "value_proposition": "string",
   "value_benefits": ["string", "string", "string"],
-  "social_proof_hooks": ["string", "string"],
-  "gallery_description": "string",
   "pricing_tiers": [
-    {"name": "string", "price": "string", "features": ["string", "string"], "cta": "string"}
+    {"name": "string", "price": "string", "description": "string", "features": ["string", "string"], "cta": "string"}
   ],
   "testimonials": [
-    {"name": "string", "text": "string", "rating": 5},
     {"name": "string", "text": "string", "rating": 5}
   ],
   "faqs": [
-    {"question": "string", "answer": "string"},
-    {"question": "string", "answer": "string"},
     {"question": "string", "answer": "string"}
   ],
-  "contact_cta": "string",
-  "contact_form_description": "string"
+  "contact_message": "string",
+  "contact_cta": "string"
 }`;
 
     console.log("Calling OpenAI API...");
