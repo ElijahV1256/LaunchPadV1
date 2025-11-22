@@ -724,11 +724,22 @@ export default function WebsiteBuilder() {
                 <p className="text-gray-400 mb-6">
                   See a live preview of your website with your brand colors and copy.
                 </p>
-                {!isStepComplete('preview') ? (
+
+                {previewHtml && (
+                  <div className="mb-6 border border-white/20 rounded-lg overflow-hidden">
+                    <iframe
+                      srcDoc={previewHtml}
+                      className="w-full h-[600px] bg-white"
+                      title="Website Preview"
+                    />
+                  </div>
+                )}
+
+                <div className="flex gap-3 mb-6">
                   <button
                     onClick={generatePreview}
                     disabled={generating}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 disabled:opacity-50"
+                    className="flex items-center gap-2 px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 disabled:opacity-50 transition-all"
                   >
                     {generating ? (
                       <>
@@ -738,26 +749,34 @@ export default function WebsiteBuilder() {
                     ) : (
                       <>
                         <Eye size={20} />
-                        Generate Preview
+                        {previewHtml ? 'Regenerate Preview' : 'Generate Preview'}
                       </>
                     )}
                   </button>
-                ) : (
-                  <div>
-                    <div className="flex items-center gap-2 text-[#06D6A0] mb-4">
-                      <CheckCircle2 size={24} />
-                      <span className="font-bold">Preview Ready!</span>
-                    </div>
-                    {previewHtml && (
-                      <div className="mb-6 border border-white/20 rounded-lg overflow-hidden">
-                        <iframe
-                          srcDoc={previewHtml}
-                          className="w-full h-96 bg-white"
-                          title="Website Preview"
-                        />
-                      </div>
-                    )}
 
+                  {previewHtml && (
+                    <button
+                      onClick={() => {
+                        const blob = new Blob([previewHtml], { type: 'text/html' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${brandData.selected_name.toLowerCase().replace(/\s+/g, '-')}-website.html`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="flex items-center gap-2 px-6 py-3 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-all"
+                    >
+                      <Download size={20} />
+                      Download HTML
+                    </button>
+                  )}
+                </div>
+
+                {isStepComplete('preview') && (
+                  <>
                     <div className="mb-6 bg-white/5 border border-white/10 rounded-lg p-4">
                       <h3 className="font-bold text-white mb-2 flex items-center gap-2">
                         <Globe size={20} />
@@ -801,7 +820,7 @@ export default function WebsiteBuilder() {
                     >
                       Next: Add Payment →
                     </button>
-                  </div>
+                  </>
                 )}
               </div>
             )}
