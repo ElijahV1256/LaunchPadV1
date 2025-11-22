@@ -43,7 +43,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Build context from design preferences and brand data
     const brandContext = brandData ? `
 BRAND GUIDE:
 - Brand Colors: Primary: ${brandData.brand_colors?.primary || 'N/A'}, Secondary: ${brandData.brand_colors?.secondary || 'N/A'}, Accent: ${brandData.brand_colors?.accent || 'N/A'}
@@ -64,7 +63,7 @@ ${designPreferences.exampleWebsites && designPreferences.exampleWebsites.filter(
 ` : '';
 
     const prompt = `You are a professional web designer and brand strategist.
-Using the user's brand guide, chosen business, and three website examples they provided, create a clean, modern one-page website layout that follows the brand's colors, typography, voice, structure, and overall style.
+Using the user's brand guide and design preferences, create a clean, modern one-page website layout that follows the brand's colors, voice, and style.
 
 The final output must be simple, professional, and easy to use as a starter website.
 
@@ -75,7 +74,7 @@ ${designContext}
 🌐 1. WEBSITE STYLE INTERPRETATION
 
 ${designPreferences?.exampleWebsites && designPreferences.exampleWebsites.filter((url: string) => url).length > 0 ? `
-Analyze the 3 example websites provided: ${designPreferences.exampleWebsites.filter((url: string) => url).join(', ')}
+Analyze the example websites provided: ${designPreferences.exampleWebsites.filter((url: string) => url).join(', ')}
 
 Identify and describe the key style elements:
 - Layout structure
@@ -100,7 +99,7 @@ HERO SECTION
 - Clean, bold headline (brand voice)
 - Short sub-headline
 - Primary CTA button
-- Optional supporting image/visual description (no image generation)
+- Optional supporting image/visual description
 
 ABOUT SECTION
 - 2–3 sentence introduction to the business
@@ -111,35 +110,31 @@ FEATURES / SERVICES SECTION
 - List 3–6 features or services:
   * Title
   * One-sentence description
-  * Optional icon description (must match brand style)
+  * Optional icon description
 
 WHY CHOOSE US / VALUE SECTION
-- A short area explaining:
-  * Main value proposition
-  * Benefits
-  * Social proof hooks
+- Main value proposition
+- Benefits
+- Social proof hooks
 
 GALLERY / VISUAL SECTION (Optional)
-- Provide descriptions of what images should look like based on the brand guide and example sites
+- Provide descriptions of what images should look like
 
 PRICING SECTION (Optional)
-- If the business has pricing:
-  * Simple tier layout (1–3 tiers)
-  * Clear bullet points
-  * CTA under each
+- Simple tier layout (1–3 tiers)
+- Clear bullet points
+- CTA under each
 
 TESTIMONIALS SECTION (Optional)
-- If relevant to the business:
-  * 2–3 short sample testimonials written in brand tone
+- 2–3 short sample testimonials written in brand tone
 
 FAQ SECTION
 - Include 3–6 beginner-friendly FAQ questions and answers
 
 CONTACT SECTION
-- Include:
-  * Contact info
-  * Small contact form layout description
-  * CTA text: "Get in Touch" or equivalent
+- Contact info
+- Contact form layout description
+- CTA text
 
 🎨 3. STYLE RULES
 
@@ -211,13 +206,14 @@ Return ONLY valid JSON in this exact format:
         messages: [
           {
             role: "system",
-            content: "You are a professional web designer and brand strategist. Always respond with valid JSON only. Use perfect grammar and follow brand voice guidelines.",
+            content: "You are a professional web designer and brand strategist. Always respond with valid JSON only. Never include markdown code blocks or any text outside the JSON. Use perfect grammar and follow brand voice guidelines.",
           },
           {
             role: "user",
             content: prompt,
           },
         ],
+        response_format: { type: "json_object" },
         temperature: 0.7,
         max_tokens: 4000,
       }),
@@ -238,15 +234,21 @@ Return ONLY valid JSON in this exact format:
     }
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
+    let content = data.choices[0].message.content;
+
+    content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
     let copy;
     try {
       copy = JSON.parse(content);
     } catch (e) {
       console.error("Failed to parse OpenAI response:", content);
+      console.error("Parse error:", e);
       return new Response(
-        JSON.stringify({ error: "Failed to parse generated copy" }),
+        JSON.stringify({
+          error: "Failed to parse generated copy",
+          details: content.substring(0, 500)
+        }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
