@@ -62,104 +62,122 @@ DESIGN PREFERENCES:
 ${designPreferences.exampleWebsites && designPreferences.exampleWebsites.filter((url: string) => url).length > 0 ? `- Example Websites for Inspiration: ${designPreferences.exampleWebsites.filter((url: string) => url).join(', ')}` : ''}
 ` : '';
 
-    const prompt = `You are a professional web designer and brand strategist.
-Using the user's brand guide and design preferences, create a clean, modern one-page website layout that follows the brand's colors, voice, and style.
+    const prompt = `You are a professional web designer.
+Your job is to create a one-page website that STRICTLY follows:
+1. The brand guide
+2. The 3 website inspirations chosen by the user
+3. The Launch Pad one-page layout structure
 
-The final output must be simple, professional, and easy to use as a starter website.
+DO NOT add additional sections.
+DO NOT ignore any part of the brand guide.
+DO NOT invent colors, fonts, or messaging.
 
 Business: "${businessName}"
 ${brandContext}
 ${designContext}
 
-🌐 1. WEBSITE STYLE INTERPRETATION
+PRIORITY ORDER (if conflicts arise):
+1. Brand guide
+2. Website examples
+3. Simplicity
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. WEBSITE STYLE ANALYSIS (MANDATORY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ${designPreferences?.exampleWebsites && designPreferences.exampleWebsites.filter((url: string) => url).length > 0 ? `
-Analyze the example websites provided: ${designPreferences.exampleWebsites.filter((url: string) => url).join(', ')}
+Review the 3 websites provided: ${designPreferences.exampleWebsites.filter((url: string) => url).join(', ')}
 
-Identify and describe the key style elements:
-- Layout structure
-- Spacing & section flow
-- Typography style
-- Color usage
-- Button/CTA style
-- Imagery style
-- Overall vibe
+Analyze and output these specific elements:
+- Layout patterns (grid, single column, multi-column)
+- Spacing rules (tight, airy, generous whitespace)
+- Typography style (serif, sans-serif, weight, size hierarchy)
+- Button style (rounded, sharp, filled, outlined, size)
+- Color energy (vibrant, muted, high contrast, subtle)
+- Imagery style (photos, illustrations, icons, minimalist)
+- Section flow (how sections connect and transition)
 
-Combine these elements with the brand guide to create a consistent design direction.
+Then explain EXACTLY how each of these will be applied to the generated website.
+This ensures you are actually using the inspiration sites.
 ` : `
-Create a professional design direction using the brand guide provided.
-Describe the overall style, layout approach, and visual elements that will work best for this business.
+No example websites provided. Create a professional design direction using ONLY the brand guide.
+Describe the layout approach and visual elements that match the brand personality.
 `}
 
-🧱 2. ONE-PAGE WEBSITE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. ONE-PAGE WEBSITE LAYOUT (STRICT SECTIONS ONLY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Build a complete one-page website, including the following sections:
+Generate the website using ONLY these sections in this EXACT order:
 
-HERO SECTION
-- Clean, bold headline (brand voice)
-- Short sub-headline
-- Primary CTA button
-- Optional supporting image/visual description
+HERO
+- Headline (strict brand voice: ${brandData?.brand_voice || 'professional and approachable'})
+- Subheadline (supporting the headline)
+- Primary CTA (action-oriented)
+- Image/visual description based on inspiration sites
+- Color + spacing rules from inspiration
 
-ABOUT SECTION
-- 2–3 sentence introduction to the business
+ABOUT
+- 2–3 sentence business intro
 - What they do / who they help
-- Simple, friendly, brand-aligned tone
+- Brand guide tone ENFORCED
 
-FEATURES / SERVICES SECTION
-- List 3–6 features or services:
-  * Title
-  * One-sentence description
-  * Optional icon description
+FEATURES / SERVICES
+Generate 3–6 features with:
+- Title
+- One-sentence description
+- Icon style (brand guide + inspiration sites)
 
-WHY CHOOSE US / VALUE SECTION
-- Main value proposition
-- Benefits
-- Social proof hooks
+VALUE / WHY CHOOSE US
+- Brand value proposition
+- 3 benefit bullets
+- Simple and clear
 
-GALLERY / VISUAL SECTION (Optional)
-- Provide descriptions of what images should look like
+GALLERY (optional, follow inspiration sites EXACTLY)
+- Describe images the user should use
+- Style MUST match the example sites' visual language
 
-PRICING SECTION (Optional)
-- Simple tier layout (1–3 tiers)
-- Clear bullet points
-- CTA under each
+PRICING (if the business type supports it)
+- 1–3 pricing blocks
+- Matching layout from inspiration site styles
+- Clear features and CTA for each tier
 
-TESTIMONIALS SECTION (Optional)
-- 2–3 short sample testimonials written in brand tone
+TESTIMONIALS (only if business type benefits from it)
+- 2–3 sample testimonials in brand tone
+- Keep realistic and professional
 
-FAQ SECTION
-- Include 3–6 beginner-friendly FAQ questions and answers
+FAQ
+- 3–6 simple questions and answers
+- Address common customer concerns
 
-CONTACT SECTION
+CONTACT
 - Contact info
-- Contact form layout description
-- CTA text
+- Contact form layout
+- Final CTA
 
-🎨 3. STYLE RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. HARD RULES (STRICTLY ENFORCE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-All website content must follow:
+These rules are NON-NEGOTIABLE:
 
-BRAND GUIDE RULES:
-- Brand voice: ${brandData?.brand_voice || 'professional and approachable'}
-- Brand colors: Primary: ${brandData?.brand_colors?.primary || 'blue'}, Secondary: ${brandData?.brand_colors?.secondary || 'gray'}, Accent: ${brandData?.brand_colors?.accent || 'green'}
-- Target audience: ${brandData?.target_audience || 'general customers'}
-- Tagline: ${brandData?.selected_tagline || 'N/A'}
+✓ Use ONLY brand guide colors:
+  - Primary: ${brandData?.brand_colors?.primary || 'blue'}
+  - Secondary: ${brandData?.brand_colors?.secondary || 'gray'}
+  - Accent: ${brandData?.brand_colors?.accent || 'green'}
 
-EXAMPLE SITE INSPIRATION:
-- Apply the visual elements from the provided websites
-- Only use inspiration, never copy
-- Stay aligned with the brand's own aesthetic
-
-✔️ RULES:
-- Perfect grammar
-- Follow brand voice
-- Keep language simple and motivating
-- Use clean formatting
-- No long paragraphs
-- Beginner-friendly
-- No added colors outside the brand guide
-- No complicated design or jargon
+✓ Use ONLY brand guide typography style
+✓ Use inspiration sites ONLY for structure and visual style
+✓ NO extra creativity outside the brand
+✓ NO additional sections beyond what's listed
+✓ Perfect grammar
+✓ Perfect formatting
+✓ NO long paragraphs (keep sentences short and punchy)
+✓ NO filler language
+✓ Clean, modern layout style matching inspirations
+✓ All text MUST sound like: ${brandData?.brand_voice || 'professional and approachable'}
+✓ Target audience: ${brandData?.target_audience || 'general customers'}
+✓ Include tagline if appropriate: ${brandData?.selected_tagline || 'N/A'}
 
 Return ONLY valid JSON in this exact format:
 {
