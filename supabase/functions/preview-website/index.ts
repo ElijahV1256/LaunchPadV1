@@ -105,20 +105,20 @@ Deno.serve(async (req: Request) => {
 
     const designStyles = [
       {
-        name: "Modern Minimalist",
-        description: "Clean, minimal design with lots of whitespace, simple typography, and subtle animations. Focus on clarity and elegance."
+        name: "Premium Modern",
+        description: "Ultra-modern design with glass-morphism effects, smooth gradients, large typography, generous spacing, floating cards, and sophisticated animations. Use backdrop-blur, subtle shadows, and elegant transitions."
       },
       {
-        name: "Bold & Dynamic",
-        description: "Eye-catching design with bold typography, vibrant gradients, strong contrasts, and engaging animations. Make it pop!"
+        name: "Bold Luxury",
+        description: "High-end luxury design with dramatic typography (72px+ headings), rich gradients, premium color overlays, parallax-style sections, and eye-catching micro-interactions. Make every element feel expensive and polished."
       },
       {
-        name: "Professional Corporate",
-        description: "Polished, trustworthy design with structured layouts, professional imagery placeholders, and sophisticated styling."
+        name: "Sophisticated Minimal",
+        description: "Clean, premium minimalist design with perfect spacing, elegant serif/sans-serif font pairing, subtle hover effects, smooth scrolling animations, and a focus on negative space. Every pixel matters."
       }
     ];
 
-    const basePrompt = `You are an expert web designer and developer. Create a stunning, modern, single-page website using only HTML, CSS, and vanilla JavaScript.
+    const basePrompt = `You are an award-winning web designer creating PREMIUM, LUXURY websites. This website must look like it cost $10,000+ to build.
 
 BUSINESS INFORMATION:
 - Business Description: ${designPrefs.businessDescription || "A professional business"}
@@ -127,57 +127,120 @@ BUSINESS INFORMATION:
 - Brand Personality: ${designPrefs.brandPersonality || "Professional and trustworthy"}
 - Preferred Style: ${designPrefs.preferredStyle || "Modern and clean"}
 
-CONTENT:
+CONTENT TO USE:
 - Hero Headline: ${copy.hero_headline || "Welcome"}
 - Hero Subheadline: ${copy.hero_subheadline || "Your business tagline"}
-- Benefits: ${(copy.benefits || []).join(", ")}
-- Offer: ${copy.offer_section || ""}
-- Pricing: ${copy.pricing || ""}
+- Features: ${JSON.stringify(copy.features || [])}
+- Value Proposition: ${copy.value_proposition || ""}
+- Benefits: ${JSON.stringify(copy.value_benefits || [])}
+- Pricing: ${JSON.stringify(copy.pricing_tiers || [])}
 - Testimonials: ${JSON.stringify(copy.testimonials || [])}
 - FAQs: ${JSON.stringify(copy.faqs || [])}
 
-COLOR PALETTE:
+BRAND COLORS (use these EXACTLY):
 - Primary: ${theme.colors.primary}
 - Secondary: ${theme.colors.secondary}
 - Accent: ${theme.colors.accent}
 
-REQUIREMENTS:
-1. Create a complete, production-ready HTML file with embedded CSS and JavaScript
-2. Make it fully responsive (mobile, tablet, desktop)
-3. Use modern design principles: clear hierarchy, ample whitespace, professional typography
-4. Include smooth scroll animations and hover effects
-5. Add a sticky navigation bar
-6. Use the provided color palette consistently
-7. Include ALL sections: hero, benefits, offer/services, pricing, testimonials, FAQs, and footer
-8. Add a prominent CTA button that stands out
-9. Use modern CSS (flexbox/grid, gradients, shadows, border-radius)
-10. Make it look like a premium, professional website worthy of a real business
-11. Include meta tags for SEO
-12. Add subtle animations on scroll (use Intersection Observer)
-13. DO NOT use any external dependencies, libraries, or frameworks
-14. Return ONLY the complete HTML code, no explanations or markdown
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌟 PREMIUM DESIGN REQUIREMENTS (MANDATORY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-The website should look modern and professional, similar to high-end business websites you'd see on Awwwards or Dribbble.`;
+VISUAL EXCELLENCE:
+✓ Large, bold typography (Hero headlines: 56px-72px on desktop)
+✓ Perfect spacing and breathing room (80-120px section padding)
+✓ Smooth gradients and glass-morphism effects (backdrop-blur-lg)
+✓ Premium shadows: box-shadow: 0 20px 60px rgba(0,0,0,0.15)
+✓ Rounded corners everywhere (12-24px border-radius)
+✓ Professional imagery placeholders with overlays
+✓ Consistent 8px spacing grid system
+
+ANIMATIONS & INTERACTIONS:
+✓ Smooth scroll animations using Intersection Observer
+✓ Fade-in + slide-up on scroll (transform: translateY(30px) → translateY(0))
+✓ Hover effects on ALL interactive elements (scale, brightness, shadow)
+✓ Smooth transitions: transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1)
+✓ Animated gradient backgrounds
+✓ Floating/pulsing elements for visual interest
+
+MODERN CSS TECHNIQUES:
+✓ CSS Grid for layouts (not just flexbox)
+✓ CSS Variables for theme colors
+✓ backdrop-filter: blur(10px) for glass effects
+✓ linear-gradient overlays on images
+✓ Position sticky for navigation
+✓ Modern font stack: system-ui, -apple-system, sans-serif
+
+SECTIONS TO INCLUDE:
+1. HERO - Full viewport height, centered content, large headline, gradient background, animated CTA
+2. FEATURES/SERVICES - Icon + title + description cards with hover effects
+3. VALUE PROPOSITION - Eye-catching callout with benefits list
+4. PRICING - Beautiful pricing cards with hover lift effect
+5. TESTIMONIALS - Elegant cards with ratings and customer info
+6. FAQ - Accordion-style with smooth animations
+7. CONTACT/CTA - Bold closing section with form
+8. FOOTER - Clean, organized with links
+
+NAVIGATION:
+✓ Sticky header with blur background on scroll
+✓ Smooth scroll to sections
+✓ Mobile hamburger menu with smooth animation
+✓ Logo + navigation links + CTA button
+
+MOBILE RESPONSIVE:
+✓ Perfect on mobile (320px-768px)
+✓ Reduce font sizes appropriately (Hero: 36-42px on mobile)
+✓ Stack elements vertically
+✓ Touch-friendly buttons (min 44px height)
+
+COLOR USAGE:
+✓ Use provided brand colors throughout
+✓ Create subtle gradients with brand colors
+✓ Use opacity variations for depth
+✓ Dark text on light backgrounds (proper contrast)
+
+QUALITY STANDARDS:
+✓ This must look like websites from Awwwards, Dribbble top shots, or Apple.com
+✓ Every detail polished and intentional
+✓ Professional, never "template-y" or generic
+✓ Make competitors jealous
+✓ Worth $10,000+ in perceived value
+
+TECHNICAL:
+✓ Valid HTML5 with semantic tags
+✓ Embedded CSS in <style> tag
+✓ Embedded JavaScript for interactions
+✓ NO external dependencies or libraries
+✓ Clean, organized code with comments
+✓ Optimized for performance
+
+Return ONLY the complete HTML code. No explanations. No markdown. Just pristine HTML.`;
 
     const selectedStyle = designStyles[Math.floor(Math.random() * designStyles.length)];
     const stylePrompt = `${basePrompt}
 
-DESIGN STYLE: ${selectedStyle.name}
-${selectedStyle.description}`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 DESIGN STYLE FOR THIS GENERATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${selectedStyle.name}
+${selectedStyle.description}
+
+Apply this design style while maintaining all the premium requirements above. Make it absolutely stunning.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are an expert web designer who creates beautiful, modern, production-ready websites. You return only valid HTML code with no additional text or markdown formatting."
+          content: "You are an award-winning web designer who creates PREMIUM, LUXURY websites that look like they cost $10,000+. Every pixel is perfect. Every animation is smooth. Every detail is polished. You ONLY return pristine HTML code - no markdown, no explanations, just beautiful code."
         },
         {
           role: "user",
           content: stylePrompt
         }
       ],
-      temperature: 0.8,
+      temperature: 0.9,
     });
 
     let html = completion.choices[0].message.content || "";
