@@ -787,7 +787,7 @@ export default function FirstRevenue() {
                   </div>
                   <textarea
                     readOnly
-                    value={`Hey ${extractFirstName(targetPerson) || '[Name]'}! Hope you're doing well.\n\nI'm trying something new and immediately thought of you. ${offerOneLiner || '[What you offer]'} for around ${price || '[price]'}.\n\nWanna try it out this week? Totally cool if you're not interested — either way, I'd love to hear what you think!`}
+                    value={`Hey ${extractFirstName(targetPerson) || '[Name]'}! How's it going?\n\nSo I'm starting something new and you were literally the first person I thought of. ${offerOneLiner || '[What you offer]'} — around ${price || '[price]'}.\n\nAny chance you'd want to try it this week? No pressure at all, but I'd genuinely love to get your thoughts on it!`}
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-gray-300 resize-none focus:outline-none"
                     rows={5}
                   />
