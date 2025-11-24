@@ -825,15 +825,148 @@ export default function WebsiteBuilder() {
                       <span className="font-bold">Copy Generated!</span>
                     </div>
                     {data.copy && (
-                      <div className="space-y-4 text-gray-300">
-                        <div>
-                          <h3 className="font-bold text-white mb-2">Hero Headline:</h3>
-                          <p>{data.copy.hero_headline}</p>
+                      <div className="space-y-6 text-gray-300">
+                        {/* Hero Section */}
+                        <div className="bg-white/5 border border-white/10 rounded-lg p-5">
+                          <h3 className="font-bold text-white mb-4 text-lg">Hero Section</h3>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-xs text-gray-400 uppercase tracking-wide">Headline</label>
+                              <p className="text-white font-semibold text-xl mt-1">{data.copy.hero_headline}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-400 uppercase tracking-wide">Subheadline</label>
+                              <p className="text-gray-300 mt-1">{data.copy.hero_subheadline}</p>
+                            </div>
+                            <div className="flex gap-3 mt-4">
+                              <div className="px-4 py-2 bg-[#2979FF] text-white rounded-lg text-sm font-semibold">
+                                {data.copy.hero_cta_primary}
+                              </div>
+                              {data.copy.hero_cta_secondary && (
+                                <div className="px-4 py-2 bg-white/10 text-white rounded-lg text-sm font-semibold">
+                                  {data.copy.hero_cta_secondary}
+                                </div>
+                              )}
+                            </div>
+                            {data.copy.hero_image_description && (
+                              <div className="mt-3 pt-3 border-t border-white/10">
+                                <label className="text-xs text-gray-400 uppercase tracking-wide">Image Description</label>
+                                <p className="text-gray-500 text-sm mt-1">{data.copy.hero_image_description}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-bold text-white mb-2">Subheadline:</h3>
-                          <p>{data.copy.hero_subheadline}</p>
-                        </div>
+
+                        {/* About Section */}
+                        {data.copy.about_text && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-5">
+                            <h3 className="font-bold text-white mb-3 text-lg">About</h3>
+                            <p className="text-gray-300 leading-relaxed">{data.copy.about_text}</p>
+                          </div>
+                        )}
+
+                        {/* Features */}
+                        {data.copy.features && data.copy.features.length > 0 && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-5">
+                            <h3 className="font-bold text-white mb-4 text-lg">Features / Services</h3>
+                            <div className="grid gap-4">
+                              {data.copy.features.map((feature: any, idx: number) => (
+                                <div key={idx} className="bg-white/5 rounded-lg p-4">
+                                  <h4 className="text-white font-semibold mb-1">{feature.title}</h4>
+                                  <p className="text-gray-400 text-sm">{feature.description}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Value Proposition */}
+                        {data.copy.value_benefits && data.copy.value_benefits.length > 0 && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-5">
+                            <h3 className="font-bold text-white mb-3 text-lg">Why Choose Us</h3>
+                            {data.copy.value_proposition && (
+                              <p className="text-gray-300 mb-4">{data.copy.value_proposition}</p>
+                            )}
+                            <ul className="space-y-2">
+                              {data.copy.value_benefits.map((benefit: string, idx: number) => (
+                                <li key={idx} className="flex items-start gap-2 text-gray-300">
+                                  <span className="text-[#06D6A0] mt-1">✓</span>
+                                  <span>{benefit}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Testimonials */}
+                        {data.copy.testimonials && data.copy.testimonials.length > 0 && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-5">
+                            <h3 className="font-bold text-white mb-4 text-lg">Testimonials / Social Proof</h3>
+                            <div className="space-y-3">
+                              {data.copy.testimonials.map((testimonial: any, idx: number) => (
+                                <div key={idx} className="bg-white/5 rounded-lg p-4">
+                                  <p className="text-gray-300 italic mb-2">"{testimonial.text}"</p>
+                                  <p className="text-sm text-gray-400">
+                                    — {testimonial.name}
+                                    {testimonial.role && <span className="text-gray-500">, {testimonial.role}</span>}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Pricing */}
+                        {data.copy.pricing_tiers && data.copy.pricing_tiers.length > 0 && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-5">
+                            <h3 className="font-bold text-white mb-4 text-lg">Pricing</h3>
+                            <div className="grid gap-4">
+                              {data.copy.pricing_tiers.map((tier: any, idx: number) => (
+                                <div key={idx} className="bg-white/5 rounded-lg p-4">
+                                  <h4 className="text-white font-semibold text-lg">{tier.name}</h4>
+                                  <p className="text-[#2979FF] font-bold text-2xl my-2">{tier.price}</p>
+                                  <p className="text-gray-400 text-sm mb-3">{tier.description}</p>
+                                  <ul className="space-y-1 mb-4">
+                                    {tier.features?.map((feature: string, fIdx: number) => (
+                                      <li key={fIdx} className="text-gray-300 text-sm flex items-start gap-2">
+                                        <span className="text-[#06D6A0]">✓</span>
+                                        <span>{feature}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                  <div className="px-4 py-2 bg-[#2979FF] text-white rounded-lg text-sm font-semibold text-center">
+                                    {tier.cta}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* FAQs */}
+                        {data.copy.faqs && data.copy.faqs.length > 0 && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-5">
+                            <h3 className="font-bold text-white mb-4 text-lg">FAQs</h3>
+                            <div className="space-y-4">
+                              {data.copy.faqs.map((faq: any, idx: number) => (
+                                <div key={idx}>
+                                  <h4 className="text-white font-semibold mb-1">{faq.question}</h4>
+                                  <p className="text-gray-400 text-sm">{faq.answer}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Footer CTA */}
+                        {data.copy.footer_message && (
+                          <div className="bg-gradient-to-r from-[#2979FF]/10 to-[#06D6A0]/10 border border-[#2979FF]/30 rounded-lg p-6 text-center">
+                            <p className="text-white text-lg mb-4">{data.copy.footer_message}</p>
+                            <div className="px-6 py-3 bg-[#2979FF] text-white rounded-lg font-semibold inline-block">
+                              {data.copy.footer_cta}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 

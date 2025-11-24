@@ -77,158 +77,126 @@ ${contentAnswers.pricing ? `- Pricing Info: ${contentAnswers.pricing}` : ''}
       ? designPreferences.exampleWebsites.filter((url: string) => url)
       : [];
 
-    const prompt = `You are a professional web designer and website copywriter.
-Your job is ONLY to generate structured website content + layout instructions for a clean, modern one-page website.
-A renderer will handle the HTML and design.
+    const prompt = `You are a professional brand copywriter.
+Your job is to generate clean, modern, high-converting landing page copy based on:
 
-Follow these rules EXACTLY:
+- The user's brand guide
+- The user's business information
+- The target audience
+- The three websites the user likes
+- The tone, style, and messaging rules
+- Perfect grammar
 
-🔒 NON-NEGOTIABLE DESIGN RULES
+You are NOT generating a full website, layout, code, or design.
+You are ONLY generating high-quality landing page text that the user can paste into any website builder.
 
-Logo must be placed in the top-left corner. (MANDATORY)
+Follow the structure below EXACTLY.
 
-Website must be clean, modern, minimal, with lots of white space.
-
-Follow the brand guide voice, tone, value, and style exactly.
+BRAND GUIDE:
 ${brandContext}
 
-Follow the structure exactly as listed.
-
-No large paragraphs.
-
-No HTML, no CSS, no design code.
-
-Perfect grammar.
-
-No extra creativity outside the brand.
-
-No extra sections.
-
+BUSINESS INFORMATION:
 Business: "${businessName}"
 ${designContext}
 ${contentContext}
 
-IMPORTANT: If custom content details are provided above, use them to create highly specific, tailored website copy that directly addresses the business's offerings, target audience, problems solved, and unique value proposition.
-
-📸 PHOTO INTEGRATION RULES
-
-User has NOT provided photos.
-Generate clean, modern photo descriptions the user can recreate or generate with AI.
-
-Photo descriptions must:
-- Match brand guide
-- Match the style of the 3 websites the user likes
-- Be minimal, clean, and modern
-
-Example formats:
-"Full-width, soft lighting, minimal background, product centered"
-"Crisp lifestyle shot with neutral tones"
-
-🎨 WEBSITE STYLE INTERPRETATION
-
-${exampleWebsites.length > 0 ? `Analyze the 3 inspiration websites and output:
+${exampleWebsites.length > 0 ? `INSPIRATION WEBSITES:
 ${exampleWebsites.join('\n')}
 
-Extract:
-- Layout style
-- Spacing
-- Typography feel
-- Button style
-- Imagery look
-- Overall vibe
+Analyze these websites for tone, style, and messaging approach. Apply similar principles to the copy you generate.
+` : 'No example websites provided. Use clean, modern copywriting style similar to Notion, Stripe, Shopify, Linear, or Webflow.'}
 
-Apply this style to the website content.
-` : 'No example websites provided. Use clean, modern style similar to Notion, Stripe, Shopify, Linear, or Webflow.'}
+IMPORTANT: If custom content details are provided above, use them to create highly specific, tailored landing page copy that directly addresses the business's offerings, target audience, problems solved, and unique value proposition.
 
-🧱 STRICT ONE-PAGE WEBSITE STRUCTURE
+🧱 LANDING PAGE COPY STRUCTURE (STRICT)
 
-You MUST follow this exact structure.
+1. HERO SECTION
+- Headline (short, modern, benefit-driven)
+- Subheadline (one sentence)
+- Primary Call to Action
+- Optional Secondary Call to Action
+- Suggested hero image description (clean + modern)
 
-1. HEADER
-- Logo placement: Top-left (MANDATORY)
-- CTA button on the right
-- Short description of styling based on inspiration sites
-
-2. HERO SECTION
-- Headline
-- Subheadline
-- Primary CTA
-- Secondary CTA (optional)
-- Hero photo placement description
-
-3. ABOUT SECTION
-- 2–3 short clean sentences:
+2. ABOUT SECTION
+- 2–3 short sentences:
   - What the business does
   - Who it helps
-  - Why it matters
-- About photo placement description (optional)
+  - The main value it brings
+- Written in brand voice
 
-4. FEATURES / SERVICES SECTION
-- Provide 3–6 features, each with:
-  - Title
-  - One-sentence description
-  - Photo/icon placement description (optional)
+3. FEATURES / SERVICES
+- Write 3–6 features/services, each with:
+  - Feature/Service name
+  - One sentence description
+  - Optional image description
+- Keep everything clean and simple.
 
-5. VALUE / WHY CHOOSE US SECTION
-- 3–5 clean bullet points
+4. VALUE PROPOSITION / WHY CHOOSE US
+- Write 3–5 clear, punchy bullets that highlight:
+  - Benefits
+  - Unique value
+  - Why customers choose this business
+- No long paragraphs.
 
-6. GALLERY SECTION (OPTIONAL)
-- Provide 3–5 photo descriptions
-
-7. PRICING SECTION (IF APPLICABLE)
+5. SOCIAL PROOF / TESTIMONIALS
 - If relevant to the business:
-  - Up to 3 tiers
-  - Title
-  - Description
-  - 3–5 bullets
-  - CTA
-- If not applicable: return empty array
+  - Write 2–3 short testimonials in a modern, clean voice.
+- If there are no testimonials:
+  - Write high-level "credibility statements," such as:
+    - "Trusted by local customers"
+    - "Backed by a strong mission"
+    - "Built around your needs"
 
-8. TESTIMONIALS (OPTIONAL)
-- If relevant: Write 2–3 clean testimonials
-- If not relevant: return empty array
+6. PRICING (IF APPLICABLE)
+- If the business uses pricing tiers, provide up to 3:
+  - For each tier:
+    - Title
+    - Description
+    - 3–5 bullet points
+    - CTA
+- If pricing doesn't apply, return empty array
 
-9. FAQ SECTION
-- 3–6 short Q/A items
+7. FAQ SECTION
+- Provide 3–6 short questions + answers based on typical customer concerns.
 
-10. CONTACT SECTION
-- Contact info
-- Simple closing message
-- CTA
-- Contact photo placement description (optional)
+8. FINAL CALL TO ACTION (FOOTER CTA)
+- A simple closing message in brand voice and a strong CTA.
+
+📌 FORMATTING RULES
+- Use clean headers
+- Short sentences
+- No rambling text
+- No large paragraphs
+- Perfect grammar
+- Follow the brand guide tone exactly
+- No HTML, CSS, or code
+- No layouts
+- No sections outside the ones listed
 
 Return ONLY valid JSON in this exact format:
 {
-  "style_interpretation": "Brief style analysis of inspiration sites",
-  "header_cta": "string",
-  "header_style_notes": "string",
   "hero_headline": "string",
   "hero_subheadline": "string",
   "hero_cta_primary": "string",
   "hero_cta_secondary": "string",
-  "hero_photo_description": "string",
+  "hero_image_description": "string",
   "about_text": "string (2-3 sentences)",
-  "about_photo_description": "string",
   "features": [
-    {"title": "string", "description": "string", "photo_description": "string"}
+    {"title": "string", "description": "string", "image_description": "string"}
   ],
   "value_proposition": "string",
   "value_benefits": ["string", "string", "string"],
-  "gallery_photos": [
-    {"description": "string"}
+  "testimonials": [
+    {"name": "string", "text": "string", "role": "string"}
   ],
   "pricing_tiers": [
     {"name": "string", "price": "string", "description": "string", "features": ["string"], "cta": "string"}
   ],
-  "testimonials": [
-    {"name": "string", "text": "string", "rating": 5}
-  ],
   "faqs": [
     {"question": "string", "answer": "string"}
   ],
-  "contact_message": "string",
-  "contact_cta": "string",
-  "contact_photo_description": "string"
+  "footer_message": "string",
+  "footer_cta": "string"
 }`;
 
     console.log("Calling OpenAI API...");
@@ -243,7 +211,7 @@ Return ONLY valid JSON in this exact format:
         messages: [
           {
             role: "system",
-            content: "You are a professional web designer and brand strategist. Always respond with valid JSON only. Never include markdown code blocks or any text outside the JSON. Use perfect grammar and follow brand voice guidelines.",
+            content: "You are a professional brand copywriter. Always respond with valid JSON only. Never include markdown code blocks or any text outside the JSON. Use perfect grammar, short sentences, and follow brand voice guidelines exactly.",
           },
           {
             role: "user",
