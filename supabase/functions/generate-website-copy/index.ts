@@ -15,9 +15,9 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { businessName, ideaKey, designPreferences, brandData, apiKey } = await req.json();
+    const { businessName, ideaKey, designPreferences, brandData, apiKey, contentAnswers } = await req.json();
 
-    console.log("Received request:", { businessName, ideaKey, designPreferences });
+    console.log("Received request:", { businessName, ideaKey, designPreferences, contentAnswers });
 
     if (!businessName) {
       return new Response(
@@ -63,6 +63,16 @@ BUSINESS DETAILS:
 - Preferred Style: ${designPreferences.preferredStyle || 'N/A'}
 ` : '';
 
+    const contentContext = contentAnswers && Object.values(contentAnswers).some((v: any) => v) ? `
+CUSTOM CONTENT DETAILS:
+${contentAnswers.whatYouOffer ? `- What They Offer: ${contentAnswers.whatYouOffer}` : ''}
+${contentAnswers.whoYouHelp ? `- Target Audience: ${contentAnswers.whoYouHelp}` : ''}
+${contentAnswers.mainProblemSolved ? `- Problem Solved: ${contentAnswers.mainProblemSolved}` : ''}
+${contentAnswers.keyBenefits ? `- Key Benefits: ${contentAnswers.keyBenefits}` : ''}
+${contentAnswers.whatMakesYouDifferent ? `- Unique Differentiators: ${contentAnswers.whatMakesYouDifferent}` : ''}
+${contentAnswers.pricing ? `- Pricing Info: ${contentAnswers.pricing}` : ''}
+` : '';
+
     const exampleWebsites = designPreferences?.exampleWebsites && designPreferences.exampleWebsites.filter((url: string) => url).length > 0
       ? designPreferences.exampleWebsites.filter((url: string) => url)
       : [];
@@ -96,6 +106,9 @@ No extra sections.
 
 Business: "${businessName}"
 ${designContext}
+${contentContext}
+
+IMPORTANT: If custom content details are provided above, use them to create highly specific, tailored website copy that directly addresses the business's offerings, target audience, problems solved, and unique value proposition.
 
 📸 PHOTO INTEGRATION RULES
 

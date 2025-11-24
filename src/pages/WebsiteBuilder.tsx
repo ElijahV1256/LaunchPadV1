@@ -93,6 +93,15 @@ export default function WebsiteBuilder() {
   const [suggestionMessage, setSuggestionMessage] = useState('');
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [suggestionResponse, setSuggestionResponse] = useState<any>(null);
+  const [showContentQuestionnaire, setShowContentQuestionnaire] = useState(false);
+  const [contentAnswers, setContentAnswers] = useState({
+    whatYouOffer: '',
+    whoYouHelp: '',
+    mainProblemSolved: '',
+    keyBenefits: '',
+    whatMakesYouDifferent: '',
+    pricing: '',
+  });
 
   useEffect(() => {
     if (!currentUser) {
@@ -264,6 +273,7 @@ export default function WebsiteBuilder() {
             businessName: brandData.selected_name,
             ideaKey,
             designPreferences: data.design_preferences,
+            contentAnswers: contentAnswers,
             brandData: brandData,
             apiKey: import.meta.env.VITE_OPENAI_API_KEY,
           }),
@@ -681,6 +691,115 @@ export default function WebsiteBuilder() {
                         </button>
                       </div>
                     )}
+
+                    {/* Content Questionnaire */}
+                    <div className="bg-gradient-to-r from-[#06D6A0]/10 to-[#2979FF]/10 border border-[#06D6A0]/20 rounded-lg p-6">
+                      <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+                        <MessageSquare size={18} className="text-[#06D6A0]" />
+                        Customize Your Website Content
+                      </h3>
+                      <p className="text-gray-300 mb-4 text-sm leading-relaxed">
+                        Answer these questions to help us create tailored content for your website. The more details you provide, the better your website copy will be.
+                      </p>
+                      {!showContentQuestionnaire ? (
+                        <button
+                          onClick={() => setShowContentQuestionnaire(true)}
+                          className="px-5 py-2.5 bg-[#06D6A0] text-white rounded-lg hover:bg-[#06D6A0]/90 transition-all font-medium"
+                        >
+                          Answer Questions
+                        </button>
+                      ) : (
+                        <div className="space-y-4 mt-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              What do you offer? (Services/Products)
+                            </label>
+                            <textarea
+                              value={contentAnswers.whatYouOffer}
+                              onChange={(e) => setContentAnswers({ ...contentAnswers, whatYouOffer: e.target.value })}
+                              placeholder="E.g., Professional lawn care services including mowing, edging, and seasonal cleanups"
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#06D6A0] resize-none"
+                              rows={2}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Who do you help? (Target audience)
+                            </label>
+                            <input
+                              type="text"
+                              value={contentAnswers.whoYouHelp}
+                              onChange={(e) => setContentAnswers({ ...contentAnswers, whoYouHelp: e.target.value })}
+                              placeholder="E.g., Busy homeowners in suburban neighborhoods"
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#06D6A0]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              What problem do you solve?
+                            </label>
+                            <textarea
+                              value={contentAnswers.mainProblemSolved}
+                              onChange={(e) => setContentAnswers({ ...contentAnswers, mainProblemSolved: e.target.value })}
+                              placeholder="E.g., Homeowners don't have time or energy to maintain their lawns"
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#06D6A0] resize-none"
+                              rows={2}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Key benefits or features? (3-4 items)
+                            </label>
+                            <textarea
+                              value={contentAnswers.keyBenefits}
+                              onChange={(e) => setContentAnswers({ ...contentAnswers, keyBenefits: e.target.value })}
+                              placeholder="E.g., Weekly service, professional equipment, satisfaction guaranteed, eco-friendly products"
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#06D6A0] resize-none"
+                              rows={2}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              What makes you different from competitors?
+                            </label>
+                            <textarea
+                              value={contentAnswers.whatMakesYouDifferent}
+                              onChange={(e) => setContentAnswers({ ...contentAnswers, whatMakesYouDifferent: e.target.value })}
+                              placeholder="E.g., 20 years experience, locally owned, same-day service available"
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#06D6A0] resize-none"
+                              rows={2}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Pricing information (optional)
+                            </label>
+                            <input
+                              type="text"
+                              value={contentAnswers.pricing}
+                              onChange={(e) => setContentAnswers({ ...contentAnswers, pricing: e.target.value })}
+                              placeholder="E.g., Starting at $50/week, Free estimates, or leave blank"
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#06D6A0]"
+                            />
+                          </div>
+
+                          <div className="flex gap-3 pt-2">
+                            <button
+                              onClick={() => setShowContentQuestionnaire(false)}
+                              className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+                            >
+                              Close
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <button
                       onClick={generateCopy}
                       disabled={generating}
