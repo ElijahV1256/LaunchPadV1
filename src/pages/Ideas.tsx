@@ -289,7 +289,11 @@ export default function Ideas() {
         const ideasCreatedAt = new Date(existingIdeas[0].created_at);
 
         if (profileUpdatedAt && profileUpdatedAt > ideasCreatedAt) {
-          await generateNewIdeas();
+          try {
+            await generateNewIdeas();
+          } catch (genErr) {
+            console.error('Failed to generate new ideas:', genErr);
+          }
           setLoading(false);
           return;
         }
@@ -306,9 +310,15 @@ export default function Ideas() {
         return;
       }
 
-      await generateNewIdeas();
+      try {
+        await generateNewIdeas();
+      } catch (genErr) {
+        console.error('Failed to generate new ideas:', genErr);
+      }
     } catch (err: any) {
+      console.error('Load ideas error:', err);
       setError(err.message || 'Failed to load ideas');
+    } finally {
       setLoading(false);
     }
   };
@@ -510,11 +520,24 @@ export default function Ideas() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0A192F] to-[#0A192F] flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0A192F] to-[#0A192F] flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
           <Loader2 className="text-[#2979FF] animate-spin mx-auto mb-4" size={48} />
-          <p className="text-white text-xl">Generating your personalized business ideas...</p>
-          <p className="text-gray-400 mt-2">This may take a moment</p>
+          <p className="text-white text-xl mb-2">Generating your personalized business ideas...</p>
+          <p className="text-gray-400 text-sm mb-6">This may take 30-60 seconds</p>
+
+          <div className="bg-white/5 border border-white/10 rounded-lg p-4 text-left">
+            <p className="text-gray-300 text-sm mb-2">💡 <strong>What's happening?</strong></p>
+            <ul className="text-gray-400 text-xs space-y-1 ml-4">
+              <li>• Analyzing your profile and preferences</li>
+              <li>• Using AI to find ideas that match you</li>
+              <li>• Checking for market opportunities</li>
+            </ul>
+          </div>
+
+          <p className="text-gray-500 text-xs mt-4">
+            If this takes longer than 2 minutes, please refresh the page
+          </p>
         </div>
       </div>
     );
