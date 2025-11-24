@@ -15,7 +15,10 @@ import {
   MessageCircle,
   Sparkles,
   Download,
-  RefreshCw
+  RefreshCw,
+  Edit3,
+  Save,
+  X
 } from 'lucide-react';
 import { generateMarketingContent } from '../services/openai';
 
@@ -53,6 +56,9 @@ export default function MarketingAssets() {
   const [generatingStep, setGeneratingStep] = useState('');
   const [progress, setProgress] = useState(0);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [editingFlyerIndex, setEditingFlyerIndex] = useState<number | null>(null);
+  const [editedFlyerData, setEditedFlyerData] = useState<any>(null);
+  const [savingFlyer, setSavingFlyer] = useState(false);
 
   const flyersRef = useRef<HTMLDivElement>(null);
   const socialRef = useRef<HTMLDivElement>(null);
@@ -148,6 +154,47 @@ export default function MarketingAssets() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const startEditingFlyer = (index: number) => {
+    const flyer = data!.flyers[index];
+    setEditingFlyerIndex(index);
+    setEditedFlyerData({ ...flyer.template });
+  };
+
+  const cancelEditingFlyer = () => {
+    setEditingFlyerIndex(null);
+    setEditedFlyerData(null);
+  };
+
+  const saveEditedFlyer = async () => {
+    if (editingFlyerIndex === null || !data || !editedFlyerData) return;
+
+    setSavingFlyer(true);
+    try {
+      const updatedFlyers = [...data.flyers];
+      updatedFlyers[editingFlyerIndex] = {
+        ...updatedFlyers[editingFlyerIndex],
+        template: editedFlyerData,
+      };
+
+      await supabase
+        .from('marketing_assets')
+        .update({
+          flyers: updatedFlyers,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', data.id);
+
+      setData({ ...data, flyers: updatedFlyers });
+      setEditingFlyerIndex(null);
+      setEditedFlyerData(null);
+    } catch (err: any) {
+      console.error('Error saving flyer:', err);
+      alert('Failed to save changes');
+    } finally {
+      setSavingFlyer(false);
     }
   };
 
@@ -569,6 +616,13 @@ export default function MarketingAssets() {
                                 <p className="text-gray-400 text-sm">{flyer.description}</p>
                                 {flyer.size && <p className="text-gray-500 text-xs mt-1">Size: {flyer.size}</p>}
                               </div>
+                              <button
+                                onClick={() => startEditingFlyer(idx)}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-[#2979FF]/20 border border-[#2979FF]/30 text-[#2979FF] rounded-lg text-sm hover:bg-[#2979FF]/30 transition-colors"
+                              >
+                                <Edit3 size={14} />
+                                Edit Text
+                              </button>
                             </div>
 
                             {flyer.imageUrl ? (
@@ -673,64 +727,158 @@ export default function MarketingAssets() {
                                   {/* Headline */}
                                   <div>
                                     <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Headline</label>
-                                    <div
-                                      className="text-2xl font-bold"
-                                      style={{ color: brandData?.brand_colors?.primary || '#fff' }}
-                                    >
-                                      {flyer.template.headline}
-                                    </div>
+                                    {editingFlyerIndex === idx ? (
+                                      <input
+                                        type="text"
+                                        value={editedFlyerData.headline}
+                                        onChange={(e) => setEditedFlyerData({ ...editedFlyerData, headline: e.target.value })}
+                                        className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xl font-bold focus:outline-none focus:ring-2 focus:ring-[#2979FF]"
+                                      />
+                                    ) : (
+                                      <div
+                                        className="text-2xl font-bold"
+                                        style={{ color: brandData?.brand_colors?.primary || '#fff' }}
+                                      >
+                                        {flyer.template.headline}
+                                      </div>
+                                    )}
                                   </div>
 
                                 {/* Subheadline */}
                                 <div>
                                   <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Subheadline</label>
-                                  <div className="text-gray-200 text-lg">{flyer.template.subheadline}</div>
+                                  {editingFlyerIndex === idx ? (
+                                    <input
+                                      type="text"
+                                      value={editedFlyerData.subheadline}
+                                      onChange={(e) => setEditedFlyerData({ ...editedFlyerData, subheadline: e.target.value })}
+                                      className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-lg focus:outline-none focus:ring-2 focus:ring-[#2979FF]"
+                                    />
+                                  ) : (
+                                    <div className="text-gray-200 text-lg">{flyer.template.subheadline}</div>
+                                  )}
                                 </div>
 
                                 {/* Body Content */}
                                 <div>
                                   <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Body Content</label>
-                                  <div className="text-gray-300 text-sm leading-relaxed">{flyer.template.bodyContent}</div>
+                                  {editingFlyerIndex === idx ? (
+                                    <textarea
+                                      value={editedFlyerData.body || editedFlyerData.bodyContent || ''}
+                                      onChange={(e) => setEditedFlyerData({ ...editedFlyerData, body: e.target.value, bodyContent: e.target.value })}
+                                      className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2979FF] resize-none"
+                                      rows={3}
+                                    />
+                                  ) : (
+                                    <div className="text-gray-300 text-sm leading-relaxed">{flyer.template.body || flyer.template.bodyContent}</div>
+                                  )}
                                 </div>
 
                                 {/* Features */}
-                                {flyer.template.features && flyer.template.features.length > 0 && (
+                                {(flyer.template.features && flyer.template.features.length > 0) && (
                                   <div>
                                     <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Features & Benefits</label>
-                                    <ul className="space-y-2">
-                                      {flyer.template.features.map((feature: string, fIdx: number) => (
-                                        <li key={fIdx} className="text-gray-300 text-sm flex items-start gap-2">
-                                          <span
-                                            className="mt-0.5 font-bold"
-                                            style={{ color: brandData?.brand_colors?.accent || '#06D6A0' }}
-                                          >
-                                            ✓
-                                          </span>
-                                          {feature}
-                                        </li>
-                                      ))}
-                                    </ul>
+                                    {editingFlyerIndex === idx ? (
+                                      <div className="space-y-2">
+                                        {editedFlyerData.features?.map((feature: string, fIdx: number) => (
+                                          <input
+                                            key={fIdx}
+                                            type="text"
+                                            value={feature}
+                                            onChange={(e) => {
+                                              const newFeatures = [...editedFlyerData.features];
+                                              newFeatures[fIdx] = e.target.value;
+                                              setEditedFlyerData({ ...editedFlyerData, features: newFeatures });
+                                            }}
+                                            className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2979FF]"
+                                          />
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <ul className="space-y-2">
+                                        {flyer.template.features.map((feature: string, fIdx: number) => (
+                                          <li key={fIdx} className="text-gray-300 text-sm flex items-start gap-2">
+                                            <span
+                                              className="mt-0.5 font-bold"
+                                              style={{ color: brandData?.brand_colors?.accent || '#06D6A0' }}
+                                            >
+                                              ✓
+                                            </span>
+                                            {feature}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
                                   </div>
                                 )}
 
                                 {/* Call to Action */}
                                 <div>
                                   <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Call to Action</label>
-                                  <div
-                                    className="rounded-lg px-6 py-3 font-bold text-center text-white"
-                                    style={{
-                                      backgroundColor: brandData?.brand_colors?.accent || brandData?.brand_colors?.primary || '#2979FF'
-                                    }}
-                                  >
-                                    {flyer.template.cta}
-                                  </div>
+                                  {editingFlyerIndex === idx ? (
+                                    <input
+                                      type="text"
+                                      value={editedFlyerData.cta}
+                                      onChange={(e) => setEditedFlyerData({ ...editedFlyerData, cta: e.target.value })}
+                                      className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white font-bold text-center focus:outline-none focus:ring-2 focus:ring-[#2979FF]"
+                                    />
+                                  ) : (
+                                    <div
+                                      className="rounded-lg px-6 py-3 font-bold text-center text-white"
+                                      style={{
+                                        backgroundColor: brandData?.brand_colors?.accent || brandData?.brand_colors?.primary || '#2979FF'
+                                      }}
+                                    >
+                                      {flyer.template.cta}
+                                    </div>
+                                  )}
                                 </div>
 
                                 {/* Footer */}
                                 <div>
                                   <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Footer / Contact Info</label>
-                                  <div className="text-gray-400 text-sm whitespace-pre-line">{flyer.template.footer}</div>
+                                  {editingFlyerIndex === idx ? (
+                                    <textarea
+                                      value={editedFlyerData.footer}
+                                      onChange={(e) => setEditedFlyerData({ ...editedFlyerData, footer: e.target.value })}
+                                      className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2979FF] resize-none"
+                                      rows={2}
+                                    />
+                                  ) : (
+                                    <div className="text-gray-400 text-sm whitespace-pre-line">{flyer.template.footer}</div>
+                                  )}
                                 </div>
+
+                                {/* Edit Mode Actions */}
+                                {editingFlyerIndex === idx && (
+                                  <div className="flex gap-3 pt-4 border-t border-white/10">
+                                    <button
+                                      onClick={saveEditedFlyer}
+                                      disabled={savingFlyer}
+                                      className="flex items-center gap-2 px-6 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      {savingFlyer ? (
+                                        <>
+                                          <Loader2 size={16} className="animate-spin" />
+                                          Saving...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Save size={16} />
+                                          Save Changes
+                                        </>
+                                      )}
+                                    </button>
+                                    <button
+                                      onClick={cancelEditingFlyer}
+                                      disabled={savingFlyer}
+                                      className="flex items-center gap-2 px-6 py-2 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors disabled:opacity-50"
+                                    >
+                                      <X size={16} />
+                                      Cancel
+                                    </button>
+                                  </div>
+                                )}
 
                                 {flyer.template.layoutNotes && (
                                   <div className="border-t border-white/10 pt-4 space-y-3">
