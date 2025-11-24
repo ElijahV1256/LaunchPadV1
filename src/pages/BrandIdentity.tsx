@@ -1740,8 +1740,17 @@ export default function BrandIdentity() {
                         disabled={generatingLogoConcepts}
                         className="flex-1 px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        <Sparkles size={18} />
-                        Generate Logos
+                        {generatingLogoConcepts ? (
+                          <>
+                            <Loader2 size={18} className="animate-spin" />
+                            Generating Logos...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles size={18} />
+                            Generate Logos
+                          </>
+                        )}
                       </button>
                       <button
                         onClick={() => {
@@ -1759,6 +1768,30 @@ export default function BrandIdentity() {
                         Clear
                       </button>
                     </div>
+
+                    {generatingLogoConcepts && (
+                      <div className="mt-4 bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-white">
+                            Creating Logo {logoProgress.current} of {logoProgress.total}
+                          </span>
+                          <span className="text-sm text-[#2979FF] font-semibold">
+                            {Math.round((logoProgress.current / logoProgress.total) * 100)}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className="h-full bg-[#2979FF] transition-all duration-500 ease-out"
+                            style={{ width: `${(logoProgress.current / logoProgress.total) * 100}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2">
+                          {logoProgress.current === 0 && 'Initializing logo generation...'}
+                          {logoProgress.current > 0 && logoProgress.current < logoProgress.total && 'Generating professional logo concepts with AI...'}
+                          {logoProgress.current === logoProgress.total && 'Finalizing your logos...'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
