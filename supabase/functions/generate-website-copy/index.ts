@@ -68,117 +68,144 @@ BUSINESS DETAILS:
       : [];
 
     const prompt = `You are a professional web designer and website copywriter.
-Your job is to generate only the website content, not the layout or code.
+Your job is ONLY to generate structured website content + layout instructions for a clean, modern one-page website.
+A renderer will handle the HTML and design.
 
-This content will be inserted into a pre-built HTML template, just like Wix's AI Website Builder.
+Follow these rules EXACTLY:
 
-You MUST follow the rules below.
+🔒 NON-NEGOTIABLE DESIGN RULES
 
-🔥 PRIORITY RULES (Follow Exactly)
+Logo must be placed in the top-left corner. (MANDATORY)
 
-Use the brand guide exactly as provided.
+Website must be clean, modern, minimal, with lots of white space.
+
+Follow the brand guide voice, tone, value, and style exactly.
 ${brandContext}
 
-${exampleWebsites.length > 0 ? `Analyze the 3 example websites the user provided and extract ONLY the following:
-${exampleWebsites.join('\n')}
+Follow the structure exactly as listed.
 
-Extract from these sites:
-- Tone
-- Style
-- Structure
-- Section flow
-- Copywriting style
-- Vibe
-` : 'No example websites provided. Use clean, modern copywriting style similar to Notion, Stripe, Shopify, Linear, or Webflow.'}
+No large paragraphs.
 
-You are NOT allowed to generate HTML, CSS, layouts, spacing, or design instructions.
-Only create text content in the structured sections below.
+No HTML, no CSS, no design code.
+
+Perfect grammar.
+
+No extra creativity outside the brand.
+
+No extra sections.
 
 Business: "${businessName}"
 ${designContext}
 
-Do NOT add sections that are not listed.
-Follow the structure EXACTLY.
+📸 PHOTO INTEGRATION RULES
 
-Grammar must be perfect
-No run-on sentences
-No filler
-No fluff
-No overly complex marketing jargon
+User has NOT provided photos.
+Generate clean, modern photo descriptions the user can recreate or generate with AI.
 
-Content must be extremely clean and modern
-Similar to brands like: Notion, Stripe, Shopify, Linear, Wix, Webflow
+Photo descriptions must:
+- Match brand guide
+- Match the style of the 3 websites the user likes
+- Be minimal, clean, and modern
 
-🧱 GENERATE THESE SECTIONS ONLY (STRICT)
+Example formats:
+"Full-width, soft lighting, minimal background, product centered"
+"Crisp lifestyle shot with neutral tones"
 
-Produce ONLY the following:
+🎨 WEBSITE STYLE INTERPRETATION
 
-1. HERO SECTION
+${exampleWebsites.length > 0 ? `Analyze the 3 inspiration websites and output:
+${exampleWebsites.join('\n')}
+
+Extract:
+- Layout style
+- Spacing
+- Typography feel
+- Button style
+- Imagery look
+- Overall vibe
+
+Apply this style to the website content.
+` : 'No example websites provided. Use clean, modern style similar to Notion, Stripe, Shopify, Linear, or Webflow.'}
+
+🧱 STRICT ONE-PAGE WEBSITE STRUCTURE
+
+You MUST follow this exact structure.
+
+1. HEADER
+- Logo placement: Top-left (MANDATORY)
+- CTA button on the right
+- Short description of styling based on inspiration sites
+
+2. HERO SECTION
 - Headline
 - Subheadline
 - Primary CTA
 - Secondary CTA (optional)
-Tone must match the brand guide + inspiration websites.
+- Hero photo placement description
 
-2. ABOUT SECTION
-Write 2–3 short, clean sentences explaining:
-- What the business does
-- Who it helps
-- Why it matters
-Use modern, simple, brand-appropriate language.
+3. ABOUT SECTION
+- 2–3 short clean sentences:
+  - What the business does
+  - Who it helps
+  - Why it matters
+- About photo placement description (optional)
 
-3. FEATURES / SERVICES
-Provide 3–6 features or services, each with:
-- Feature title
-- One-sentence explanation (No paragraphs longer than 2 lines.)
+4. FEATURES / SERVICES SECTION
+- Provide 3–6 features, each with:
+  - Title
+  - One-sentence description
+  - Photo/icon placement description (optional)
 
-4. VALUE PROPOSITION
-3–5 clear, punchy benefit bullets that highlight:
-- Why customers should choose this business
-- What makes it unique
-- How it solves the customer's need
+5. VALUE / WHY CHOOSE US SECTION
+- 3–5 clean bullet points
 
-5. PRICING (IF APPLICABLE)
-If the business has services or product tiers, generate up to 3 pricing tiers:
-For each tier:
-- Title
-- Short description
-- 3–5 bullet points
+6. GALLERY SECTION (OPTIONAL)
+- Provide 3–5 photo descriptions
+
+7. PRICING SECTION (IF APPLICABLE)
+- If relevant to the business:
+  - Up to 3 tiers
+  - Title
+  - Description
+  - 3–5 bullets
+  - CTA
+- If not applicable: return empty array
+
+8. TESTIMONIALS (OPTIONAL)
+- If relevant: Write 2–3 clean testimonials
+- If not relevant: return empty array
+
+9. FAQ SECTION
+- 3–6 short Q/A items
+
+10. CONTACT SECTION
+- Contact info
+- Simple closing message
 - CTA
-If pricing doesn't apply to the business model, write: "Pricing not applicable for this business type."
-
-6. TESTIMONIALS (OPTIONAL)
-If relevant, create 2–3 simple, believable testimonials written in modern tone.
-If irrelevant, return empty array.
-
-7. FAQ SECTION
-Provide 3–6 FAQs, each with:
-- Question
-- Short, helpful answer
-Keep answers short and modern.
-
-8. CONTACT SECTION
-Include:
-- One short, brand-aligned closing message
-- CTA such as: "Get in Touch", "Book Now", "Request a Quote"
-Use the brand voice.
+- Contact photo placement description (optional)
 
 Return ONLY valid JSON in this exact format:
 {
+  "style_interpretation": "Brief style analysis of inspiration sites",
+  "header_cta": "string",
+  "header_style_notes": "string",
   "hero_headline": "string",
   "hero_subheadline": "string",
   "hero_cta_primary": "string",
   "hero_cta_secondary": "string",
+  "hero_photo_description": "string",
   "about_text": "string (2-3 sentences)",
+  "about_photo_description": "string",
   "features": [
-    {"title": "string", "description": "string"},
-    {"title": "string", "description": "string"},
-    {"title": "string", "description": "string"}
+    {"title": "string", "description": "string", "photo_description": "string"}
   ],
   "value_proposition": "string",
   "value_benefits": ["string", "string", "string"],
+  "gallery_photos": [
+    {"description": "string"}
+  ],
   "pricing_tiers": [
-    {"name": "string", "price": "string", "description": "string", "features": ["string", "string"], "cta": "string"}
+    {"name": "string", "price": "string", "description": "string", "features": ["string"], "cta": "string"}
   ],
   "testimonials": [
     {"name": "string", "text": "string", "rating": 5}
@@ -187,7 +214,8 @@ Return ONLY valid JSON in this exact format:
     {"question": "string", "answer": "string"}
   ],
   "contact_message": "string",
-  "contact_cta": "string"
+  "contact_cta": "string",
+  "contact_photo_description": "string"
 }`;
 
     console.log("Calling OpenAI API...");
