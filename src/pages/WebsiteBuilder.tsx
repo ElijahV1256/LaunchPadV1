@@ -15,7 +15,9 @@ import {
   Sparkles,
   X,
   Download,
-  Copy
+  Copy,
+  MessageSquare,
+  Send
 } from 'lucide-react';
 import { formatForWix, downloadWixExport, copyToClipboard } from '../utils/wixExport';
 
@@ -87,6 +89,10 @@ export default function WebsiteBuilder() {
     exampleWebsites: ['', '', ''],
   });
   const [wixCopied, setWixCopied] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionMessage, setSuggestionMessage] = useState('');
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
+  const [suggestionResponse, setSuggestionResponse] = useState<any>(null);
 
   useEffect(() => {
     if (!currentUser) {
@@ -499,6 +505,46 @@ export default function WebsiteBuilder() {
     setTimeout(() => setWixCopied(false), 2000);
   };
 
+  const handleSuggestion = async () => {
+    if (!suggestionMessage.trim() || !data) return;
+
+    setSuggestionLoading(true);
+    setSuggestionResponse(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/website-suggestions`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            websiteId: data.id,
+            userMessage: suggestionMessage,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to process suggestion');
+      }
+
+      const result = await response.json();
+      setSuggestionResponse(result);
+      setSuggestionMessage('');
+    } catch (err: any) {
+      console.error('Error processing suggestion:', err);
+      alert(err.message || 'Failed to process suggestion');
+    } finally {
+      setSuggestionLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0F2847] to-[#0A192F] flex items-center justify-center">
@@ -777,6 +823,99 @@ export default function WebsiteBuilder() {
 
                 {isStepComplete('preview') && (
                   <>
+                    <div className="mb-6 bg-white/5 border border-white/10 rounded-lg p-4">
+                      <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                        <MessageSquare size={20} />
+                        Make Suggestions
+                      </h3>
+                      <p className="text-gray-400 text-sm mb-4">
+                        Want to change something? Tell us what you'd like to improve and our AI will help.
+                      </p>
+
+                      {!showSuggestions ? (
+                        <button
+                          onClick={() => setShowSuggestions(true)}
+                          className="flex items-center gap-2 px-4 py-2 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 transition-colors"
+                        >
+                          <MessageSquare size={18} />
+                          Suggest Changes
+                        </button>
+                      ) : (
+                        <div className="space-y-4">
+                          <div>
+                            <textarea
+                              value={suggestionMessage}
+                              onChange={(e) => setSuggestionMessage(e.target.value)}
+                              placeholder="E.g., 'Make the headline more exciting' or 'Change the color scheme to be more professional' or 'Add more emphasis on pricing'"
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2979FF] resize-none"
+                              rows={3}
+                            />
+                          </div>
+
+                          <div className="flex gap-3">
+                            <button
+                              onClick={handleSuggestion}
+                              disabled={!suggestionMessage.trim() || suggestionLoading}
+                              className="flex items-center gap-2 px-4 py-2 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {suggestionLoading ? (
+                                <>
+                                  <Loader2 size={18} className="animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <Send size={18} />
+                                  Send Suggestion
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowSuggestions(false);
+                                setSuggestionMessage('');
+                                setSuggestionResponse(null);
+                              }}
+                              className="px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+
+                          {suggestionResponse && (
+                            <div className="mt-4 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                              <h4 className="font-semibold text-green-400 mb-2 flex items-center gap-2">
+                                <CheckCircle2 size={18} />
+                                AI Response
+                              </h4>
+                              <p className="text-gray-300 text-sm mb-3 whitespace-pre-wrap">
+                                {suggestionResponse.response}
+                              </p>
+
+                              {suggestionResponse.requires_regeneration && (
+                                <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                                  <p className="text-blue-400 text-sm mb-2">
+                                    💡 These changes require regenerating your website preview
+                                  </p>
+                                  <button
+                                    onClick={() => {
+                                      setShowSuggestions(false);
+                                      setSuggestionResponse(null);
+                                      generatePreview();
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 transition-colors text-sm"
+                                  >
+                                    <Sparkles size={16} />
+                                    Regenerate Preview
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
                     <div className="mb-6 bg-white/5 border border-white/10 rounded-lg p-4">
                       <h3 className="font-bold text-white mb-2 flex items-center gap-2">
                         <Globe size={20} />
