@@ -27,8 +27,11 @@ Deno.serve(async (req: Request) => {
 
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openaiApiKey) {
+      console.error('OPENAI_API_KEY not found in environment');
       throw new Error('OpenAI API key not configured');
     }
+
+    console.log('OpenAI API key found, generating website...');
 
     const prompt = `You are an expert AI website designer named LaunchPad Site Builder.
 
