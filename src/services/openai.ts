@@ -284,37 +284,63 @@ export async function generateLogoConcepts(
   try {
     onProgress?.(0, 3);
 
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-logo-concepts`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          businessName,
-          brandColors,
-          businessDescription,
-          brandPersonality,
-        }),
+    // Create an AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-logo-concepts`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            businessName,
+            brandColors,
+            businessDescription,
+            brandPersonality,
+          }),
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+        throw new Error(errorData.error || 'Failed to generate logo concepts');
       }
-    );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to generate logo concepts');
+      const { concepts } = await response.json();
+
+      onProgress?.(3, 3);
+
+      console.log(`Generated ${concepts.length} logo concepts total`);
+
+      if (!concepts || concepts.length === 0) {
+        throw new Error('No logos were generated. Please try again.');
+      }
+
+      return concepts;
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Logo generation timed out. This usually means the AI service is overloaded. Please try again in a few moments.');
+      }
+      throw error;
     }
-
-    const { concepts } = await response.json();
-
-    onProgress?.(3, 3);
-
-    console.log(`Generated ${concepts.length} logo concepts total`);
-    return concepts;
   } catch (error: any) {
     console.error('Error generating logos:', error);
-    throw error;
+    throw new Error(error.message || 'Failed to generate logos');
   }
 }
 
@@ -324,37 +350,69 @@ export async function regenerateLogoWithChanges(
   brandColors: { primary: string; secondary: string; accent: string },
   changeRequest: string
 ): Promise<LogoConcept> {
-  const modifiedPrompt = `${originalLogo.prompt}
+  // Call the Supabase Edge Function for logo regeneration
+  try {
+    // Create an AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
 
-REQUESTED CHANGES: ${changeRequest}
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-logo-concepts`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            businessName,
+            brandColors,
+            businessDescription: `${originalLogo.description}. MODIFICATIONS REQUESTED: ${changeRequest}`,
+            brandPersonality: changeRequest,
+            regenerate: true,
+          }),
+          signal: controller.signal,
+        }
+      );
 
-CRITICAL REQUIREMENTS:
-1. Business name MUST be spelled EXACTLY as "${businessName}" - letter by letter, no typos
-2. Apply the requested changes
-3. MAINTAIN minimal, clean, simple design
-4. Logo must still be: business name + ONE small simple icon only
-5. NO detailed illustrations, NO mascots, NO complex graphics
-6. Keep it easy to recreate in Canva/Figma
-7. Verify spelling: "${businessName}"`;
+      clearTimeout(timeoutId);
 
-  const response = await getOpenAIClient().images.generate({
-    model: 'dall-e-3',
-    prompt: modifiedPrompt,
-    n: 1,
-    size: '1024x1024',
-    quality: 'standard',
-    style: 'natural',
-    response_format: 'url',
-  });
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+        throw new Error(errorData.error || 'Failed to regenerate logo');
+      }
 
-  const imageUrl = response.data[0].url;
+      const { concepts } = await response.json();
 
-  return {
-    name: originalLogo.name,
-    description: `${originalLogo.description} (Modified: ${changeRequest})`,
-    imageUrl: imageUrl || originalLogo.imageUrl,
-    prompt: modifiedPrompt,
-  };
+      if (!concepts || concepts.length === 0) {
+        throw new Error('No logo generated. Please try again.');
+      }
+
+      // Return the first generated concept
+      return {
+        name: originalLogo.name,
+        description: `${originalLogo.description} (Modified: ${changeRequest})`,
+        imageUrl: concepts[0].imageUrl,
+        prompt: concepts[0].prompt,
+      };
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Logo regeneration timed out. Please try again in a few moments.');
+      }
+      throw error;
+    }
+  } catch (error: any) {
+    console.error('Error regenerating logo:', error);
+    throw new Error(error.message || 'Logo regeneration failed');
+  }
 }
 
 export async function generateSlogan(
