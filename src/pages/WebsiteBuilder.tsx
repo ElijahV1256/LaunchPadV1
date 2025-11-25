@@ -8,16 +8,13 @@ import {
   CheckCircle2,
   Circle,
   Globe,
-  Eye,
-  Edit3,
   Link as LinkIcon,
   CreditCard,
   Sparkles,
   X,
   Download,
   Copy,
-  MessageSquare,
-  Send
+  MessageSquare
 } from 'lucide-react';
 import { formatForWix, downloadWixExport, copyToClipboard } from '../utils/wixExport';
 
@@ -76,7 +73,6 @@ export default function WebsiteBuilder() {
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [generating, setGenerating] = useState(false);
-  const [previewHtml, setPreviewHtml] = useState('');
   const [subdomain, setSubdomain] = useState('');
   const [paymentLink, setPaymentLink] = useState('');
   const [showDesignQuestionnaire, setShowDesignQuestionnaire] = useState(false);
@@ -89,10 +85,6 @@ export default function WebsiteBuilder() {
     exampleWebsites: ['', '', ''],
   });
   const [wixCopied, setWixCopied] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestionMessage, setSuggestionMessage] = useState('');
-  const [suggestionLoading, setSuggestionLoading] = useState(false);
-  const [suggestionResponse, setSuggestionResponse] = useState<any>(null);
   const [showContentQuestionnaire, setShowContentQuestionnaire] = useState(false);
   const [contentAnswers, setContentAnswers] = useState({
     whatYouOffer: '',
@@ -321,64 +313,6 @@ export default function WebsiteBuilder() {
     }
   };
 
-  const generatePreview = async () => {
-    if (!data || !brandData) return;
-
-    console.log('Generating preview for website:', data.id);
-    setGenerating(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('No active session');
-      }
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/preview-website`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            websiteId: data.id,
-            apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate preview');
-      }
-
-      const result = await response.json();
-      setPreviewHtml(result.html);
-
-      const newCompletedSteps = [...data.completed_steps];
-      if (!newCompletedSteps.includes('preview')) {
-        newCompletedSteps.push('preview');
-      }
-
-      await supabase
-        .from('websites')
-        .update({
-          theme: { colors: brandData.brand_colors },
-          completed_steps: newCompletedSteps,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data.id);
-
-      setData({ ...data, theme: { colors: brandData.brand_colors }, completed_steps: newCompletedSteps });
-      setCurrentStep(3);
-    } catch (err: any) {
-      console.error('Error generating preview:', err);
-      alert(err.message || 'Failed to generate preview');
-    } finally {
-      setGenerating(false);
-    }
-  };
-
   const savePaymentLink = async () => {
     if (!data) return;
 
@@ -446,7 +380,7 @@ export default function WebsiteBuilder() {
         .eq('id', data.id);
 
       setData({ ...data, subdomain: result.subdomain, completed_steps: newCompletedSteps });
-      setCurrentStep(5);
+      setCurrentStep(4);
     } catch (err: any) {
       console.error('Error setting subdomain:', err);
       alert(err.message || 'Failed to set subdomain');
@@ -515,46 +449,6 @@ export default function WebsiteBuilder() {
     setTimeout(() => setWixCopied(false), 2000);
   };
 
-  const handleSuggestion = async () => {
-    if (!suggestionMessage.trim() || !data) return;
-
-    setSuggestionLoading(true);
-    setSuggestionResponse(null);
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/website-suggestions`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            websiteId: data.id,
-            userMessage: suggestionMessage,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to process suggestion');
-      }
-
-      const result = await response.json();
-      setSuggestionResponse(result);
-      setSuggestionMessage('');
-    } catch (err: any) {
-      console.error('Error processing suggestion:', err);
-      alert(err.message || 'Failed to process suggestion');
-    } finally {
-      setSuggestionLoading(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0F2847] to-[#0A192F] flex items-center justify-center">
@@ -597,10 +491,9 @@ export default function WebsiteBuilder() {
 
   const steps = [
     { id: 1, name: 'Generate Copy', key: 'copy' },
-    { id: 2, name: 'Preview Website', key: 'preview' },
-    { id: 3, name: 'Add Payment', key: 'payment' },
-    { id: 4, name: 'Set Subdomain', key: 'subdomain' },
-    { id: 5, name: 'Publish', key: 'published' },
+    { id: 2, name: 'Add Payment', key: 'payment' },
+    { id: 3, name: 'Set Subdomain', key: 'subdomain' },
+    { id: 4, name: 'Publish', key: 'published' },
   ];
 
   const isStepComplete = (stepKey: string) => data.completed_steps.includes(stepKey);
@@ -1018,207 +911,7 @@ export default function WebsiteBuilder() {
 
             {currentStep === 2 && (
               <div>
-                <h2 className="text-2xl font-bold text-white mb-4">Step 2: Preview Your Website</h2>
-                <p className="text-gray-400 mb-6">
-                  See a live preview of your website with your brand colors and copy.
-                </p>
-
-                {previewHtml && (
-                  <div className="mb-6 border border-white/20 rounded-lg overflow-hidden">
-                    <iframe
-                      srcDoc={previewHtml}
-                      className="w-full h-[600px] bg-white"
-                      title="Website Preview"
-                    />
-                  </div>
-                )}
-
-                <div className="flex gap-3 mb-6">
-                  <button
-                    onClick={generatePreview}
-                    disabled={generating}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 disabled:opacity-50 transition-all"
-                  >
-                    {generating ? (
-                      <>
-                        <Loader2 className="animate-spin" size={20} />
-                        Generating Preview...
-                      </>
-                    ) : (
-                      <>
-                        <Eye size={20} />
-                        {previewHtml ? 'Regenerate Preview' : 'Generate Preview'}
-                      </>
-                    )}
-                  </button>
-
-                  {previewHtml && (
-                    <button
-                      onClick={() => {
-                        const blob = new Blob([previewHtml], { type: 'text/html' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `${brandData.selected_name.toLowerCase().replace(/\s+/g, '-')}-website.html`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                      }}
-                      className="flex items-center gap-2 px-6 py-3 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-all"
-                    >
-                      <Download size={20} />
-                      Download HTML
-                    </button>
-                  )}
-                </div>
-
-                {isStepComplete('preview') && (
-                  <>
-                    <div className="mb-6 bg-white/5 border border-white/10 rounded-lg p-4">
-                      <h3 className="font-bold text-white mb-2 flex items-center gap-2">
-                        <MessageSquare size={20} />
-                        Make Suggestions
-                      </h3>
-                      <p className="text-gray-400 text-sm mb-4">
-                        Want to change something? Tell us what you'd like to improve and our AI will help.
-                      </p>
-
-                      {!showSuggestions ? (
-                        <button
-                          onClick={() => setShowSuggestions(true)}
-                          className="flex items-center gap-2 px-4 py-2 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 transition-colors"
-                        >
-                          <MessageSquare size={18} />
-                          Suggest Changes
-                        </button>
-                      ) : (
-                        <div className="space-y-4">
-                          <div>
-                            <textarea
-                              value={suggestionMessage}
-                              onChange={(e) => setSuggestionMessage(e.target.value)}
-                              placeholder="E.g., 'Make the headline more exciting' or 'Change the color scheme to be more professional' or 'Add more emphasis on pricing'"
-                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2979FF] resize-none"
-                              rows={3}
-                            />
-                          </div>
-
-                          <div className="flex gap-3">
-                            <button
-                              onClick={handleSuggestion}
-                              disabled={!suggestionMessage.trim() || suggestionLoading}
-                              className="flex items-center gap-2 px-4 py-2 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {suggestionLoading ? (
-                                <>
-                                  <Loader2 size={18} className="animate-spin" />
-                                  Processing...
-                                </>
-                              ) : (
-                                <>
-                                  <Send size={18} />
-                                  Send Suggestion
-                                </>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => {
-                                setShowSuggestions(false);
-                                setSuggestionMessage('');
-                                setSuggestionResponse(null);
-                              }}
-                              className="px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-
-                          {suggestionResponse && (
-                            <div className="mt-4 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-                              <h4 className="font-semibold text-green-400 mb-2 flex items-center gap-2">
-                                <CheckCircle2 size={18} />
-                                AI Response
-                              </h4>
-                              <p className="text-gray-300 text-sm mb-3 whitespace-pre-wrap">
-                                {suggestionResponse.response}
-                              </p>
-
-                              {suggestionResponse.requires_regeneration && (
-                                <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                                  <p className="text-blue-400 text-sm mb-2">
-                                    💡 These changes require regenerating your website preview
-                                  </p>
-                                  <button
-                                    onClick={() => {
-                                      setShowSuggestions(false);
-                                      setSuggestionResponse(null);
-                                      generatePreview();
-                                    }}
-                                    className="flex items-center gap-2 px-4 py-2 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 transition-colors text-sm"
-                                  >
-                                    <Sparkles size={16} />
-                                    Regenerate Preview
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="mb-6 bg-white/5 border border-white/10 rounded-lg p-4">
-                      <h3 className="font-bold text-white mb-2 flex items-center gap-2">
-                        <Globe size={20} />
-                        Prefer Wix?
-                      </h3>
-                      <p className="text-gray-400 text-sm mb-4">
-                        Take your content to Wix and build your site there instead
-                      </p>
-                      <div className="flex gap-3">
-                        <a
-                          href="https://www.wix.com/html5us/hiker-new-user?utm_source=affiliate&experiment_id=editor_adi"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors"
-                        >
-                          <Globe size={18} />
-                          Create on Wix
-                        </a>
-                        <button
-                          onClick={handleWixCopy}
-                          className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors"
-                        >
-                          {wixCopied ? (
-                            <>
-                              <CheckCircle2 size={18} />
-                              Copied!
-                            </>
-                          ) : (
-                            <>
-                              <Copy size={18} />
-                              Copy Content
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => setCurrentStep(3)}
-                      className="px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90"
-                    >
-                      Next: Add Payment →
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-
-            {currentStep === 3 && (
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-4">Step 3: Add Payment Link</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">Step 2: Add Payment Link</h2>
                 <p className="text-gray-400 mb-6">
                   Add your Stripe payment link or booking/contact URL.
                 </p>
@@ -1248,7 +941,7 @@ export default function WebsiteBuilder() {
                     </div>
                     <p className="text-gray-400 mb-6">{data.payment_link}</p>
                     <button
-                      onClick={() => setCurrentStep(4)}
+                      onClick={() => setCurrentStep(3)}
                       className="px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90"
                     >
                       Next: Set Subdomain →
@@ -1258,9 +951,9 @@ export default function WebsiteBuilder() {
               </div>
             )}
 
-            {currentStep === 4 && (
+            {currentStep === 3 && (
               <div>
-                <h2 className="text-2xl font-bold text-white mb-4">Step 4: Choose Your Subdomain</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">Step 3: Choose Your Subdomain</h2>
                 <p className="text-gray-400 mb-6">
                   Pick a unique subdomain for your website (e.g., sunset-dog-walks.launchpadai.com)
                 </p>
@@ -1293,7 +986,7 @@ export default function WebsiteBuilder() {
                     </div>
                     <p className="text-gray-400 mb-6">{data.subdomain}.launchpadai.com</p>
                     <button
-                      onClick={() => setCurrentStep(5)}
+                      onClick={() => setCurrentStep(4)}
                       className="px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90"
                     >
                       Next: Publish Website →
@@ -1303,9 +996,9 @@ export default function WebsiteBuilder() {
               </div>
             )}
 
-            {currentStep === 5 && (
+            {currentStep === 4 && (
               <div>
-                <h2 className="text-2xl font-bold text-white mb-4">Step 5: Publish Your Website</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">Step 4: Publish Your Website</h2>
                 <p className="text-gray-400 mb-6">
                   Ready to go live? Click publish to make your website available to the world!
                 </p>
