@@ -772,11 +772,11 @@ export default function FirstRevenue() {
                   <h3 className="text-xl font-bold text-white">Make Your Pitch</h3>
                 </div>
                 <p className="text-gray-400 text-sm mb-4">
-                  Send them a quick message. Don't overthink it — just reach out.
+                  Just reach out like you're texting a friend. Keep it casual and genuine.
                 </p>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-semibold text-gray-300">Your message template</label>
+                    <label className="block text-sm font-semibold text-gray-300">Message template (feel free to make it your own!)</label>
                     <button
                       onClick={copyMessage}
                       className="flex items-center gap-2 px-3 py-1.5 bg-[#2979FF] text-[#0A192F] rounded-lg text-sm font-semibold hover:bg-[#2979FF]/90 transition-colors"
@@ -786,7 +786,7 @@ export default function FirstRevenue() {
                   </div>
                   <textarea
                     readOnly
-                    value={`Hey ${extractFirstName(targetPerson) || '[Name]'}! How's it going?\n\nSo I'm starting something new and you were literally the first person I thought of. ${offerOneLiner || '[What you offer]'} — around ${price || '[price]'}.\n\nAny chance you'd want to try it this week? No pressure at all, but I'd genuinely love to get your thoughts on it!`}
+                    value={`Hey ${extractFirstName(targetPerson) || '[Name]'}! How've you been?\n\nRandom question - I'm trying something new and honestly you were the first person that came to mind. ${offerOneLiner || '[What you offer]'} for around ${price || '[price]'}.\n\nWould you maybe want to try it this week? Totally no pressure, but I'd love to hear what you think!`}
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-gray-300 resize-none focus:outline-none"
                     rows={5}
                   />
