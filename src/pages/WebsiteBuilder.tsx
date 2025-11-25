@@ -203,14 +203,24 @@ export default function WebsiteBuilder() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0F2847] to-[#0A192F] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">{error}</p>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90"
-          >
-            Back to Dashboard
-          </button>
+        <div className="text-center max-w-md">
+          <p className="text-red-400 mb-6">{error}</p>
+          <div className="flex gap-3 justify-center">
+            {error.includes('Brand Identity') && ideaKey && (
+              <button
+                onClick={() => navigate(`/brand-identity?ideaKey=${ideaKey}`)}
+                className="px-6 py-3 bg-[#06D6A0] text-white rounded-lg hover:bg-[#06D6A0]/90"
+              >
+                Go to Brand Identity
+              </button>
+            )}
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90"
+            >
+              Back to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
