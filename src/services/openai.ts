@@ -32,73 +32,10 @@ export interface RoadmapStage {
   steps: string[];
 }
 
-export async function generateBusinessIdeas(
-  interests: string,
-  problems: string,
-  budget: string,
-  availability: string,
-  keywords?: string,
-  previousIdeas?: string[],
-  businessType?: string
-): Promise<BusinessIdea[]> {
-  const keywordSection = keywords ? `\nAdditional keywords/focus areas: ${keywords}` : '';
-  const previousSection = previousIdeas && previousIdeas.length > 0
-    ? `\n\nIMPORTANT: The user has already seen these ideas, so generate COMPLETELY DIFFERENT and UNIQUE ideas:\n${previousIdeas.join('\n')}\n\nDo NOT repeat or create similar variations of these ideas. Be creative and explore different angles, industries, or approaches.`
-    : '';
-
-  const businessTypeGuidance = businessType && businessType !== 'any'
-    ? getBusinessTypeGuidance(businessType)
-    : '';
-
-  const prompt = `Generate 3 business ideas for someone with the following profile:
-
-Interests: ${interests}
-Problems they want to solve: ${problems}
-Budget: ${budget}
-Time availability: ${availability}${businessTypeGuidance}${keywordSection}${previousSection}
-
-For each idea, provide:
-1. A catchy business name
-2. A 2-3 sentence description
-3. Difficulty rating (1-5, where 1 is easiest)
-4. Estimated cost range to start
-
-Format your response as a JSON array with objects containing: name, description, difficulty, costRange
-
-Make the ideas realistic, achievable, and aligned with their profile. Be creative and think outside the box!`;
-
-function getBusinessTypeGuidance(type: string): string {
-  const guidance: Record<string, string> = {
-    service: '\n\nBUSINESS TYPE REQUIREMENT: Generate ONLY service-based businesses such as consulting, coaching, freelancing, professional services, or expertise-based businesses. Focus on businesses where the main offering is a service or expertise rather than physical products.',
-    online: '\n\nBUSINESS TYPE REQUIREMENT: Generate ONLY online businesses such as e-commerce, digital products, SaaS, online courses, subscription services, or digital agencies. Focus on businesses that can operate primarily or entirely online.',
-    local: '\n\nBUSINESS TYPE REQUIREMENT: Generate ONLY local brick-and-mortar or local service businesses such as restaurants, retail stores, local services, repair shops, or businesses that serve a specific geographic community.',
-    product: '\n\nBUSINESS TYPE REQUIREMENT: Generate ONLY product-based businesses such as physical product manufacturing, wholesale/retail products, handmade goods, or businesses focused on creating and selling tangible products.',
-  };
-  return guidance[type] || '';
-}
-
-  const response = await getOpenAIClient().chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content:
-          'You are a business consultant helping aspiring entrepreneurs. Provide practical, actionable business ideas. Always respond with valid JSON only. Be creative and avoid repeating similar ideas.',
-      },
-      { role: 'user', content: prompt },
-    ],
-    temperature: 0.9,
-  });
-
-  const content = response.choices[0].message.content || '[]';
-  const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  const ideas = JSON.parse(cleanContent);
-
-  return ideas.map((idea: any, index: number) => ({
-    id: `idea-${Date.now()}-${index}`,
-    ...idea,
-  }));
-}
+// DEPRECATED: This function is no longer used. Business ideas are now generated
+// via the Supabase Edge Function at /functions/v1/generate-business-ideas
+// The edge function uses Deno.env.get("OPENAI_API_KEY") for secure API key management
+// See: src/pages/Ideas.tsx for the current implementation
 
 export async function generateRoadmap(idea: BusinessIdea): Promise<RoadmapStage[]> {
   const prompt = `Create a detailed 5-stage startup roadmap for the following business idea:
