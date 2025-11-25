@@ -31,20 +31,6 @@ export const useRouteGuard = () => {
           return;
         }
 
-        const { data: ideas } = await supabase
-          .from('business_ideas')
-          .select('*')
-          .eq('user_id', currentUser.id);
-
-        if (!ideas || ideas.length === 0) {
-          const allowedPaths = ['/ideas', '/onboarding', '/dashboard', '/profile', '/saved-ideas', '/saved-names'];
-          if (!allowedPaths.includes(location.pathname)) {
-            navigate('/ideas');
-          }
-          setLoading(false);
-          return;
-        }
-
         if (location.pathname === '/onboarding' || location.pathname === '/auth') {
           navigate('/dashboard');
         }
