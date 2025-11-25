@@ -1,9 +1,23 @@
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true,
-});
+// NOTE: OpenAI client is only created when needed in specific functions
+// The API key should be stored in Supabase Edge Function secrets, not in frontend env vars
+
+// Lazy client initialization - only creates client when actually needed
+let _openaiClient: OpenAI | null = null;
+function getOpenAIClient(): OpenAI {
+  if (!_openaiClient) {
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OpenAI API key not configured. This function requires direct OpenAI access.');
+    }
+    _openaiClient = new OpenAI({
+      apiKey,
+      dangerouslyAllowBrowser: true,
+    });
+  }
+  return _openaiClient;
+}
 
 export interface BusinessIdea {
   id: string;
@@ -63,7 +77,7 @@ function getBusinessTypeGuidance(type: string): string {
   return guidance[type] || '';
 }
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAIClient().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
       {
@@ -102,7 +116,7 @@ Format your response as a JSON array with objects containing: stage, steps (arra
 
 Make the roadmap practical and sequential, taking someone from idea to launch.`;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAIClient().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
       {
@@ -138,7 +152,7 @@ Generate 4-6 specific, practical pathways or resources to help them complete thi
 
 Format your response as a JSON array of strings. Each string should be one complete pathway or approach.`;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAIClient().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
       {
@@ -208,7 +222,7 @@ Format your response as a JSON object with keys: planName, character, problem, g
 
 Make each section detailed, specific, and actionable based on the provided information.`;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAIClient().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
       {
@@ -266,7 +280,7 @@ export async function generateHybridLogoConcepts(
     onProgress?.(i * 2, variations.length * 2);
 
     try {
-      const response = await openai.images.generate({
+      const response = await getOpenAIClient().images.generate({
         model: 'dall-e-3',
         prompt: iconPrompt,
         n: 1,
@@ -374,7 +388,7 @@ Remember: Keep it minimal, clean, and simple. Business name "${businessName}" sp
     onProgress?.(i, variations.length);
 
     try {
-      const response = await openai.images.generate({
+      const response = await getOpenAIClient().images.generate({
         model: 'dall-e-3',
         prompt: fullPrompt,
         n: 1,
@@ -426,7 +440,7 @@ CRITICAL REQUIREMENTS:
 6. Keep it easy to recreate in Canva/Figma
 7. Verify spelling: "${businessName}"`;
 
-  const response = await openai.images.generate({
+  const response = await getOpenAIClient().images.generate({
     model: 'dall-e-3',
     prompt: modifiedPrompt,
     n: 1,
@@ -468,7 +482,7 @@ The slogan should be:
 
 Return ONLY the slogan text, nothing else.`;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAIClient().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.9,
@@ -521,7 +535,7 @@ Generate the following in JSON format:
 
 Return ONLY valid JSON, no markdown formatting.`;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAIClient().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.7,
@@ -640,7 +654,7 @@ Format as JSON array with objects containing: caption, hashtags
 
 IMPORTANT: Focus on the customer's problems and transformation, not the business features. Use perfect grammar and spelling.`;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
@@ -670,7 +684,7 @@ Format as JSON array with objects containing: type, title, content
 
 Make them friendly, professional, and include a clear call to action.`;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {
@@ -787,7 +801,7 @@ CRITICAL REQUIREMENTS:
 
 Make it practical and achievable for someone just starting out.`;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
