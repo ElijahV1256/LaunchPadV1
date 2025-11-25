@@ -343,82 +343,42 @@ export async function generateLogoConcepts(
   console.log('Starting logo generation for:', businessName);
   console.log('Colors:', brandColors);
 
-  const descriptionText = businessDescription || `A business called ${businessName}`;
-  const personalityText = brandPersonality || 'professional, modern, trustworthy';
+  // Call the Supabase Edge Function instead of OpenAI directly
+  try {
+    onProgress?.(0, 3);
 
-  const basePrompt = `You are the Launch Pad Logo Generator. Create a SIMPLE, CLEAN, MINIMAL logo.
-
-BUSINESS NAME (MUST BE SPELLED EXACTLY): "${businessName}"
-Business description: ${descriptionText}
-Brand personality: ${personalityText}
-Colors: ${brandColors.primary}, ${brandColors.secondary}, ${brandColors.accent}
-
-STRICT REQUIREMENTS:
-- Logo must contain ONLY: business name + one very small simple icon
-- Icon must be: line art, geometric shape, or single simple shape
-- NO detailed illustrations, NO mascots, NO characters, NO complex graphics
-- NO gradients (unless very simple), NO 3D effects, NO multiple icons
-- NO busy compositions
-- Clean, minimal, flat design
-- Modern sans-serif typography
-- Balanced spacing and white space
-- Professional and trustworthy look
-- Easy to recreate in Canva, Adobe Express, or Figma
-- White or transparent background
-
-CRITICAL: Verify spelling is EXACTLY "${businessName}" letter-by-letter.`;
-
-  const variations = [
-    'business name with one minimal geometric icon (circle, square, or triangle based)',
-    'business name with one simple line art icon',
-    'business name with one clean abstract symbol'
-  ];
-
-  const concepts: LogoConcept[] = [];
-
-  for (let i = 0; i < variations.length; i++) {
-    const variation = variations[i];
-    const fullPrompt = `${basePrompt}
-
-SPECIFIC VARIATION: ${variation}
-
-Remember: Keep it minimal, clean, and simple. Business name "${businessName}" spelled exactly + one small simple icon only.`;
-
-    console.log(`Generating logo ${i + 1}/${variations.length}:`, variation);
-    onProgress?.(i, variations.length);
-
-    try {
-      const response = await getOpenAIClient().images.generate({
-        model: 'dall-e-3',
-        prompt: fullPrompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'standard',
-        style: 'natural',
-        response_format: 'url',
-      });
-
-      const imageUrl = response.data[0].url;
-      console.log(`Logo ${i + 1} generated successfully:`, imageUrl);
-
-      if (imageUrl) {
-        concepts.push({
-          name: `${businessName} - ${variation.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}`,
-          description: `A professional logo featuring ${variation}, designed with your brand colors in a clean, modern style.`,
-          imageUrl: imageUrl,
-          prompt: fullPrompt,
-        });
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-logo-concepts`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName,
+          brandColors,
+          businessDescription,
+          brandPersonality,
+        }),
       }
+    );
 
-      onProgress?.(i + 1, variations.length);
-    } catch (error: any) {
-      console.error(`Error generating logo ${i + 1}:`, error);
-      console.error('Error details:', error?.message, error?.response?.data);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to generate logo concepts');
     }
-  }
 
-  console.log(`Generated ${concepts.length} logo concepts total`);
-  return concepts;
+    const { concepts } = await response.json();
+
+    onProgress?.(3, 3);
+
+    console.log(`Generated ${concepts.length} logo concepts total`);
+    return concepts;
+  } catch (error: any) {
+    console.error('Error generating logos:', error);
+    throw error;
+  }
 }
 
 export async function regenerateLogoWithChanges(
