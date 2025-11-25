@@ -37,7 +37,8 @@ export const useRouteGuard = () => {
           .eq('user_id', currentUser.id);
 
         if (!ideas || ideas.length === 0) {
-          if (location.pathname !== '/ideas' && location.pathname !== '/onboarding') {
+          const allowedPaths = ['/ideas', '/onboarding', '/dashboard', '/profile', '/saved-ideas', '/saved-names'];
+          if (!allowedPaths.includes(location.pathname)) {
             navigate('/ideas');
           }
           setLoading(false);
