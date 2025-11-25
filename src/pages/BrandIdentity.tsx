@@ -354,7 +354,6 @@ export default function BrandIdentity() {
         body: JSON.stringify({
           idea,
           keywords: hasKeywords ? keywords : undefined,
-          openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
           ideaKey,
           userId: currentUser?.id,
         }),
@@ -967,7 +966,6 @@ export default function BrandIdentity() {
                               'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
-                              openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
                               context: contextStr || undefined,
                               prompt: promptStr
                             }),
@@ -1028,7 +1026,6 @@ export default function BrandIdentity() {
                               'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
-                              openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
                               context: contextStr || undefined,
                               prompt: promptStr
                             }),
@@ -1099,7 +1096,6 @@ export default function BrandIdentity() {
                               'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
-                              openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
                               context: contextStr || undefined,
                               prompt: promptStr
                             }),
@@ -1588,7 +1584,6 @@ export default function BrandIdentity() {
                                   'Content-Type': 'application/json',
                                 },
                                 body: JSON.stringify({
-                                  openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
                                   context: `Business: ${data.selected_name}. Offer: ${offerDescription}. Audience: ${targetAudience}`,
                                   prompt: 'Suggest 3-4 brand personality traits (comma-separated adjectives)'
                                 }),
@@ -1641,7 +1636,6 @@ export default function BrandIdentity() {
                                   'Content-Type': 'application/json',
                                 },
                                 body: JSON.stringify({
-                                  openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
                                   context: `Business: ${data?.selected_name}. Offer: ${offerDescription}`,
                                   prompt: 'Identify the primary industry or category (1-2 words)'
                                 }),
@@ -1694,7 +1688,6 @@ export default function BrandIdentity() {
                                   'Content-Type': 'application/json',
                                 },
                                 body: JSON.stringify({
-                                  openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
                                   context: `Business: ${data.selected_name}. Industry: ${logoAnswers.industry}. Personality: ${logoAnswers.brandPersonality}`,
                                   prompt: 'Suggest an ideal logo style (1-2 descriptive words)'
                                 }),

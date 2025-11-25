@@ -273,7 +273,6 @@ export default function FirstRevenue() {
             step: question,
             businessName: ideaName,
             businessDescription: context,
-            openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
           }),
         }
       );

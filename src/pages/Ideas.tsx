@@ -352,7 +352,6 @@ export default function Ideas() {
           body: JSON.stringify({
             keywords: customKeywords,
             previousIdeas: previousIdeaNames,
-            openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY,
           }),
           signal: controller.signal,
         }

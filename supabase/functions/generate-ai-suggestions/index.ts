@@ -29,8 +29,12 @@ Deno.serve(async (req: Request) => {
     const { userId, ideaKey, openaiApiKey, prompt, context, businessName } = body;
 
     // Handle AI suggestion generation for input fields
-    if (openaiApiKey && prompt) {
-      const openai = new OpenAI({ apiKey: openaiApiKey });
+    if (prompt) {
+      const apiKey = openaiApiKey || Deno.env.get("OPENAI_API_KEY");
+      if (!apiKey) {
+        throw new Error("OpenAI API key not configured");
+      }
+      const openai = new OpenAI({ apiKey });
 
       const systemPrompt = `You are a helpful AI assistant for entrepreneurs. Generate a brief, practical suggestion based on the user's request.
 IMPORTANT: Always base your answer on the provided context. Keep responses very short - just a few words or one short phrase. No explanations or extra text.`;
