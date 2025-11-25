@@ -1422,7 +1422,14 @@ export default function MarketingAssets() {
                       Back to Dashboard
                     </button>
                     <button
-                      onClick={() => navigate(`/build-site?ideaKey=${ideaKey}`)}
+                      onClick={() => {
+                        console.log('ideaKey:', ideaKey);
+                        if (!ideaKey) {
+                          alert('No idea key found. Please go back to dashboard and select your business idea again.');
+                          return;
+                        }
+                        navigate(`/build-site?ideaKey=${ideaKey}`);
+                      }}
                       className="px-8 py-3 bg-[#2979FF] text-white rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all duration-300"
                     >
                       Continue to Website Builder →
