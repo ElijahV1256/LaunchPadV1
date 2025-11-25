@@ -43,7 +43,7 @@ export default function WebsiteBuilder() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const ideaKey = searchParams.get('ideaKey');
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
 
   const [data, setData] = useState<WebsiteData | null>(null);
   const [brandData, setBrandData] = useState<BrandData | null>(null);
@@ -53,13 +53,13 @@ export default function WebsiteBuilder() {
   const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
-    if (!user || !ideaKey) {
+    if (!currentUser || !ideaKey) {
       navigate('/dashboard');
       return;
     }
 
     loadData();
-  }, [user, ideaKey]);
+  }, [currentUser, ideaKey]);
 
   const loadData = async () => {
     try {
@@ -67,7 +67,7 @@ export default function WebsiteBuilder() {
       const { data: brand, error: brandError } = await supabase
         .from('brand_identity')
         .select('*')
-        .eq('user_id', user!.id)
+        .eq('user_id', currentUser!.id)
         .eq('idea_key', ideaKey)
         .single();
 
@@ -78,7 +78,7 @@ export default function WebsiteBuilder() {
       let { data: website, error: websiteError } = await supabase
         .from('websites')
         .select('*')
-        .eq('user_id', user!.id)
+        .eq('user_id', currentUser!.id)
         .eq('idea_key', ideaKey)
         .maybeSingle();
 
@@ -87,7 +87,7 @@ export default function WebsiteBuilder() {
         const { data: newWebsite, error: createError } = await supabase
           .from('websites')
           .insert({
-            user_id: user!.id,
+            user_id: currentUser!.id,
             idea_key: ideaKey,
             completed_steps: [],
           })
