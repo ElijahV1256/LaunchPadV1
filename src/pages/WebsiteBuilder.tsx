@@ -6,15 +6,11 @@ import {
   Home,
   Loader2,
   CheckCircle2,
-  Circle,
-  Globe,
-  Link as LinkIcon,
-  CreditCard,
   Sparkles,
   X,
   Download,
   Copy,
-  MessageSquare
+  Globe
 } from 'lucide-react';
 import { formatForWix, downloadWixExport, copyToClipboard } from '../utils/wixExport';
 
@@ -71,10 +67,7 @@ export default function WebsiteBuilder() {
   const [brandData, setBrandData] = useState<BrandData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState(1);
   const [generating, setGenerating] = useState(false);
-  const [subdomain, setSubdomain] = useState('');
-  const [paymentLink, setPaymentLink] = useState('');
   const [showDesignQuestionnaire, setShowDesignQuestionnaire] = useState(false);
   const [designAnswers, setDesignAnswers] = useState({
     businessDescription: '',
@@ -313,126 +306,6 @@ export default function WebsiteBuilder() {
     }
   };
 
-  const savePaymentLink = async () => {
-    if (!data) return;
-
-    try {
-      const newCompletedSteps = [...data.completed_steps];
-      if (!newCompletedSteps.includes('payment')) {
-        newCompletedSteps.push('payment');
-      }
-
-      await supabase
-        .from('websites')
-        .update({
-          payment_link: paymentLink,
-          completed_steps: newCompletedSteps,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data.id);
-
-      setData({ ...data, payment_link: paymentLink, completed_steps: newCompletedSteps });
-      setCurrentStep(4);
-    } catch (err) {
-      console.error('Error saving payment link:', err);
-      alert('Failed to save payment link');
-    }
-  };
-
-  const setWebsiteSubdomain = async () => {
-    if (!data || !subdomain) return;
-
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/set-website-subdomain`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            websiteId: data.id,
-            subdomain,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to set subdomain');
-      }
-
-      const result = await response.json();
-
-      const newCompletedSteps = [...data.completed_steps];
-      if (!newCompletedSteps.includes('subdomain')) {
-        newCompletedSteps.push('subdomain');
-      }
-
-      await supabase
-        .from('websites')
-        .update({
-          subdomain: result.subdomain,
-          completed_steps: newCompletedSteps,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data.id);
-
-      setData({ ...data, subdomain: result.subdomain, completed_steps: newCompletedSteps });
-      setCurrentStep(4);
-    } catch (err: any) {
-      console.error('Error setting subdomain:', err);
-      alert(err.message || 'Failed to set subdomain');
-    }
-  };
-
-  const publishWebsite = async () => {
-    if (!data) return;
-
-    setGenerating(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/publish-website`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            websiteId: data.id,
-          }),
-        }
-      );
-
-      if (!response.ok) throw new Error('Failed to publish website');
-
-      const result = await response.json();
-
-      const newCompletedSteps = [...data.completed_steps];
-      if (!newCompletedSteps.includes('published')) {
-        newCompletedSteps.push('published');
-      }
-
-      await supabase
-        .from('websites')
-        .update({
-          published_url: result.url,
-          completed_steps: newCompletedSteps,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data.id);
-
-      setData({ ...data, published_url: result.url, completed_steps: newCompletedSteps });
-    } catch (err) {
-      console.error('Error publishing website:', err);
-      alert('Failed to publish website');
-    } finally {
-      setGenerating(false);
-    }
-  };
-
   const handleWixExport = () => {
     if (!data?.copy || !brandData) return;
 
@@ -489,15 +362,7 @@ export default function WebsiteBuilder() {
     );
   }
 
-  const steps = [
-    { id: 1, name: 'Generate Copy', key: 'copy' },
-    { id: 2, name: 'Add Payment', key: 'payment' },
-    { id: 3, name: 'Set Subdomain', key: 'subdomain' },
-    { id: 4, name: 'Publish', key: 'published' },
-  ];
-
   const isStepComplete = (stepKey: string) => data.completed_steps.includes(stepKey);
-  const allStepsComplete = steps.every(step => isStepComplete(step.key));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0F2847] to-[#0A192F]">
@@ -514,37 +379,13 @@ export default function WebsiteBuilder() {
       <div className="container mx-auto px-6 pb-12">
         <div className="max-w-5xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Website Builder</h1>
-            <p className="text-gray-400">Create and publish your one-page website for {brandData.selected_name}</p>
-          </div>
-
-          <div className="mb-8 flex gap-2 overflow-x-auto pb-2">
-            {steps.map((step, idx) => (
-              <button
-                key={step.id}
-                onClick={() => setCurrentStep(step.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
-                  currentStep === step.id
-                    ? 'bg-[#2979FF] text-white'
-                    : isStepComplete(step.key)
-                    ? 'bg-[#06D6A0]/20 text-[#06D6A0] border border-[#06D6A0]/30'
-                    : 'bg-white/5 text-gray-400 border border-white/10'
-                }`}
-              >
-                {isStepComplete(step.key) ? (
-                  <CheckCircle2 size={18} />
-                ) : (
-                  <Circle size={18} />
-                )}
-                {step.name}
-              </button>
-            ))}
+            <h1 className="text-4xl font-bold text-white mb-2">Landing Page Copy Generator</h1>
+            <p className="text-gray-400">Generate professional landing page copy for {brandData.selected_name}</p>
           </div>
 
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
-            {currentStep === 1 && (
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-2">Create Your Website Content</h2>
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Create Your Landing Page Content</h2>
                 <p className="text-gray-400 mb-6">
                   We'll craft professional copy for your entire one-page site — headlines, features, pricing, testimonials, and FAQs — all in your brand voice.
                 </p>
@@ -898,155 +739,9 @@ export default function WebsiteBuilder() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => setCurrentStep(2)}
-                      className="mt-6 px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90"
-                    >
-                      Next: Preview Website →
-                    </button>
                   </div>
                 )}
               </div>
-            )}
-
-            {currentStep === 2 && (
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-4">Step 2: Add Payment Link</h2>
-                <p className="text-gray-400 mb-6">
-                  Add your Stripe payment link or booking/contact URL.
-                </p>
-                {!isStepComplete('payment') ? (
-                  <div>
-                    <input
-                      type="url"
-                      value={paymentLink}
-                      onChange={(e) => setPaymentLink(e.target.value)}
-                      placeholder="https://buy.stripe.com/... or your booking link"
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white mb-4"
-                    />
-                    <button
-                      onClick={savePaymentLink}
-                      disabled={!paymentLink}
-                      className="flex items-center gap-2 px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 disabled:opacity-50"
-                    >
-                      <CreditCard size={20} />
-                      Save Payment Link
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="flex items-center gap-2 text-[#06D6A0] mb-4">
-                      <CheckCircle2 size={24} />
-                      <span className="font-bold">Payment Link Added!</span>
-                    </div>
-                    <p className="text-gray-400 mb-6">{data.payment_link}</p>
-                    <button
-                      onClick={() => setCurrentStep(3)}
-                      className="px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90"
-                    >
-                      Next: Set Subdomain →
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {currentStep === 3 && (
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-4">Step 3: Choose Your Subdomain</h2>
-                <p className="text-gray-400 mb-6">
-                  Pick a unique subdomain for your website (e.g., sunset-dog-walks.launchpadai.com)
-                </p>
-                {!isStepComplete('subdomain') ? (
-                  <div>
-                    <div className="flex items-center gap-2 mb-4">
-                      <input
-                        type="text"
-                        value={subdomain}
-                        onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                        placeholder="your-business-name"
-                        className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white"
-                      />
-                      <span className="text-gray-400">.launchpadai.com</span>
-                    </div>
-                    <button
-                      onClick={setWebsiteSubdomain}
-                      disabled={!subdomain}
-                      className="flex items-center gap-2 px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 disabled:opacity-50"
-                    >
-                      <LinkIcon size={20} />
-                      Reserve Subdomain
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="flex items-center gap-2 text-[#06D6A0] mb-4">
-                      <CheckCircle2 size={24} />
-                      <span className="font-bold">Subdomain Reserved!</span>
-                    </div>
-                    <p className="text-gray-400 mb-6">{data.subdomain}.launchpadai.com</p>
-                    <button
-                      onClick={() => setCurrentStep(4)}
-                      className="px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90"
-                    >
-                      Next: Publish Website →
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {currentStep === 4 && (
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-4">Step 4: Publish Your Website</h2>
-                <p className="text-gray-400 mb-6">
-                  Ready to go live? Click publish to make your website available to the world!
-                </p>
-                {!isStepComplete('published') ? (
-                  <button
-                    onClick={publishWebsite}
-                    disabled={generating}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#06D6A0] text-white rounded-lg hover:bg-[#06D6A0]/90 disabled:opacity-50"
-                  >
-                    {generating ? (
-                      <>
-                        <Loader2 className="animate-spin" size={20} />
-                        Publishing...
-                      </>
-                    ) : (
-                      <>
-                        <Globe size={20} />
-                        Publish Website
-                      </>
-                    )}
-                  </button>
-                ) : (
-                  <div>
-                    <div className="flex items-center gap-2 text-[#06D6A0] mb-4">
-                      <CheckCircle2 size={24} />
-                      <span className="font-bold text-2xl">Website Published!</span>
-                    </div>
-                    <p className="text-gray-400 mb-4">Your website is now live at:</p>
-                    <a
-                      href={data.published_url || ''}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block px-6 py-3 bg-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/90 mb-6"
-                    >
-                      Visit Your Website →
-                    </a>
-                    <div className="mt-8">
-                      <button
-                        onClick={() => navigate(`/operations?ideaKey=${ideaKey}`)}
-                        className="px-6 py-3 bg-[#06D6A0] text-white rounded-lg hover:bg-[#06D6A0]/90"
-                      >
-                        Continue to Operations →
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>
