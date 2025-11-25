@@ -52,7 +52,10 @@ export default function MarketingAssets() {
   const [data, setData] = useState<MarketingAssetsData | null>(null);
   const [brandData, setBrandData] = useState<BrandData | null>(null);
   const [storyBrandData, setStoryBrandData] = useState<any>(null);
-  const [generating, setGenerating] = useState(false);
+  const [generatingFlyers, setGeneratingFlyers] = useState(false);
+  const [generatingSocial, setGeneratingSocial] = useState(false);
+  const [generatingMessages, setGeneratingMessages] = useState(false);
+  const [generatingAds, setGeneratingAds] = useState(false);
   const [generatingStep, setGeneratingStep] = useState('');
   const [progress, setProgress] = useState(0);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -201,7 +204,7 @@ export default function MarketingAssets() {
   const generateFlyers = async () => {
     if (!brandData || !data) return;
 
-    setGenerating(true);
+    setGeneratingFlyers(true);
     setProgress(0);
     setGeneratingStep('Preparing your brand assets...');
 
@@ -286,7 +289,7 @@ export default function MarketingAssets() {
       alert(`Failed to generate flyers: ${err.message || 'Unknown error'}`);
     } finally {
       setTimeout(() => {
-        setGenerating(false);
+        setGeneratingFlyers(false);
         setProgress(0);
         setGeneratingStep('');
       }, 1000);
@@ -296,7 +299,7 @@ export default function MarketingAssets() {
   const generateSocialPosts = async () => {
     if (!brandData || !data) return;
 
-    setGenerating(true);
+    setGeneratingSocial(true);
     setProgress(0);
     setGeneratingStep('Crafting engaging social media content...');
 
@@ -341,7 +344,7 @@ export default function MarketingAssets() {
       alert(`Failed to generate social posts: ${err.message || 'Unknown error'}`);
     } finally {
       setTimeout(() => {
-        setGenerating(false);
+        setGeneratingSocial(false);
         setProgress(0);
         setGeneratingStep('');
       }, 1000);
@@ -351,7 +354,7 @@ export default function MarketingAssets() {
   const generateMessageTemplates = async () => {
     if (!brandData || !data) return;
 
-    setGenerating(true);
+    setGeneratingMessages(true);
     setProgress(0);
     setGeneratingStep('Creating personalized message templates...');
 
@@ -392,7 +395,7 @@ export default function MarketingAssets() {
       alert(`Failed to generate message templates: ${err.message || 'Unknown error'}`);
     } finally {
       setTimeout(() => {
-        setGenerating(false);
+        setGeneratingMessages(false);
         setProgress(0);
         setGeneratingStep('');
       }, 1000);
@@ -402,7 +405,7 @@ export default function MarketingAssets() {
   const generateAdStrategy = async () => {
     if (!brandData || !data) return;
 
-    setGenerating(true);
+    setGeneratingAds(true);
     try {
       const strategy = await generateMarketingContent({
         type: 'ad_strategy',
@@ -438,7 +441,7 @@ export default function MarketingAssets() {
       console.error('Error generating ad strategy:', err);
       alert(`Failed to generate ad strategy: ${err.message || 'Unknown error'}`);
     } finally {
-      setGenerating(false);
+      setGeneratingAds(false);
     }
   };
 
@@ -574,10 +577,10 @@ export default function MarketingAssets() {
                       <div className="space-y-3">
                         <button
                           onClick={generateFlyers}
-                          disabled={generating}
+                          disabled={generatingFlyers}
                           className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
-                          {generating ? (
+                          {generatingFlyers ? (
                             <>
                               <Loader2 size={18} className="animate-spin" />
                               Generating...
@@ -590,7 +593,7 @@ export default function MarketingAssets() {
                           )}
                         </button>
 
-                        {generating && (
+                        {generatingFlyers && (
                           <div className="space-y-2">
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-gray-300">{generatingStep}</span>
@@ -964,13 +967,13 @@ export default function MarketingAssets() {
                                 generateFlyers();
                               }
                             }}
-                            disabled={generating}
+                            disabled={generatingFlyers}
                             className="px-6 py-2 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                           >
                             <RefreshCw size={18} />
                             Regenerate All Flyers
                           </button>
-                          {generating && (
+                          {generatingFlyers && (
                             <div className="space-y-2 mt-4">
                               <div className="flex items-center justify-between text-sm">
                                 <span className="text-gray-300">{generatingStep}</span>
@@ -1011,10 +1014,10 @@ export default function MarketingAssets() {
                       <div className="space-y-3">
                         <button
                           onClick={generateSocialPosts}
-                          disabled={generating}
+                          disabled={generatingSocial}
                           className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
-                          {generating ? (
+                          {generatingSocial ? (
                             <>
                               <Loader2 size={18} className="animate-spin" />
                               Generating...
@@ -1027,7 +1030,7 @@ export default function MarketingAssets() {
                           )}
                         </button>
 
-                        {generating && (
+                        {generatingSocial && (
                           <div className="space-y-2">
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-gray-300">{generatingStep}</span>
@@ -1062,10 +1065,10 @@ export default function MarketingAssets() {
 
                         <button
                           onClick={generateSocialPosts}
-                          disabled={generating}
+                          disabled={generatingSocial}
                           className="w-full px-4 py-2 bg-[#2979FF]/20 text-[#2979FF] border border-[#2979FF]/30 rounded-lg text-sm font-semibold hover:bg-[#2979FF]/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                          {generating ? (
+                          {generatingSocial ? (
                             <>
                               <Loader2 size={16} className="animate-spin" />
                               Regenerating...
@@ -1102,10 +1105,10 @@ export default function MarketingAssets() {
                       <div className="space-y-3">
                         <button
                           onClick={generateMessageTemplates}
-                          disabled={generating}
+                          disabled={generatingMessages}
                           className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
-                          {generating ? (
+                          {generatingMessages ? (
                             <>
                               <Loader2 size={18} className="animate-spin" />
                               Generating...
@@ -1118,7 +1121,7 @@ export default function MarketingAssets() {
                           )}
                         </button>
 
-                        {generating && (
+                        {generatingMessages && (
                           <div className="space-y-2">
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-gray-300">{generatingStep}</span>
@@ -1198,10 +1201,10 @@ export default function MarketingAssets() {
                     {!data.ad_strategy ? (
                       <button
                         onClick={generateAdStrategy}
-                        disabled={generating}
+                        disabled={generatingAds}
                         className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                       >
-                        {generating ? (
+                        {generatingAds ? (
                           <>
                             <Loader2 size={18} className="animate-spin" />
                             Generating...
@@ -1385,10 +1388,10 @@ export default function MarketingAssets() {
 
                         <button
                           onClick={generateAdStrategy}
-                          disabled={generating}
+                          disabled={generatingAds}
                           className="w-full px-4 py-2 bg-[#2979FF]/20 text-[#2979FF] border border-[#2979FF]/30 rounded-lg text-sm font-semibold hover:bg-[#2979FF]/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                          {generating ? (
+                          {generatingAds ? (
                             <>
                               <Loader2 size={16} className="animate-spin" />
                               Regenerating...
