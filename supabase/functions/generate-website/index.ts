@@ -25,10 +25,17 @@ Deno.serve(async (req: Request) => {
       businessType,
     } = await req.json();
 
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    // Try multiple possible environment variable names
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY') || 
+                         Deno.env.get('OPENAI_KEY') ||
+                         Deno.env.get('openai_api_key');
+    
+    // Debug: log all available env vars (be careful with this in production)
+    console.log('Available env vars:', Object.keys(Deno.env.toObject()));
+    
     if (!openaiApiKey) {
-      console.error('OPENAI_API_KEY not found in environment');
-      throw new Error('OpenAI API key not configured');
+      console.error('OpenAI API key not found in any expected environment variable');
+      throw new Error('OpenAI API key not configured. Please add OPENAI_API_KEY to Edge Function secrets in Supabase dashboard.');
     }
 
     console.log('OpenAI API key found, generating website...');
