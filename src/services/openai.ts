@@ -516,204 +516,106 @@ export async function generateMarketingContent(params: {
   }
 
   if (type === 'social_posts') {
-    const storyBrandContext = storyBrandData ? `
-
-STORYBRAND FRAMEWORK (Use this to inform your messaging):
-${Object.entries(storyBrandData).map(([key, value]) => `- ${key}: ${value}`).join('\n')}` : '';
-
-    const prompt = `Generate 3 Instagram post ideas for "${businessName}" using StoryBrand principles.
-${businessDescription || ''}
-Target Audience: ${targetAudience || 'general customers'}
-Brand Voice: ${brandVoice || 'professional and approachable'}${storyBrandContext}
-
-STORYBRAND INSTAGRAM POST RULES:
-1. Focus on the CUSTOMER as the hero (not the business)
-2. Address a problem or pain point the customer faces
-3. Position the business as the helpful guide
-4. Show transformation or success
-5. Use "you" language, not "we" language
-6. Include a clear call to action
-7. Make it relatable and engaging
-
-CRITICAL REQUIREMENTS:
-- PERFECT GRAMMAR - No errors whatsoever
-- PERFECT SPELLING - Check every word
-- Customer-focused messaging
-- Problem-aware content
-- Transformation-focused
-- Engaging and authentic tone
-
-For each post, provide:
-1. An engaging caption using StoryBrand principles (2-3 sentences addressing customer pain points, showing transformation, clear CTA)
-2. Relevant hashtags (8-12 hashtags)
-
-Format as JSON array with objects containing: caption, hashtags
-
-IMPORTANT: Focus on the customer's problems and transformation, not the business features. Use perfect grammar and spelling.`;
-
-    const response = await getOpenAIClient().chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a StoryBrand certified social media expert creating customer-focused Instagram content. Always respond with valid JSON only.',
+    try {
+      const response = await fetch('https://pkravblnlyqtftjeezmr.supabase.co/functions/v1/generateSocialPosts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.7,
-    });
+        body: JSON.stringify({
+          businessName,
+          businessDescription,
+          targetAudience,
+          brandVoice,
+          storyBrandData,
+        }),
+      });
 
-    const content = response.choices[0].message.content || '[]';
-    const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    return JSON.parse(cleanContent);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Edge function error response:', errorText);
+        throw new Error(`Failed to generate social posts (${response.status}): ${errorText.substring(0, 200)}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.posts || result.posts.length === 0) {
+        throw new Error('No social posts returned from edge function');
+      }
+
+      return result.posts;
+    } catch (error: any) {
+      console.error('Error calling generateSocialPosts edge function:', error);
+      throw new Error(`Social posts generation failed: ${error.message}`);
+    }
   }
 
   if (type === 'message_templates') {
-    const prompt = `Generate 3 intro message templates for "${businessName}" - one for SMS, one for email, and one for DM.
-${businessDescription || ''}
-
-For each template, provide:
-1. Type (sms, email, or dm)
-2. A title
-3. The message content (keep SMS under 160 chars, email and DM can be longer)
-
-Format as JSON array with objects containing: type, title, content
-
-Make them friendly, professional, and include a clear call to action.`;
-
-    const response = await getOpenAIClient().chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a marketing copywriter creating outreach templates. Always respond with valid JSON only.',
+    try {
+      const response = await fetch('https://pkravblnlyqtftjeezmr.supabase.co/functions/v1/generateMessageTemplates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.8,
-    });
+        body: JSON.stringify({
+          businessName,
+          businessDescription,
+        }),
+      });
 
-    const content = response.choices[0].message.content || '[]';
-    const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    return JSON.parse(cleanContent);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Edge function error response:', errorText);
+        throw new Error(`Failed to generate message templates (${response.status}): ${errorText.substring(0, 200)}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.templates || result.templates.length === 0) {
+        throw new Error('No message templates returned from edge function');
+      }
+
+      return result.templates;
+    } catch (error: any) {
+      console.error('Error calling generateMessageTemplates edge function:', error);
+      throw new Error(`Message templates generation failed: ${error.message}`);
+    }
   }
 
   if (type === 'ad_strategy') {
-    const storyBrandContext = storyBrandData ? `
-STORYBRAND CONTEXT:
-${Object.entries(storyBrandData).map(([key, value]) => `- ${key}: ${value}`).join('\n')}` : '';
-
-    const prompt = `You are an expert marketing strategist. Using the user's selected business, brand guide, and target audience, create a simple, actionable, beginner-friendly advertising strategy that the user can start today.
-
-Business: "${businessName}"
-${businessDescription ? `Description: ${businessDescription}` : ''}
-${targetAudience ? `Target Audience: ${targetAudience}` : ''}
-${brandVoice ? `Brand Voice: ${brandVoice}` : ''}
-${tagline ? `Tagline: ${tagline}` : ''}
-${storyBrandContext}
-
-Keep everything clean, practical, and aligned with the brand guide. Avoid complicated marketing language.
-
-Format as JSON object with the following structure:
-{
-  "coreMessaging": {
-    "headline": "Main ad headline",
-    "subheadline": "Supporting sub-headline",
-    "valueProposition": "1-2 sentence value proposition",
-    "talkingPoints": ["Point 1", "Point 2", "Point 3"]
-  },
-  "targetAudienceSummary": {
-    "who": "Who to target",
-    "whatTheyCareAbout": "What they care about",
-    "whatMotivatesThem": "What motivates them",
-    "whereTheyAreOnline": "Where they spend time online"
-  },
-  "recommendedChannels": [
-    {
-      "name": "Channel name (e.g., Meta Ads, Google Search Ads, etc.)",
-      "reason": "One sentence why this fits the business"
-    }
-  ],
-  "channelStrategies": [
-    {
-      "channel": "Channel name",
-      "goal": "Goal for this channel",
-      "targeting": "Who to target",
-      "format": "Best ad format",
-      "adContent": "What the ad should say (1 short paragraph)",
-      "budgetRanges": {
-        "low": "$X-$Y/month",
-        "medium": "$X-$Y/month",
-        "high": "$X-$Y/month"
-      }
-    }
-  ],
-  "adConcepts": [
-    {
-      "headline": "Ad headline",
-      "subheadline": "Sub-headline",
-      "bodyCopy": "Body copy (2-4 lines)",
-      "cta": "Call to action",
-      "imageIdea": "Image description (no images, descriptions only)"
-    }
-  ],
-  "thirtyDayPlan": {
-    "week1": {
-      "title": "Setup",
-      "steps": ["Step 1", "Step 2", "Step 3"]
-    },
-    "week2": {
-      "title": "Launch",
-      "steps": ["Step 1", "Step 2", "Step 3"]
-    },
-    "week3": {
-      "title": "Optimize",
-      "steps": ["Step 1", "Step 2", "Step 3"]
-    },
-    "week4": {
-      "title": "Scale",
-      "steps": ["Step 1", "Step 2", "Step 3"]
-    }
-  },
-  "hustleNow": [
-    {
-      "title": "Quick hustle title",
-      "description": "Simple description",
-      "steps": ["Step 1", "Step 2", "Step 3"],
-      "estimatedTime": "5-20 minutes",
-      "cost": "Free or low-cost"
-    }
-  ]
-}
-
-CRITICAL REQUIREMENTS:
-- Perfect grammar throughout
-- Match brand voice: ${brandVoice || 'professional and approachable'}
-- Everything must be instantly usable
-- Keep language simple and motivating
-- No fluff - only actionable content
-- Beginner-friendly explanations
-- Include 3 full ad concepts
-- Include at least 8 hustle now items that are practical, real, and immediately actionable
-
-Make it practical and achievable for someone just starting out.`;
-
-    const response = await getOpenAIClient().chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert marketing strategist creating beginner-friendly, actionable advertising strategies. Always respond with valid JSON only. Use perfect grammar and clear, simple language.',
+    try {
+      const response = await fetch('https://pkravblnlyqtftjeezmr.supabase.co/functions/v1/generateAdStrategy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 4000,
-    });
+        body: JSON.stringify({
+          businessName,
+          businessDescription,
+          targetAudience,
+          brandVoice,
+          tagline,
+          storyBrandData,
+        }),
+      });
 
-    const content = response.choices[0].message.content || '{}';
-    const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    return JSON.parse(cleanContent);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Edge function error response:', errorText);
+        throw new Error(`Failed to generate ad strategy (${response.status}): ${errorText.substring(0, 200)}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.strategy) {
+        throw new Error('No ad strategy returned from edge function');
+      }
+
+      return result.strategy;
+    } catch (error: any) {
+      console.error('Error calling generateAdStrategy edge function:', error);
+      throw new Error(`Ad strategy generation failed: ${error.message}`);
+    }
   }
 
   return null;
