@@ -71,7 +71,6 @@ export default function BrandIdentity() {
   const [editingLogo, setEditingLogo] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
   const [regeneratingLogo, setRegeneratingLogo] = useState(false);
-  const [showLogoQuestionnaire, setShowLogoQuestionnaire] = useState(false);
   const [logoAnswers, setLogoAnswers] = useState({
     businessDescription: '',
     targetAudience: '',
@@ -1436,16 +1435,23 @@ export default function BrandIdentity() {
                 </p>
 
                 <div className="flex gap-3 mb-4">
-                  {!showLogoQuestionnaire ? (
-                    <button
-                      onClick={() => setShowLogoQuestionnaire(true)}
-                      disabled={generatingLogoConcepts || !data.selected_name || !data.brand_colors.primary}
-                      className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      <Sparkles size={18} />
-                      Generate Logo Concepts
-                    </button>
-                  ) : null}
+                  <button
+                    onClick={handleGenerateLogoConcepts}
+                    disabled={generatingLogoConcepts || !data.selected_name || !data.brand_colors.primary}
+                    className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {generatingLogoConcepts ? (
+                      <>
+                        <Loader2 size={18} className="animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={18} />
+                        Generate Logo Concepts
+                      </>
+                    )}
+                  </button>
 
                   <div className="flex-1">
                     <input
@@ -1504,7 +1510,7 @@ export default function BrandIdentity() {
                   </div>
                 )}
 
-                {showLogoQuestionnaire && generatingLogoConcepts ? (
+                {generatingLogoConcepts && (
                   <div className="bg-white/5 rounded-lg p-8 border border-white/10 mb-4">
                     <div className="flex flex-col items-center gap-6 py-8">
                       <div className="relative w-40 h-40">
@@ -1571,250 +1577,6 @@ export default function BrandIdentity() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="bg-white/5 rounded-lg p-6 border border-white/10 mb-4 space-y-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-white font-semibold">Customize Your Logo</h4>
-                      <button
-                        onClick={() => setShowLogoQuestionnaire(false)}
-                        className="text-gray-400 hover:text-white"
-                      >
-                        <X size={18} />
-                      </button>
-                    </div>
-                    <p className="text-sm text-gray-400 mb-4">
-                      Refine your logo design with these optional details. We'll use your business info from above as defaults.
-                    </p>
-
-                    <div>
-                      <label className="text-sm text-gray-300 mb-2 block">
-                        Brand personality (How should your brand feel?)
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={logoAnswers.brandPersonality}
-                          onChange={(e) => setLogoAnswers({ ...logoAnswers, brandPersonality: e.target.value })}
-                          placeholder="e.g., Modern, trustworthy, energetic, sophisticated, playful"
-                          className="w-full px-3 py-2 pr-10 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                        />
-                        <button
-                          onClick={async () => {
-                            if (!data?.selected_name) {
-                              alert('Please select a business name first');
-                              return;
-                            }
-                            setGeneratingPersonality(true);
-                            try {
-                              const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-suggestions`, {
-                                method: 'POST',
-                                headers: {
-                                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                                  'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                  context: `Business: ${data.selected_name}. Offer: ${offerDescription}. Audience: ${targetAudience}`,
-                                  prompt: 'Suggest 3-4 brand personality traits (comma-separated adjectives)'
-                                }),
-                              });
-                              const result = await response.json();
-                              setLogoAnswers({ ...logoAnswers, brandPersonality: result.suggestion || '' });
-                            } catch (err) {
-                              console.error('Error generating personality:', err);
-                            } finally {
-                              setGeneratingPersonality(false);
-                            }
-                          }}
-                          disabled={generatingPersonality || !data?.selected_name}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-[#2979FF] hover:text-[#2979FF]/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Generate with AI"
-                        >
-                          {generatingPersonality ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <Sparkles size={16} />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-300 mb-2 block">
-                        Industry or category
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={logoAnswers.industry}
-                          onChange={(e) => setLogoAnswers({ ...logoAnswers, industry: e.target.value })}
-                          placeholder="e.g., Technology, Healthcare, Food & Beverage, Consulting"
-                          className="w-full px-3 py-2 pr-10 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                        />
-                        <button
-                          onClick={async () => {
-                            if (!offerDescription.trim() && !data?.selected_name) {
-                              alert('Please enter business information first');
-                              return;
-                            }
-                            setGeneratingIndustry(true);
-                            try {
-                              const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-suggestions`, {
-                                method: 'POST',
-                                headers: {
-                                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                                  'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                  context: `Business: ${data?.selected_name}. Offer: ${offerDescription}`,
-                                  prompt: 'Identify the primary industry or category (1-2 words)'
-                                }),
-                              });
-                              const result = await response.json();
-                              setLogoAnswers({ ...logoAnswers, industry: result.suggestion || '' });
-                            } catch (err) {
-                              console.error('Error generating industry:', err);
-                            } finally {
-                              setGeneratingIndustry(false);
-                            }
-                          }}
-                          disabled={generatingIndustry || (!offerDescription.trim() && !data?.selected_name)}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-[#2979FF] hover:text-[#2979FF]/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Generate with AI"
-                        >
-                          {generatingIndustry ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <Sparkles size={16} />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-300 mb-2 block">
-                        Preferred logo style
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={logoAnswers.preferredStyle}
-                          onChange={(e) => setLogoAnswers({ ...logoAnswers, preferredStyle: e.target.value })}
-                          placeholder="e.g., Minimalist, Geometric, Abstract, Nature-inspired, Bold"
-                          className="w-full px-3 py-2 pr-10 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                        />
-                        <button
-                          onClick={async () => {
-                            if (!data?.selected_name) {
-                              alert('Please select a business name first');
-                              return;
-                            }
-                            setGeneratingStyle(true);
-                            try {
-                              const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-suggestions`, {
-                                method: 'POST',
-                                headers: {
-                                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                                  'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                  context: `Business: ${data.selected_name}. Industry: ${logoAnswers.industry}. Personality: ${logoAnswers.brandPersonality}`,
-                                  prompt: 'Suggest an ideal logo style (1-2 descriptive words)'
-                                }),
-                              });
-                              const result = await response.json();
-                              setLogoAnswers({ ...logoAnswers, preferredStyle: result.suggestion || '' });
-                            } catch (err) {
-                              console.error('Error generating style:', err);
-                            } finally {
-                              setGeneratingStyle(false);
-                            }
-                          }}
-                          disabled={generatingStyle || !data?.selected_name}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-[#2979FF] hover:text-[#2979FF]/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Generate with AI"
-                        >
-                          {generatingStyle ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <Sparkles size={16} />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-gray-400 mb-2 block">Additional Suggestions/Changes</label>
-                      <textarea
-                        value={logoSuggestions}
-                        onChange={(e) => setLogoSuggestions(e.target.value)}
-                        placeholder="E.g., include a specific element, avoid certain shapes, prefer minimalist style, use geometric shapes, etc."
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none"
-                        rows={3}
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Describe any specific requirements or changes you'd like in your logo design
-                      </p>
-                    </div>
-
-                    <div className="flex gap-3 pt-2">
-                      <button
-                        onClick={handleGenerateLogoConcepts}
-                        disabled={generatingLogoConcepts}
-                        className="flex-1 px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                        {generatingLogoConcepts ? (
-                          <>
-                            <Loader2 size={18} className="animate-spin" />
-                            Generating Logos...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles size={18} />
-                            Generate Logos
-                          </>
-                        )}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setLogoAnswers({
-                            businessDescription: '',
-                            targetAudience: '',
-                            brandPersonality: '',
-                            industry: '',
-                            preferredStyle: '',
-                          });
-                          setLogoSuggestions('');
-                        }}
-                        className="px-4 py-2 bg-white/5 text-white rounded-lg text-sm hover:bg-white/10 transition-colors"
-                      >
-                        Clear
-                      </button>
-                    </div>
-
-                    {generatingLogoConcepts && (
-                      <div className="mt-4 bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-white">
-                            Creating Logo {logoProgress.current} of {logoProgress.total}
-                          </span>
-                          <span className="text-sm text-[#2979FF] font-semibold">
-                            {Math.round((logoProgress.current / logoProgress.total) * 100)}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
-                          <div
-                            className="h-full bg-[#2979FF] transition-all duration-500 ease-out"
-                            style={{ width: `${(logoProgress.current / logoProgress.total) * 100}%` }}
-                          />
-                        </div>
-                        <p className="text-xs text-gray-400 mt-2">
-                          {logoProgress.current === 0 && 'Initializing logo generation...'}
-                          {logoProgress.current > 0 && logoProgress.current < logoProgress.total && 'Generating professional logo concepts with AI...'}
-                          {logoProgress.current === logoProgress.total && 'Finalizing your logos...'}
-                        </p>
-                      </div>
-                    )}
                   </div>
                 )}
 
