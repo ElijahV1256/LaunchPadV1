@@ -34,6 +34,7 @@ export default function LogoEditor() {
   const [brandColors, setBrandColors] = useState<BrandColors>({ primary: '#000000', secondary: '#666666', accent: '#999999' });
 
   const [editPrompt, setEditPrompt] = useState('');
+  const [correctSpelling, setCorrectSpelling] = useState('');
   const [styleAdjustments, setStyleAdjustments] = useState({
     makeMoreMinimal: false,
     makeMoreDetailed: false,
@@ -99,6 +100,39 @@ export default function LogoEditor() {
       navigate('/dashboard');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFixSpelling = async () => {
+    if (!correctSpelling.trim()) {
+      alert('Please enter the corrected text for your logo');
+      return;
+    }
+
+    if (!logo) return;
+
+    setRegenerating(true);
+    try {
+      // Import the logo composer
+      const { composeLogoWithText } = await import('../utils/logoComposer');
+
+      // Extract the icon from the current logo (we'll regenerate with new text)
+      // For now, since we can't extract the icon easily, we'll need to regenerate with specific instructions
+      const updatedLogo = await regenerateLogoWithChanges(
+        logo,
+        correctSpelling.trim(),
+        brandColors,
+        `CRITICAL: Use EXACTLY this text: "${correctSpelling.trim()}". Keep the same icon design and colors. ONLY change the text spelling to exactly match: "${correctSpelling.trim()}". Do not change any other aspect of the logo.`
+      );
+
+      setLogo(updatedLogo);
+      setCorrectSpelling('');
+      alert('Logo text updated! If the text is still not correct, you may need to generate a new logo concept from the Brand Identity page.');
+    } catch (error) {
+      console.error('Error fixing spelling:', error);
+      alert('Failed to update text. Please try again or generate a new logo from Brand Identity page.');
+    } finally {
+      setRegenerating(false);
     }
   };
 
@@ -340,23 +374,50 @@ export default function LogoEditor() {
 
             <div className="space-y-6">
               {/* Precise Edits Section */}
-              <div className="bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Make Precise Changes</h3>
+              <div className="bg-[#06D6A0]/10 border border-[#06D6A0]/30 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Fix Text or Spelling</h3>
                 <p className="text-sm text-gray-300 mb-4">
-                  For small, specific changes like fixing spelling or adjusting colors, describe exactly what needs to change.
+                  Type exactly how you want the text to appear in your logo. The AI will regenerate the logo with the corrected spelling.
                 </p>
 
                 {/* Text Correction */}
                 <div className="mb-4">
-                  <label className="text-white font-semibold mb-2 block text-sm">Fix Spelling or Text</label>
+                  <label className="text-white font-semibold mb-2 block text-sm">Corrected Text</label>
                   <input
                     type="text"
-                    value={styleAdjustments.modifyText}
-                    onChange={(e) => setStyleAdjustments({ ...styleAdjustments, modifyText: e.target.value })}
-                    placeholder='e.g., "change Local Eats to LocalEats" or "fix spelling of Restaurant"'
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] text-sm"
+                    value={correctSpelling}
+                    onChange={(e) => setCorrectSpelling(e.target.value)}
+                    placeholder={`e.g., "${businessName}" or "LocalEats"`}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#06D6A0] text-sm"
                   />
                 </div>
+
+                <button
+                  onClick={handleFixSpelling}
+                  disabled={regenerating || !correctSpelling.trim()}
+                  className="w-full px-6 py-3 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {regenerating ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin" />
+                      Fixing Text...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={20} />
+                      Fix Text in Logo
+                    </>
+                  )}
+                </button>
+
+                <p className="text-xs text-gray-400 mt-3">
+                  Note: AI text generation may not always be perfect. If results aren't accurate, consider generating new logo concepts from the Brand Identity page.
+                </p>
+              </div>
+
+              <div className="border-t border-white/10 pt-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Or Make Other Changes</h3>
+                <p className="text-sm text-gray-400 mb-4">For color adjustments and style modifications</p>
 
                 {/* Color Changes */}
                 <div className="mb-4">
@@ -385,12 +446,12 @@ export default function LogoEditor() {
                 </div>
 
                 {/* Specific Element Changes */}
-                <div>
+                <div className="mb-4">
                   <label className="text-white font-semibold mb-2 block text-sm">Other Specific Changes</label>
                   <textarea
                     value={editPrompt}
                     onChange={(e) => setEditPrompt(e.target.value)}
-                    placeholder='e.g., "remove the circle around the icon" or "make the tagline text smaller"'
+                    placeholder='e.g., "remove the circle around the icon" or "make the tagline smaller"'
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none text-sm"
                     rows={3}
                   />
@@ -398,7 +459,7 @@ export default function LogoEditor() {
               </div>
 
               <div className="border-t border-white/10 pt-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Or Make Style Changes</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Make Style Changes</h3>
                 <p className="text-sm text-gray-400 mb-4">For broader design changes to the overall style</p>
 
               {/* Quick Style Adjustments */}
