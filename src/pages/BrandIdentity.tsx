@@ -71,8 +71,6 @@ export default function BrandIdentity() {
   const [editingLogo, setEditingLogo] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
   const [regeneratingLogo, setRegeneratingLogo] = useState(false);
-  const [editingConceptIndex, setEditingConceptIndex] = useState<number | null>(null);
-  const [conceptEditPrompt, setConceptEditPrompt] = useState('');
   const [showLogoQuestionnaire, setShowLogoQuestionnaire] = useState(false);
   const [logoAnswers, setLogoAnswers] = useState({
     businessDescription: '',
@@ -701,6 +699,17 @@ export default function BrandIdentity() {
     } catch (err) {
       console.error('Error selecting logo:', err);
     }
+  };
+
+  const navigateToLogoEditor = (logoIndex?: number) => {
+    if (!data?.id) return;
+
+    const params = new URLSearchParams({ id: data.id });
+    if (logoIndex !== undefined) {
+      params.append('logo', logoIndex.toString());
+    }
+
+    navigate(`/logo-editor?${params.toString()}`);
   };
 
   const handleRegenerateLogoWithChanges = async (promptOverride?: string) => {
@@ -1885,11 +1894,10 @@ export default function BrandIdentity() {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setEditingConceptIndex(idx);
-                                  setConceptEditPrompt('');
+                                  navigateToLogoEditor(idx);
                                 }}
                                 className="absolute top-2 right-2 p-2 bg-[#2979FF] text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#2979FF]/90 z-10"
-                                title="Make changes to this logo"
+                                title="Edit this logo"
                               >
                                 <Edit2 size={16} />
                               </button>
@@ -1897,75 +1905,6 @@ export default function BrandIdentity() {
                             <p className="text-sm font-semibold text-white text-center mb-1">{concept.name}</p>
                             <p className="text-xs text-gray-400 text-center">{concept.description}</p>
                           </button>
-
-                          {editingConceptIndex === idx && (
-                            <div className="mt-3 p-4 bg-white/5 border border-white/10 rounded-lg space-y-3">
-                              <div className="flex items-center justify-between mb-2">
-                                <p className="text-sm text-white font-semibold">Edit This Logo</p>
-                                <button
-                                  onClick={() => {
-                                    setEditingConceptIndex(null);
-                                    setConceptEditPrompt('');
-                                  }}
-                                  className="text-gray-400 hover:text-white transition-colors"
-                                >
-                                  <X size={16} />
-                                </button>
-                              </div>
-                              <div>
-                                <label className="text-xs text-gray-400 mb-1 block">
-                                  Describe changes you'd like:
-                                </label>
-                                <textarea
-                                  value={conceptEditPrompt}
-                                  onChange={(e) => setConceptEditPrompt(e.target.value)}
-                                  placeholder="E.g., make it more modern, change the icon style, add more color, simplify it, etc."
-                                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none"
-                                  rows={3}
-                                />
-                              </div>
-                              <button
-                                onClick={async () => {
-                                  if (!conceptEditPrompt.trim()) return;
-
-                                  setRegeneratingLogo(true);
-                                  try {
-                                    // Select this logo first if not already selected
-                                    if (data.logo_data?.selected?.name !== concept.name) {
-                                      await selectLogo(concept);
-                                    }
-
-                                    // Apply changes using the existing function
-                                    setCustomPrompt(conceptEditPrompt);
-                                    setEditingLogo(true);
-
-                                    await handleRegenerateLogoWithChanges(conceptEditPrompt);
-
-                                    setEditingConceptIndex(null);
-                                    setConceptEditPrompt('');
-                                  } catch (error) {
-                                    console.error('Error regenerating logo:', error);
-                                  } finally {
-                                    setRegeneratingLogo(false);
-                                  }
-                                }}
-                                disabled={regeneratingLogo || !conceptEditPrompt.trim()}
-                                className="w-full px-4 py-2 bg-[#06D6A0] text-white rounded-lg text-sm font-semibold hover:bg-[#06D6A0]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                              >
-                                {regeneratingLogo ? (
-                                  <>
-                                    <Loader2 size={14} className="animate-spin" />
-                                    Applying Changes...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Sparkles size={14} />
-                                    Apply Changes
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
@@ -1976,20 +1915,11 @@ export default function BrandIdentity() {
                           <div className="flex items-center justify-between mb-3">
                             <h4 className="text-white font-semibold">Selected Logo</h4>
                             <button
-                              onClick={() => setEditingLogo(!editingLogo)}
+                              onClick={() => navigateToLogoEditor()}
                               className="px-3 py-1 bg-[#2979FF] text-white rounded-lg text-sm flex items-center gap-2 hover:bg-[#2979FF]/90 transition-colors"
                             >
-                              {editingLogo ? (
-                                <>
-                                  <X size={14} />
-                                  Cancel
-                                </>
-                              ) : (
-                                <>
-                                  <Edit2 size={14} />
-                                  Make Changes
-                                </>
-                              )}
+                              <Edit2 size={14} />
+                              Edit Logo
                             </button>
                           </div>
 
@@ -2006,40 +1936,6 @@ export default function BrandIdentity() {
                               <p className="text-white font-medium mb-1">{data.logo_data.selected.name}</p>
                               <p className="text-gray-400 text-xs mb-2">{data.logo_data.selected.description}</p>
                               <p className="text-gray-500 text-xs mb-3">AI-generated using DALL-E 3</p>
-
-                              {editingLogo && (
-                                <div className="space-y-3">
-                                  <div>
-                                    <label className="text-sm text-gray-400 mb-1 block">
-                                      Describe changes you'd like:
-                                    </label>
-                                    <textarea
-                                      value={customPrompt}
-                                      onChange={(e) => setCustomPrompt(e.target.value)}
-                                      placeholder="E.g., make it more rounded, add a border, simplify the design, etc."
-                                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none"
-                                      rows={3}
-                                    />
-                                  </div>
-                                  <button
-                                    onClick={handleRegenerateLogoWithChanges}
-                                    disabled={regeneratingLogo || !customPrompt.trim()}
-                                    className="px-4 py-2 bg-[#06D6A0] text-white rounded-lg text-sm font-semibold hover:bg-[#06D6A0]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                  >
-                                    {regeneratingLogo ? (
-                                      <>
-                                        <Loader2 size={14} className="animate-spin" />
-                                        Applying Changes...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Sparkles size={14} />
-                                        Apply Changes
-                                      </>
-                                    )}
-                                  </button>
-                                </div>
-                              )}
                             </div>
                           </div>
                         </div>

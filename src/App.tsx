@@ -17,6 +17,7 @@ import StoryBrandRoadmap from './pages/StoryBrandRoadmap';
 import MasterSheet from './pages/MasterSheet';
 import Resources from './pages/Resources';
 import BrandIdentity from './pages/BrandIdentity';
+import LogoEditor from './pages/LogoEditor';
 import MarketingAssets from './pages/MarketingAssets';
 import WebsiteBuilder from './pages/WebsiteBuilder';
 import Operations from './pages/Operations';
@@ -146,6 +147,14 @@ function App() {
             element={
               <PrivateRoute>
                 <BrandIdentity />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/logo-editor"
+            element={
+              <PrivateRoute>
+                <LogoEditor />
               </PrivateRoute>
             }
           />

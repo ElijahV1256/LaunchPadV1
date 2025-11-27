@@ -1,0 +1,436 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Sparkles, Loader2, Download, Save, RefreshCw } from 'lucide-react';
+import { supabase } from '../config/supabase';
+import { regenerateLogoWithChanges } from '../services/openai';
+
+interface LogoConcept {
+  name: string;
+  description: string;
+  imageUrl: string;
+  prompt: string;
+}
+
+interface BrandColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+}
+
+export default function LogoEditor() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const brandIdentityId = searchParams.get('id');
+  const logoIndex = searchParams.get('logo');
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+
+  const [businessName, setBusinessName] = useState('');
+  const [logo, setLogo] = useState<LogoConcept | null>(null);
+  const [originalLogo, setOriginalLogo] = useState<LogoConcept | null>(null);
+  const [brandColors, setBrandColors] = useState<BrandColors>({ primary: '#000000', secondary: '#666666', accent: '#999999' });
+
+  const [editPrompt, setEditPrompt] = useState('');
+  const [styleAdjustments, setStyleAdjustments] = useState({
+    makeMoreMinimal: false,
+    makeMoreDetailed: false,
+    changeIconStyle: '',
+    adjustColors: '',
+    modifyText: '',
+  });
+
+  useEffect(() => {
+    loadLogoData();
+  }, [brandIdentityId, logoIndex]);
+
+  const loadLogoData = async () => {
+    if (!brandIdentityId) {
+      navigate('/brand-identity');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('brand_identity')
+        .select('*')
+        .eq('id', brandIdentityId)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) {
+        navigate('/brand-identity');
+        return;
+      }
+
+      setBusinessName(data.selected_name || '');
+      setBrandColors({
+        primary: data.brand_colors?.primary || '#000000',
+        secondary: data.brand_colors?.secondary || '#666666',
+        accent: data.brand_colors?.accent || '#999999',
+      });
+
+      // Get the specific logo or the selected one
+      let logoToEdit: LogoConcept | null = null;
+      if (logoIndex !== null) {
+        const idx = parseInt(logoIndex);
+        if (data.logo_data?.concepts?.[idx]) {
+          logoToEdit = data.logo_data.concepts[idx];
+        }
+      } else if (data.logo_data?.selected) {
+        logoToEdit = data.logo_data.selected;
+      }
+
+      if (!logoToEdit) {
+        navigate('/brand-identity');
+        return;
+      }
+
+      setLogo(logoToEdit);
+      setOriginalLogo(logoToEdit);
+    } catch (error) {
+      console.error('Error loading logo:', error);
+      alert('Failed to load logo. Redirecting...');
+      navigate('/brand-identity');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegenerateLogo = async () => {
+    if (!logo || !businessName) return;
+
+    // Build the prompt from style adjustments and custom prompt
+    const promptParts: string[] = [];
+
+    if (styleAdjustments.makeMoreMinimal) {
+      promptParts.push('Make it more minimal and simple');
+    }
+    if (styleAdjustments.makeMoreDetailed) {
+      promptParts.push('Add more detail and refinement');
+    }
+    if (styleAdjustments.changeIconStyle) {
+      promptParts.push(`Change icon style to: ${styleAdjustments.changeIconStyle}`);
+    }
+    if (styleAdjustments.adjustColors) {
+      promptParts.push(`Color adjustment: ${styleAdjustments.adjustColors}`);
+    }
+    if (styleAdjustments.modifyText) {
+      promptParts.push(`Text modification: ${styleAdjustments.modifyText}`);
+    }
+    if (editPrompt.trim()) {
+      promptParts.push(editPrompt);
+    }
+
+    const fullPrompt = promptParts.join('. ');
+
+    if (!fullPrompt) {
+      alert('Please describe the changes you want to make');
+      return;
+    }
+
+    setRegenerating(true);
+    try {
+      const updatedLogo = await regenerateLogoWithChanges(
+        logo,
+        businessName,
+        brandColors,
+        fullPrompt
+      );
+
+      setLogo(updatedLogo);
+    } catch (error) {
+      console.error('Error regenerating logo:', error);
+      alert('Failed to regenerate logo. Please try again.');
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
+  const handleSaveLogo = async () => {
+    if (!logo || !brandIdentityId) return;
+
+    setSaving(true);
+    try {
+      const { data: currentData, error: fetchError } = await supabase
+        .from('brand_identity')
+        .select('logo_data')
+        .eq('id', brandIdentityId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      const updatedLogoData = {
+        concepts: currentData?.logo_data?.concepts || [],
+        selected: logo,
+      };
+
+      const { error: updateError } = await supabase
+        .from('brand_identity')
+        .update({
+          logo_data: updatedLogoData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', brandIdentityId);
+
+      if (updateError) throw updateError;
+
+      alert('Logo saved successfully!');
+      navigate('/brand-identity');
+    } catch (error) {
+      console.error('Error saving logo:', error);
+      alert('Failed to save logo. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDownloadLogo = () => {
+    if (!logo) return;
+
+    const link = document.createElement('a');
+    link.href = logo.imageUrl;
+    link.download = `${businessName.replace(/[^a-z0-9]/gi, '_')}_Logo.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleReset = () => {
+    if (originalLogo) {
+      setLogo(originalLogo);
+      setEditPrompt('');
+      setStyleAdjustments({
+        makeMoreMinimal: false,
+        makeMoreDetailed: false,
+        changeIconStyle: '',
+        adjustColors: '',
+        modifyText: '',
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0F2847] to-[#0A192F] flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0F2847] to-[#0A192F]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <button
+            onClick={() => navigate('/brand-identity')}
+            className="flex items-center gap-2 text-white hover:text-[#06D6A0] transition-colors"
+          >
+            <ArrowLeft size={20} />
+            Back to Brand Identity
+          </button>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleDownloadLogo}
+              className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors flex items-center gap-2"
+            >
+              <Download size={16} />
+              Download
+            </button>
+            <button
+              onClick={handleSaveLogo}
+              disabled={saving}
+              className="px-6 py-2 bg-[#06D6A0] text-white rounded-lg hover:bg-[#06D6A0]/90 transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              {saving ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save size={16} />
+                  Save & Return
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Logo Preview */}
+          <div className="space-y-4">
+            <div className="bg-white/5 border border-white/10 rounded-xl p-8">
+              <h2 className="text-2xl font-bold text-white mb-6">Logo Preview</h2>
+
+              <div className="bg-white rounded-lg p-8 mb-6 flex items-center justify-center min-h-[400px]">
+                {logo && (
+                  <img
+                    src={logo.imageUrl}
+                    alt={logo.name}
+                    className="max-w-full h-auto object-contain"
+                  />
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <p className="text-white font-semibold">{businessName}</p>
+                  <p className="text-gray-400 text-sm">{logo?.name}</p>
+                </div>
+
+                {logo && logo.imageUrl !== originalLogo?.imageUrl && (
+                  <button
+                    onClick={handleReset}
+                    className="w-full px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <RefreshCw size={16} />
+                    Reset to Original
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Brand Colors Reference */}
+            <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Brand Colors</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <div
+                    className="w-full h-16 rounded-lg mb-2"
+                    style={{ backgroundColor: brandColors.primary }}
+                  />
+                  <p className="text-xs text-gray-400">Primary</p>
+                  <p className="text-xs text-white font-mono">{brandColors.primary}</p>
+                </div>
+                <div>
+                  <div
+                    className="w-full h-16 rounded-lg mb-2"
+                    style={{ backgroundColor: brandColors.secondary }}
+                  />
+                  <p className="text-xs text-gray-400">Secondary</p>
+                  <p className="text-xs text-white font-mono">{brandColors.secondary}</p>
+                </div>
+                <div>
+                  <div
+                    className="w-full h-16 rounded-lg mb-2"
+                    style={{ backgroundColor: brandColors.accent }}
+                  />
+                  <p className="text-xs text-gray-400">Accent</p>
+                  <p className="text-xs text-white font-mono">{brandColors.accent}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Edit Controls */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Edit Your Logo</h2>
+
+            <div className="space-y-6">
+              {/* Quick Style Adjustments */}
+              <div>
+                <label className="text-white font-semibold mb-3 block">Quick Adjustments</label>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={styleAdjustments.makeMoreMinimal}
+                      onChange={(e) => setStyleAdjustments({ ...styleAdjustments, makeMoreMinimal: e.target.checked, makeMoreDetailed: false })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-white text-sm">Make more minimal and simple</span>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={styleAdjustments.makeMoreDetailed}
+                      onChange={(e) => setStyleAdjustments({ ...styleAdjustments, makeMoreDetailed: e.target.checked, makeMoreMinimal: false })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-white text-sm">Add more detail and refinement</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Icon Style */}
+              <div>
+                <label className="text-white font-semibold mb-2 block">Change Icon Style</label>
+                <input
+                  type="text"
+                  value={styleAdjustments.changeIconStyle}
+                  onChange={(e) => setStyleAdjustments({ ...styleAdjustments, changeIconStyle: e.target.value })}
+                  placeholder="e.g., more geometric, abstract, modern, classic..."
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
+                />
+              </div>
+
+              {/* Color Adjustments */}
+              <div>
+                <label className="text-white font-semibold mb-2 block">Adjust Colors</label>
+                <input
+                  type="text"
+                  value={styleAdjustments.adjustColors}
+                  onChange={(e) => setStyleAdjustments({ ...styleAdjustments, adjustColors: e.target.value })}
+                  placeholder="e.g., use more accent color, add gradient, make it darker..."
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
+                />
+              </div>
+
+              {/* Text Modifications */}
+              <div>
+                <label className="text-white font-semibold mb-2 block">Modify Text</label>
+                <input
+                  type="text"
+                  value={styleAdjustments.modifyText}
+                  onChange={(e) => setStyleAdjustments({ ...styleAdjustments, modifyText: e.target.value })}
+                  placeholder="e.g., change font style, make text bolder, adjust spacing..."
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
+                />
+              </div>
+
+              {/* Custom Instructions */}
+              <div>
+                <label className="text-white font-semibold mb-2 block">Additional Instructions</label>
+                <textarea
+                  value={editPrompt}
+                  onChange={(e) => setEditPrompt(e.target.value)}
+                  placeholder="Describe any other changes you'd like to make..."
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none"
+                  rows={4}
+                />
+              </div>
+
+              {/* Regenerate Button */}
+              <button
+                onClick={handleRegenerateLogo}
+                disabled={regenerating}
+                className="w-full px-6 py-4 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {regenerating ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin" />
+                    Regenerating Logo...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={20} />
+                    Apply Changes & Regenerate
+                  </>
+                )}
+              </button>
+
+              <p className="text-xs text-gray-400 text-center">
+                Your logo will be regenerated with the changes you've specified. This may take 30-60 seconds.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
