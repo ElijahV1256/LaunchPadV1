@@ -288,6 +288,15 @@ export async function generateLogoConcepts(
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
 
+    // Simulate progress updates while waiting for the edge function
+    let currentProgress = 0;
+    const progressInterval = setInterval(() => {
+      if (currentProgress < 2.7) {
+        currentProgress += 0.3;
+        onProgress?.(Math.min(currentProgress, 2.7), 3);
+      }
+    }, 10000); // Update every 10 seconds
+
     try {
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-logo-concepts`,
@@ -308,6 +317,7 @@ export async function generateLogoConcepts(
       );
 
       clearTimeout(timeoutId);
+      clearInterval(progressInterval);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -333,6 +343,7 @@ export async function generateLogoConcepts(
       return concepts;
     } catch (error: any) {
       clearTimeout(timeoutId);
+      clearInterval(progressInterval);
       if (error.name === 'AbortError') {
         throw new Error('Logo generation timed out. This usually means the AI service is overloaded. Please try again in a few moments.');
       }
