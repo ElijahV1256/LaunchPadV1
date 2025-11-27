@@ -58,28 +58,34 @@ Deno.serve(async (req: Request) => {
     const personalityText = brandPersonality || 'professional, modern, trustworthy';
     const colors = brandColors || { primary: '#000000', secondary: '#666666', accent: '#999999' };
 
-    const basePrompt = `Create an ICON-ONLY logo mark for ${descriptionText}.
+    const basePrompt = `Design a premium, iconic logo mark for ${descriptionText}.
 Brand personality: ${personalityText}
-Colors: Use ${colors.primary}, ${colors.secondary}, and ${colors.accent}
+Primary color: ${colors.primary}
+Secondary color: ${colors.secondary}
+Accent color: ${colors.accent}
 
-STRICT REQUIREMENTS:
-- ICON ONLY - NO TEXT, NO LETTERS, NO BUSINESS NAME, NO WORDS AT ALL
-- Simple, clean, minimal design
-- Geometric shapes, abstract symbols, or simple line art
-- NO detailed illustrations, NO mascots, NO characters, NO complex graphics
-- NO gradients (unless very simple), NO 3D effects
-- Clean, minimal, flat design
-- Professional and recognizable
-- Easy to scale and reproduce
-- White or transparent background
-- The icon should represent the business concept without any text
+DESIGN REQUIREMENTS:
+- Icon/symbol ONLY - absolutely NO text, letters, words, or business names
+- Think Apple, Nike swoosh, Target circles, McDonald's arches - instantly recognizable icon marks
+- Bold, confident, memorable design that works at any size
+- Modern and timeless aesthetic
+- Perfect for app icons, favicons, social media avatars, and brand marks
+- Simple enough to be drawn from memory, but distinctive and unique
+- Professional quality suitable for Fortune 500 companies
+- Uses 2-3 colors maximum from the provided palette
+- Clean vector-style design with smooth curves and precise geometry
+- High contrast and visual impact
+- Centered composition on white/transparent background
+- Should evoke the business concept through pure visual form
 
-CRITICAL: This is an ICON/SYMBOL ONLY. Do not include any text, letters, or business name.`;
+STYLE INSPIRATION: World-class brands like Spotify, Airbnb, Slack, Dropbox, Twitter bird, Instagram camera - simple iconic symbols that define brands.
+
+CRITICAL: NO TEXT ANYWHERE. This is a pure icon/symbol only.`;
 
     const variations = [
-      'minimal geometric icon using circles, squares, or triangles',
-      'simple line art icon with clean strokes',
-      'clean abstract symbol representing the business concept'
+      'bold geometric logo mark with strong recognizable shape, inspired by modern tech brands',
+      'elegant minimalist symbol with refined curves and balance, premium luxury feel',
+      'distinctive abstract icon mark with unique memorable silhouette'
     ];
 
     const concepts: LogoConcept[] = [];
@@ -88,9 +94,9 @@ CRITICAL: This is an ICON/SYMBOL ONLY. Do not include any text, letters, or busi
       const variation = variations[i];
       const fullPrompt = `${basePrompt}
 
-SPECIFIC VARIATION: ${variation}
+SPECIFIC STYLE: ${variation}
 
-Remember: ICON ONLY - NO TEXT WHATSOEVER. Keep it minimal, clean, and simple.`;
+Create an iconic, world-class logo mark. Think of the most memorable brand icons you know - that level of quality and impact. ICON ONLY - absolutely NO text, letters, or words.`;
 
       console.log(`Generating logo ${i + 1}/${variations.length}:`, variation);
 
