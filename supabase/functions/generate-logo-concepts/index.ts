@@ -58,47 +58,56 @@ Deno.serve(async (req: Request) => {
     const personalityText = brandPersonality || 'professional, modern, trustworthy';
     const colors = brandColors || { primary: '#000000', secondary: '#666666', accent: '#999999' };
 
-    const basePrompt = `Design a premium, iconic logo mark for ${descriptionText}.
+    const basePrompt = `Create a premium symbol-only logo for a ${descriptionText}.
 Brand personality: ${personalityText}
-Primary color: ${colors.primary}
-Secondary color: ${colors.secondary}
-Accent color: ${colors.accent}
 
-DESIGN REQUIREMENTS:
-- Icon/symbol ONLY - absolutely NO text, letters, words, or business names
-- Think Apple, Nike swoosh, Target circles, McDonald's arches - instantly recognizable icon marks
-- Bold, confident, memorable design that works at any size
-- Modern and timeless aesthetic
-- Perfect for app icons, favicons, social media avatars, and brand marks
-- Simple enough to be drawn from memory, but distinctive and unique
-- Professional quality suitable for Fortune 500 companies
-- Uses 2-3 colors maximum from the provided palette
-- Clean vector-style design with smooth curves and precise geometry
-- High contrast and visual impact
-- Centered composition on white/transparent background
-- Should evoke the business concept through pure visual form
+COLOR PALETTE (use these exact colors):
+Primary: ${colors.primary}
+Secondary: ${colors.secondary}
+Accent: ${colors.accent}
 
-STYLE INSPIRATION: World-class brands like Spotify, Airbnb, Slack, Dropbox, Twitter bird, Instagram camera - simple iconic symbols that define brands.
+STYLE REQUIREMENTS:
+- Pure geometric symbol - NO text, NO letters, NO initials, NO words
+- Clean, minimal, modern design aesthetic
+- Simple geometric shapes: circles, arcs, lines, triangles, squares
+- Use negative space intelligently
+- Symmetrical or balanced asymmetric composition
+- Soft curves or clean angles only
+- High recognizability at small sizes (16px to 1024px)
+- Premium studio-quality design
+- 2-3 colors maximum from the provided palette
+- White or light neutral background
+- Centered, balanced composition
+- Professional enough for Fortune 500 brands
 
-CRITICAL: NO TEXT ANYWHERE. This is a pure icon/symbol only.`;
+DESIGN PHILOSOPHY:
+Think Mastercard circles, Mitsubishi triangles, Adidas stripes, BP sunburst, Chase octagon - pure geometric symbols that work at any scale. The mark should be instantly recognizable and timeless.
+
+CRITICAL: This must be a SYMBOL ONLY. Absolutely NO typography, letters, text, or business names. If you include any text, the design fails.`;
 
     const variations = [
-      'bold geometric logo mark with strong recognizable shape, inspired by modern tech brands',
-      'elegant minimalist symbol with refined curves and balance, premium luxury feel',
-      'distinctive abstract icon mark with unique memorable silhouette'
+      'Interlocking circles or rings creating a unified symbol with depth through overlapping geometry',
+      'Geometric abstract mark using triangular or angular forms arranged in a balanced, symmetrical pattern',
+      'Curved flowing symbol with soft arcs and negative space forming an elegant, minimal icon',
+      'Bold geometric shape with clean straight lines and sharp angles creating a strong, recognizable mark',
+      'Circular emblem with internal geometric divisions or segments radiating from center',
+      'Abstract symbol using intersecting lines or paths creating a unique, modern letterless icon'
     ];
 
     const concepts: LogoConcept[] = [];
 
-    for (let i = 0; i < variations.length; i++) {
-      const variation = variations[i];
+    // Generate only 3 logos to avoid timeout
+    const selectedVariations = variations.slice(0, 3);
+
+    for (let i = 0; i < selectedVariations.length; i++) {
+      const variation = selectedVariations[i];
       const fullPrompt = `${basePrompt}
 
-SPECIFIC STYLE: ${variation}
+CONCEPT DIRECTION: ${variation}
 
-Create an iconic, world-class logo mark. Think of the most memorable brand icons you know - that level of quality and impact. ICON ONLY - absolutely NO text, letters, or words.`;
+Execute this as a clean, minimal, geometric symbol using the exact brand colors provided. This must be a letterless icon mark suitable for app icons, favicons, and brand identity. Premium studio quality. SYMBOL ONLY - zero text.`;
 
-      console.log(`Generating logo ${i + 1}/${variations.length}:`, variation);
+      console.log(`Generating logo ${i + 1}/${selectedVariations.length}:`, variation);
 
       try {
         const response = await fetch('https://api.openai.com/v1/images/generations', {
