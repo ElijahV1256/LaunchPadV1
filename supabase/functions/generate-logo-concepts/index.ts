@@ -58,32 +58,31 @@ Deno.serve(async (req: Request) => {
     const personalityText = brandPersonality || 'professional, modern, trustworthy';
     const colors = brandColors || { primary: '#000000', secondary: '#666666', accent: '#999999' };
 
-    const basePrompt = `You are the Launch Pad Logo Generator. Create a SIMPLE, CLEAN, MINIMAL logo.
-
-BUSINESS NAME (MUST BE SPELLED EXACTLY): "${businessName}"
-Business description: ${descriptionText}
+    const basePrompt = `Create an ICON-ONLY logo mark for ${descriptionText}.
 Brand personality: ${personalityText}
-Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}
+Colors: Use ${colors.primary}, ${colors.secondary}, and ${colors.accent}
 
 STRICT REQUIREMENTS:
-- Logo must contain ONLY: business name + one very small simple icon
-- Icon must be: line art, geometric shape, or single simple shape
+- ICON ONLY - NO TEXT, NO LETTERS, NO BUSINESS NAME, NO WORDS AT ALL
+- Simple, clean, minimal design
+- Geometric shapes, abstract symbols, or simple line art
 - NO detailed illustrations, NO mascots, NO characters, NO complex graphics
-- NO gradients (unless very simple), NO 3D effects, NO multiple icons
-- NO busy compositions
+- NO gradients (unless very simple), NO 3D effects
 - Clean, minimal, flat design
-- Modern sans-serif typography
-- Balanced spacing and white space
-- Professional and trustworthy look
-- Easy to recreate in Canva, Adobe Express, or Figma
+- Professional and recognizable
+- Easy to scale and reproduce
 - White or transparent background
+- The icon should represent the business concept without any text
 
-CRITICAL: Verify spelling is EXACTLY "${businessName}" letter-by-letter.`;
+CRITICAL: This is an ICON/SYMBOL ONLY. Do not include any text, letters, or business name.`;
 
     const variations = [
-      'business name with one minimal geometric icon (circle, square, or triangle based)',
-      'business name with one simple line art icon',
-      'business name with one clean abstract symbol'
+      'minimal geometric icon using circles, squares, or triangles',
+      'simple line art icon with clean strokes',
+      'clean abstract symbol representing the business concept',
+      'modern flat icon with bold simple shapes',
+      'minimalist logo mark using negative space',
+      'contemporary icon with single unified shape'
     ];
 
     const concepts: LogoConcept[] = [];
@@ -94,7 +93,7 @@ CRITICAL: Verify spelling is EXACTLY "${businessName}" letter-by-letter.`;
 
 SPECIFIC VARIATION: ${variation}
 
-Remember: Keep it minimal, clean, and simple. Business name "${businessName}" spelled exactly + one small simple icon only.`;
+Remember: ICON ONLY - NO TEXT WHATSOEVER. Keep it minimal, clean, and simple.`;
 
       console.log(`Generating logo ${i + 1}/${variations.length}:`, variation);
 
@@ -128,7 +127,7 @@ Remember: Keep it minimal, clean, and simple. Business name "${businessName}" sp
         if (imageUrl) {
           concepts.push({
             name: `${businessName} - ${variation.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}`,
-            description: `A professional logo featuring ${variation}, designed with your brand colors in a clean, modern style.`,
+            description: `A professional icon-only logo mark featuring ${variation}, designed with your brand colors in a clean, modern style.`,
             imageUrl: imageUrl,
             prompt: fullPrompt,
           });

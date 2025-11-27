@@ -378,51 +378,15 @@ export default function LogoEditor() {
             <h2 className="text-2xl font-bold text-white mb-6">Edit Your Logo</h2>
 
             <div className="space-y-6">
-              {/* Precise Edits Section */}
-              <div className="bg-[#06D6A0]/10 border border-[#06D6A0]/30 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Fix Text or Spelling</h3>
-                <p className="text-sm text-gray-300 mb-4">
-                  Type exactly how you want the text to appear in your logo. The AI will regenerate the logo with the corrected spelling.
-                </p>
-
-                {/* Text Correction */}
-                <div className="mb-4">
-                  <label className="text-white font-semibold mb-2 block text-sm">Corrected Text</label>
-                  <input
-                    type="text"
-                    value={correctSpelling}
-                    onChange={(e) => setCorrectSpelling(e.target.value)}
-                    placeholder={`e.g., "${businessName}" or "LocalEats"`}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#06D6A0] text-sm"
-                  />
-                </div>
-
-                <button
-                  onClick={handleFixSpelling}
-                  disabled={regenerating || !correctSpelling.trim()}
-                  className="w-full px-6 py-3 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {regenerating ? (
-                    <>
-                      <Loader2 size={20} className="animate-spin" />
-                      Fixing Text...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={20} />
-                      Fix Text in Logo
-                    </>
-                  )}
-                </button>
-
-                <p className="text-xs text-gray-400 mt-3">
-                  Note: AI text generation may not always be perfect. If results aren't accurate, consider generating new logo concepts from the Brand Identity page.
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+                <p className="text-sm text-blue-300">
+                  <strong>Note:</strong> Logos are icon-only (no text). You can add your business name later in tools like Canva or Figma, or use these as standalone icon marks.
                 </p>
               </div>
 
-              <div className="border-t border-white/10 pt-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Or Make Other Changes</h3>
-                <p className="text-sm text-gray-400 mb-4">For color adjustments and style modifications</p>
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4">Customize Your Icon</h3>
+                <p className="text-sm text-gray-400 mb-4">Adjust colors, style, or details of your logo icon</p>
 
                 {/* Color Changes */}
                 <div className="mb-4">

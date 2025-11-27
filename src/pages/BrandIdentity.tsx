@@ -1432,7 +1432,7 @@ export default function BrandIdentity() {
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white mb-3">3. Logo Creation</h3>
                 <p className="text-gray-400 text-sm mb-4">
-                  AI generates 6 professional logo concepts with icon+wordmark and icon-only variants.
+                  AI generates 6 professional icon-only logo marks (no text). Use these as standalone icons or add your business name in Canva/Figma.
                 </p>
 
                 <div className="flex gap-3 mb-4">
