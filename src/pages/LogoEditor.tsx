@@ -24,6 +24,7 @@ export default function LogoEditor() {
   const logoIndex = searchParams.get('logo');
 
   const [loading, setLoading] = useState(true);
+  const [ideaKey, setIdeaKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
 
@@ -64,6 +65,7 @@ export default function LogoEditor() {
         return;
       }
 
+      setIdeaKey(data.idea_key);
       setBusinessName(data.selected_name || '');
       setBrandColors({
         primary: data.brand_colors?.primary || '#000000',
@@ -177,7 +179,8 @@ export default function LogoEditor() {
       if (updateError) throw updateError;
 
       alert('Logo saved successfully!');
-      navigate('/brand-identity');
+      const returnPath = ideaKey ? `/brand-identity?idea=${ideaKey}` : '/brand-identity';
+      navigate(returnPath);
     } catch (error) {
       console.error('Error saving logo:', error);
       alert('Failed to save logo. Please try again.');
@@ -225,7 +228,10 @@ export default function LogoEditor() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <button
-            onClick={() => navigate('/brand-identity')}
+            onClick={() => {
+              const returnPath = ideaKey ? `/brand-identity?idea=${ideaKey}` : '/brand-identity';
+              navigate(returnPath);
+            }}
             className="flex items-center gap-2 text-white hover:text-[#06D6A0] transition-colors"
           >
             <ArrowLeft size={20} />
