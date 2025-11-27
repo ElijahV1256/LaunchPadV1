@@ -265,8 +265,13 @@ export default function LogoEditor() {
         <div className="flex items-center justify-between mb-8">
           <button
             onClick={() => {
-              const returnPath = ideaKey ? `/brand-identity?idea=${ideaKey}` : '/dashboard';
-              navigate(returnPath);
+              if (brandIdentityId) {
+                navigate(`/brand-identity?id=${brandIdentityId}`);
+              } else if (ideaKey) {
+                navigate(`/brand-identity?idea=${ideaKey}`);
+              } else {
+                navigate('/dashboard');
+              }
             }}
             className="flex items-center gap-2 text-white hover:text-[#06D6A0] transition-colors"
           >
