@@ -339,6 +339,68 @@ export default function LogoEditor() {
             <h2 className="text-2xl font-bold text-white mb-6">Edit Your Logo</h2>
 
             <div className="space-y-6">
+              {/* Precise Edits Section */}
+              <div className="bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Make Precise Changes</h3>
+                <p className="text-sm text-gray-300 mb-4">
+                  For small, specific changes like fixing spelling or adjusting colors, describe exactly what needs to change.
+                </p>
+
+                {/* Text Correction */}
+                <div className="mb-4">
+                  <label className="text-white font-semibold mb-2 block text-sm">Fix Spelling or Text</label>
+                  <input
+                    type="text"
+                    value={styleAdjustments.modifyText}
+                    onChange={(e) => setStyleAdjustments({ ...styleAdjustments, modifyText: e.target.value })}
+                    placeholder='e.g., "change Local Eats to LocalEats" or "fix spelling of Restaurant"'
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] text-sm"
+                  />
+                </div>
+
+                {/* Color Changes */}
+                <div className="mb-4">
+                  <label className="text-white font-semibold mb-2 block text-sm">Change Specific Colors</label>
+                  <input
+                    type="text"
+                    value={styleAdjustments.adjustColors}
+                    onChange={(e) => setStyleAdjustments({ ...styleAdjustments, adjustColors: e.target.value })}
+                    placeholder='e.g., "change the blue to #FF5733" or "make the text darker"'
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] text-sm"
+                  />
+                  <div className="mt-3 flex items-center gap-2">
+                    <p className="text-xs text-gray-400">Quick colors:</p>
+                    <div className="flex gap-2">
+                      {[brandColors.primary, brandColors.secondary, brandColors.accent, '#000000', '#FFFFFF'].map((color, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setStyleAdjustments({ ...styleAdjustments, adjustColors: `use ${color}` })}
+                          className="w-8 h-8 rounded border-2 border-white/20 hover:border-white transition-colors"
+                          style={{ backgroundColor: color }}
+                          title={color}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Specific Element Changes */}
+                <div>
+                  <label className="text-white font-semibold mb-2 block text-sm">Other Specific Changes</label>
+                  <textarea
+                    value={editPrompt}
+                    onChange={(e) => setEditPrompt(e.target.value)}
+                    placeholder='e.g., "remove the circle around the icon" or "make the tagline text smaller"'
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none text-sm"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-white/10 pt-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Or Make Style Changes</h3>
+                <p className="text-sm text-gray-400 mb-4">For broader design changes to the overall style</p>
+
               {/* Quick Style Adjustments */}
               <div>
                 <label className="text-white font-semibold mb-3 block">Quick Adjustments</label>
@@ -367,50 +429,15 @@ export default function LogoEditor() {
 
               {/* Icon Style */}
               <div>
-                <label className="text-white font-semibold mb-2 block">Change Icon Style</label>
+                <label className="text-white font-semibold mb-2 block text-sm">Change Icon Style</label>
                 <input
                   type="text"
                   value={styleAdjustments.changeIconStyle}
                   onChange={(e) => setStyleAdjustments({ ...styleAdjustments, changeIconStyle: e.target.value })}
                   placeholder="e.g., more geometric, abstract, modern, classic..."
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] text-sm"
                 />
               </div>
-
-              {/* Color Adjustments */}
-              <div>
-                <label className="text-white font-semibold mb-2 block">Adjust Colors</label>
-                <input
-                  type="text"
-                  value={styleAdjustments.adjustColors}
-                  onChange={(e) => setStyleAdjustments({ ...styleAdjustments, adjustColors: e.target.value })}
-                  placeholder="e.g., use more accent color, add gradient, make it darker..."
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                />
-              </div>
-
-              {/* Text Modifications */}
-              <div>
-                <label className="text-white font-semibold mb-2 block">Modify Text</label>
-                <input
-                  type="text"
-                  value={styleAdjustments.modifyText}
-                  onChange={(e) => setStyleAdjustments({ ...styleAdjustments, modifyText: e.target.value })}
-                  placeholder="e.g., change font style, make text bolder, adjust spacing..."
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                />
-              </div>
-
-              {/* Custom Instructions */}
-              <div>
-                <label className="text-white font-semibold mb-2 block">Additional Instructions</label>
-                <textarea
-                  value={editPrompt}
-                  onChange={(e) => setEditPrompt(e.target.value)}
-                  placeholder="Describe any other changes you'd like to make..."
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none"
-                  rows={4}
-                />
               </div>
 
               {/* Regenerate Button */}
