@@ -83,8 +83,8 @@ Deno.serve(async (req: Request) => {
             prompt: fullPrompt,
             n: 1,
             size: '1024x1024',
-            quality: 'standard',
-            style: 'natural',
+            quality: 'hd',
+            style: 'vivid',
             response_format: 'url',
           }),
         });
