@@ -79,10 +79,7 @@ CRITICAL: This is an ICON/SYMBOL ONLY. Do not include any text, letters, or busi
     const variations = [
       'minimal geometric icon using circles, squares, or triangles',
       'simple line art icon with clean strokes',
-      'clean abstract symbol representing the business concept',
-      'modern flat icon with bold simple shapes',
-      'minimalist logo mark using negative space',
-      'contemporary icon with single unified shape'
+      'clean abstract symbol representing the business concept'
     ];
 
     const concepts: LogoConcept[] = [];

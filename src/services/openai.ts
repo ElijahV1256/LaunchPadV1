@@ -197,7 +197,7 @@ export async function generateLogoConcepts(
 
     // Create an AbortController for timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+    const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout
 
     // Simulate progress updates while waiting for the edge function
     let currentProgress = 0;
@@ -276,7 +276,7 @@ export async function regenerateLogoWithChanges(
   try {
     // Create an AbortController for timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+    const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout
 
     try {
       const response = await fetch(
