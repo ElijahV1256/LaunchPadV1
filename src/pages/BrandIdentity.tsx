@@ -750,20 +750,37 @@ export default function BrandIdentity() {
       const businessDesc = logoAnswers.businessDescription || offerDescription || `A business called ${data.selected_name}`;
       const audience = logoAnswers.targetAudience || targetAudience;
 
-      const slogan = data.selected_tagline || await generateSlogan(
-        data.selected_name,
-        businessDesc,
-        audience,
-        logoAnswers.brandPersonality
-      );
+      let slogan = data.selected_tagline;
+      let brandFoundation = undefined;
 
-      const brandFoundation = await generateCompleteBrandFoundation(
-        data.selected_name,
-        businessDesc,
-        audience,
-        logoAnswers.brandPersonality,
-        logoAnswers.industry
-      );
+      // Try to generate slogan if not already set
+      if (!slogan) {
+        try {
+          slogan = await generateSlogan(
+            data.selected_name,
+            businessDesc,
+            audience,
+            logoAnswers.brandPersonality
+          );
+        } catch (err) {
+          console.warn('Could not generate slogan, using default:', err);
+          slogan = `Elevating ${data.selected_name}`;
+        }
+      }
+
+      // Try to generate brand foundation
+      try {
+        brandFoundation = await generateCompleteBrandFoundation(
+          data.selected_name,
+          businessDesc,
+          audience,
+          logoAnswers.brandPersonality,
+          logoAnswers.industry
+        );
+      } catch (err) {
+        console.warn('Could not generate brand foundation, proceeding without it:', err);
+        // brandFoundation remains undefined, guide will still generate without it
+      }
 
       downloadBrandGuide({
         businessName: data.selected_name,
@@ -782,7 +799,7 @@ export default function BrandIdentity() {
       });
     } catch (err) {
       console.error('Error generating brand guide:', err);
-      alert('Failed to generate brand guide. Please try again.');
+      alert(`Failed to generate brand guide: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`);
     } finally {
       setGeneratingGuide(false);
     }
