@@ -48,7 +48,7 @@ export default function LogoEditor() {
 
   const loadLogoData = async () => {
     if (!brandIdentityId) {
-      navigate('/brand-identity');
+      navigate('/dashboard');
       return;
     }
 
@@ -61,11 +61,12 @@ export default function LogoEditor() {
 
       if (error) throw error;
       if (!data) {
-        navigate('/brand-identity');
+        navigate('/dashboard');
         return;
       }
 
-      setIdeaKey(data.idea_key);
+      const loadedIdeaKey = data.idea_key;
+      setIdeaKey(loadedIdeaKey);
       setBusinessName(data.selected_name || '');
       setBrandColors({
         primary: data.brand_colors?.primary || '#000000',
@@ -85,7 +86,8 @@ export default function LogoEditor() {
       }
 
       if (!logoToEdit) {
-        navigate('/brand-identity');
+        const returnPath = loadedIdeaKey ? `/brand-identity?idea=${loadedIdeaKey}` : '/dashboard';
+        navigate(returnPath);
         return;
       }
 
@@ -94,7 +96,7 @@ export default function LogoEditor() {
     } catch (error) {
       console.error('Error loading logo:', error);
       alert('Failed to load logo. Redirecting...');
-      navigate('/brand-identity');
+      navigate('/dashboard');
     } finally {
       setLoading(false);
     }
@@ -179,7 +181,7 @@ export default function LogoEditor() {
       if (updateError) throw updateError;
 
       alert('Logo saved successfully!');
-      const returnPath = ideaKey ? `/brand-identity?idea=${ideaKey}` : '/brand-identity';
+      const returnPath = ideaKey ? `/brand-identity?idea=${ideaKey}` : '/dashboard';
       navigate(returnPath);
     } catch (error) {
       console.error('Error saving logo:', error);
@@ -229,7 +231,7 @@ export default function LogoEditor() {
         <div className="flex items-center justify-between mb-8">
           <button
             onClick={() => {
-              const returnPath = ideaKey ? `/brand-identity?idea=${ideaKey}` : '/brand-identity';
+              const returnPath = ideaKey ? `/brand-identity?idea=${ideaKey}` : '/dashboard';
               navigate(returnPath);
             }}
             className="flex items-center gap-2 text-white hover:text-[#06D6A0] transition-colors"
