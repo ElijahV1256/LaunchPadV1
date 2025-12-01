@@ -6,8 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const NANOBANANA_API_KEY = Deno.env.get('NANOBANANA_API_KEY');
-const NANOBANANA_API_URL = 'https://api.nanobanana.ai/v1/generate';
+const GEMINI_API_KEY = Deno.env.get('NANOBANANA_API_KEY');
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent';
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -20,9 +20,9 @@ Deno.serve(async (req: Request) => {
   try {
     const { prompt, type } = await req.json();
 
-    if (!prompt || !type) {
+    if (!prompt) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: prompt and type' }),
+        JSON.stringify({ error: 'Missing required field: prompt' }),
         {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -30,8 +30,8 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (!NANOBANANA_API_KEY) {
-      console.error('NANOBANANA_API_KEY is not configured');
+    if (!GEMINI_API_KEY) {
+      console.error('NANOBANANA_API_KEY (Gemini API key) is not configured');
       return new Response(
         JSON.stringify({ error: 'NanoBanana API key not configured' }),
         {
@@ -41,27 +41,34 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    console.log('Calling NanoBanana API with prompt length:', prompt.length, 'type:', type);
+    console.log('Calling Gemini image generation API with prompt length:', prompt.length, 'type:', type);
 
-    const response = await fetch(NANOBANANA_API_URL, {
+    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${NANOBANANA_API_KEY}`,
       },
       body: JSON.stringify({
-        prompt,
-        type,
-        width: 1024,
-        height: 1024,
+        contents: [{
+          parts: [
+            { text: prompt }
+          ]
+        }],
+        generationConfig: {
+          responseModalities: ['IMAGE'],
+          imageConfig: {
+            aspectRatio: '1:1',
+            imageSize: '2K'
+          }
+        }
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('NanoBanana API error:', response.status, errorText);
+      console.error('Gemini API error:', response.status, errorText);
       return new Response(
-        JSON.stringify({ error: `NanoBanana API error: ${response.status} ${errorText}` }),
+        JSON.stringify({ error: `Gemini API error: ${response.status} ${errorText}` }),
         {
           status: response.status,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -70,15 +77,40 @@ Deno.serve(async (req: Request) => {
     }
 
     const result = await response.json();
-    console.log('NanoBanana API success, result has imageUrl:', !!result.imageUrl);
+    console.log('Gemini API response structure:', Object.keys(result));
 
+    // Extract the image data from Gemini's response
+    if (result.candidates && result.candidates[0] && result.candidates[0].content) {
+      const parts = result.candidates[0].content.parts;
+      const imagePart = parts.find((part: any) => part.inlineData);
+      
+      if (imagePart && imagePart.inlineData) {
+        const imageData = imagePart.inlineData.data;
+        const mimeType = imagePart.inlineData.mimeType;
+        
+        // Convert to data URL
+        const imageUrl = `data:${mimeType};base64,${imageData}`;
+        
+        console.log('Successfully generated image');
+        
+        return new Response(
+          JSON.stringify({ imageUrl }),
+          {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+      }
+    }
+
+    console.error('No image data found in response:', JSON.stringify(result));
     return new Response(
-      JSON.stringify(result),
+      JSON.stringify({ error: 'No image data in response' }),
       {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   } catch (error: any) {
