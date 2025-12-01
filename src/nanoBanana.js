@@ -5,9 +5,7 @@ export async function generateNanoDesign(prompt, type) {
     `${supabaseUrl}/functions/v1/generateNanoBanana`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt, type })
     }
   );
