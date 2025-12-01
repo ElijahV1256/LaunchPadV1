@@ -24,6 +24,7 @@ import Operations from './pages/Operations';
 import ScaleOptimize from './pages/ScaleOptimize';
 import SavedIdeas from './pages/SavedIdeas';
 import SavedNames from './pages/SavedNames';
+import NanoGenerator from './pages/NanoGenerator';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
@@ -203,6 +204,14 @@ function App() {
             element={
               <PrivateRoute>
                 <SavedNames />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/nano-generator"
+            element={
+              <PrivateRoute>
+                <NanoGenerator />
               </PrivateRoute>
             }
           />
