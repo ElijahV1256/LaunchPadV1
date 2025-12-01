@@ -1139,44 +1139,55 @@ export default function MarketingAssets() {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {data.message_templates.map((template: any, idx: number) => (
-                          <div key={idx} className="bg-white/5 border border-white/10 rounded-lg p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              {template.type === 'sms' && <MessageCircle size={18} className="text-[#06D6A0]" />}
-                              {template.type === 'email' && <Mail size={18} className="text-[#2979FF]" />}
-                              {template.type === 'dm' && <MessageSquare size={18} className="text-[#EF476F]" />}
-                              <h4 className="text-white font-semibold">{template.title}</h4>
-                            </div>
-                            <p className="text-gray-300 text-sm mb-3 whitespace-pre-line">{template.content}</p>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => copyToClipboard(template.content, idx + 200)}
-                                className="px-4 py-2 bg-white/10 text-white rounded-lg text-sm font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
-                              >
-                                <Copy size={16} />
-                                {copiedIndex === idx + 200 ? 'Copied!' : 'Copy'}
-                              </button>
-                              {template.type === 'sms' && (
-                                <button
-                                  onClick={() => sendViaSMS(template.content)}
-                                  className="px-4 py-2 bg-[#06D6A0] text-white rounded-lg text-sm font-semibold hover:bg-[#06D6A0]/90 transition-colors flex items-center gap-2"
-                                >
-                                  <MessageCircle size={16} />
-                                  Send via SMS
-                                </button>
+                        {data.message_templates.map((template: any, idx: number) => {
+                          const channel = template.channel || template.type;
+                          const content = template.body || template.content;
+                          const title = template.title;
+                          const subject = template.subject;
+
+                          return (
+                            <div key={idx} className="bg-white/5 border border-white/10 rounded-lg p-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                {channel === 'sms' && <MessageCircle size={18} className="text-[#06D6A0]" />}
+                                {channel === 'email' && <Mail size={18} className="text-[#2979FF]" />}
+                                {(channel === 'linkedin' || channel === 'dm') && <MessageSquare size={18} className="text-[#EF476F]" />}
+                                {(channel === 'voicemail' || channel === 'thankyou') && <MessageCircle size={18} className="text-gray-400" />}
+                                <h4 className="text-white font-semibold">{title}</h4>
+                              </div>
+                              {subject && (
+                                <p className="text-[#2979FF] text-sm font-medium mb-2">Subject: {subject}</p>
                               )}
-                              {template.type === 'email' && (
+                              <p className="text-gray-300 text-sm mb-3 whitespace-pre-line">{content}</p>
+                              <div className="flex gap-2">
                                 <button
-                                  onClick={() => sendViaEmail(template.content)}
-                                  className="px-4 py-2 bg-[#2979FF] text-white rounded-lg text-sm font-semibold hover:bg-[#2979FF]/90 transition-colors flex items-center gap-2"
+                                  onClick={() => copyToClipboard(content, idx + 200)}
+                                  className="px-4 py-2 bg-white/10 text-white rounded-lg text-sm font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
                                 >
-                                  <Mail size={16} />
-                                  Send via Email
+                                  <Copy size={16} />
+                                  {copiedIndex === idx + 200 ? 'Copied!' : 'Copy'}
                                 </button>
-                              )}
+                                {channel === 'sms' && (
+                                  <button
+                                    onClick={() => sendViaSMS(content)}
+                                    className="px-4 py-2 bg-[#06D6A0] text-white rounded-lg text-sm font-semibold hover:bg-[#06D6A0]/90 transition-colors flex items-center gap-2"
+                                  >
+                                    <MessageCircle size={16} />
+                                    Send via SMS
+                                  </button>
+                                )}
+                                {channel === 'email' && (
+                                  <button
+                                    onClick={() => sendViaEmail(content)}
+                                    className="px-4 py-2 bg-[#2979FF] text-white rounded-lg text-sm font-semibold hover:bg-[#2979FF]/90 transition-colors flex items-center gap-2"
+                                  >
+                                    <Mail size={16} />
+                                    Send via Email
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
