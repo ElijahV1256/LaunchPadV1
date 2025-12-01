@@ -497,9 +497,10 @@ export async function generateMarketingContent(params: {
 
   if (type === 'social_posts') {
     try {
-      const response = await fetch('https://pkravblnlyqtftjeezmr.supabase.co/functions/v1/generateSocialPosts', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-social-posts`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -525,16 +526,17 @@ export async function generateMarketingContent(params: {
 
       return result.posts;
     } catch (error: any) {
-      console.error('Error calling generateSocialPosts edge function:', error);
+      console.error('Error calling generate-social-posts edge function:', error);
       throw new Error(`Social posts generation failed: ${error.message}`);
     }
   }
 
   if (type === 'message_templates') {
     try {
-      const response = await fetch('https://pkravblnlyqtftjeezmr.supabase.co/functions/v1/generateMessageTemplates', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-message-templates`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -557,16 +559,17 @@ export async function generateMarketingContent(params: {
 
       return result.templates;
     } catch (error: any) {
-      console.error('Error calling generateMessageTemplates edge function:', error);
+      console.error('Error calling generate-message-templates edge function:', error);
       throw new Error(`Message templates generation failed: ${error.message}`);
     }
   }
 
   if (type === 'ad_strategy') {
     try {
-      const response = await fetch('https://pkravblnlyqtftjeezmr.supabase.co/functions/v1/generateAdStrategy', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ad-strategy`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -593,7 +596,7 @@ export async function generateMarketingContent(params: {
 
       return result.strategy;
     } catch (error: any) {
-      console.error('Error calling generateAdStrategy edge function:', error);
+      console.error('Error calling generate-ad-strategy edge function:', error);
       throw new Error(`Ad strategy generation failed: ${error.message}`);
     }
   }
