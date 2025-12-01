@@ -230,7 +230,9 @@ export default function MarketingAssets() {
         setGeneratingStep(`Generating flyer ${i + 1} of 3 with NanoBanana AI...`);
 
         try {
+          console.log(`Generating flyer ${i + 1} with prompt:`, flyerPrompts[i]);
           const result = await generateNanoDesign(flyerPrompts[i], 'flyer');
+          console.log(`Flyer ${i + 1} result:`, result);
 
           if (result && result.imageUrl) {
             flyers.push({
@@ -242,16 +244,22 @@ export default function MarketingAssets() {
                 callToAction: 'Contact Us Today!'
               }
             });
+            console.log(`Successfully added flyer ${i + 1}`);
+          } else {
+            console.error(`Flyer ${i + 1} missing imageUrl in result:`, result);
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error(`Error generating flyer ${i + 1}:`, err);
+          alert(`Warning: Flyer ${i + 1} failed: ${err.message}. Continuing with remaining flyers...`);
         }
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
+      console.log('Total flyers generated:', flyers.length);
+
       if (flyers.length === 0) {
-        throw new Error('No flyers were generated');
+        throw new Error('No flyers were generated. Please check that the NanoBanana edge function is deployed and working correctly.');
       }
 
       setProgress(90);
