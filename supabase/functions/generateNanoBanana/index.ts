@@ -41,7 +41,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    console.log('Calling NanoBanana API with:', { prompt, type });
+    console.log('Calling NanoBanana API with prompt length:', prompt.length, 'type:', type);
 
     const response = await fetch(NANOBANANA_API_URL, {
       method: 'POST',
@@ -59,7 +59,7 @@ Deno.serve(async (req: Request) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('NanoBanana API error:', errorText);
+      console.error('NanoBanana API error:', response.status, errorText);
       return new Response(
         JSON.stringify({ error: `NanoBanana API error: ${response.status} ${errorText}` }),
         {
@@ -70,7 +70,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const result = await response.json();
-    console.log('NanoBanana API success');
+    console.log('NanoBanana API success, result has imageUrl:', !!result.imageUrl);
 
     return new Response(
       JSON.stringify(result),
