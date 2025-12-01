@@ -21,6 +21,7 @@ import {
   X
 } from 'lucide-react';
 import { generateMarketingContent } from '../services/openai';
+import { generateNanoDesign } from '../nanoBanana';
 
 interface MarketingAssetsData {
   id: string;
@@ -209,58 +210,47 @@ export default function MarketingAssets() {
     setGeneratingStep('Preparing your brand assets...');
 
     try {
-      const logoDescription = brandData.logo_data?.selected?.description || 'modern professional logo';
-      const logoUrl = brandData.logo_data?.selected?.imageUrl || brandData.logo_data?.uploaded_logo_url;
+      const businessName = brandData.selected_name;
       const businessDescription = (brandData as any).offer_description || brandData.selected_name;
+      const colors = brandData.brand_colors;
 
       setProgress(10);
-      setGeneratingStep('Creating flyer 1 of 3 with AI...');
+      setGeneratingStep('Generating flyer 1 of 3 with NanoBanana AI...');
 
-      const progressUpdates = [
-        { step: 15, message: 'Generating content for flyer 1...' },
-        { step: 25, message: 'Creating flyer image 1 with DALL·E 3...' },
-        { step: 40, message: 'Generating content for flyer 2...' },
-        { step: 50, message: 'Creating flyer image 2 with DALL·E 3...' },
-        { step: 65, message: 'Generating content for flyer 3...' },
-        { step: 75, message: 'Creating flyer image 3 with DALL·E 3...' },
-        { step: 85, message: 'Finalizing designs (this may take 30-60 seconds)...' },
+      const flyerPrompts = [
+        `professional business flyer for ${businessName}. ${businessDescription}. Clean layout with bold headlines, contact information section. Use colors: ${colors?.primary || 'blue'}, ${colors?.secondary || 'white'}, ${colors?.accent || 'orange'}`,
+        `service flyer for ${businessName}. Highlighting key offerings and value proposition. ${businessDescription}. Eye-catching design with clear call-to-action. Brand colors: ${colors?.primary || 'blue'}, ${colors?.secondary || 'white'}`,
+        `promotional flyer for ${businessName}. Modern design with special offer layout. ${businessDescription}. Compelling visuals and strong messaging. Colors: ${colors?.primary || 'blue'}, ${colors?.accent || 'orange'}`
       ];
 
-      let updateIndex = 0;
-      const progressInterval = setInterval(() => {
-        if (updateIndex < progressUpdates.length) {
-          setProgress(progressUpdates[updateIndex].step);
-          setGeneratingStep(progressUpdates[updateIndex].message);
-          updateIndex++;
+      const flyers = [];
+
+      for (let i = 0; i < flyerPrompts.length; i++) {
+        setProgress(15 + (i * 25));
+        setGeneratingStep(`Generating flyer ${i + 1} of 3 with NanoBanana AI...`);
+
+        try {
+          const result = await generateNanoDesign(flyerPrompts[i], 'flyer');
+
+          if (result && result.imageUrl) {
+            flyers.push({
+              title: `Flyer ${i + 1}`,
+              imageUrl: result.imageUrl,
+              template: {
+                headline: businessName,
+                description: businessDescription,
+                callToAction: 'Contact Us Today!'
+              }
+            });
+          }
+        } catch (err) {
+          console.error(`Error generating flyer ${i + 1}:`, err);
         }
-      }, 8000);
 
-      console.log('Calling flyer generation with:', {
-        businessName: brandData.selected_name,
-        hasColors: !!brandData.brand_colors,
-        hasLogoUrl: !!logoUrl,
-        hasDescription: !!businessDescription
-      });
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
 
-      const flyers = await generateMarketingContent({
-        type: 'flyers',
-        businessName: brandData.selected_name,
-        brandColors: brandData.brand_colors,
-        logoDescription,
-        businessDescription,
-        logoUrl,
-        targetAudience: (brandData as any).target_audience,
-        brandVoice: (brandData as any).brand_voice,
-        tagline: (brandData as any).selected_tagline,
-        contactInfo: undefined,
-        storyBrandData: storyBrandData?.step_answers || null
-      });
-
-      console.log('Flyers generated successfully:', flyers);
-
-      clearInterval(progressInterval);
-
-      if (!flyers || flyers.length === 0) {
+      if (flyers.length === 0) {
         throw new Error('No flyers were generated');
       }
 
