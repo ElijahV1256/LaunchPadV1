@@ -1,13 +1,51 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { generateNanoDesign } from "../nanoBanana";
 import { ArrowLeft, Loader2, Download } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "../config/supabase";
+import { buildStoryBrandFlyerPrompt } from "../utils/storyBrandFlyerPrompt";
 
 export default function NanoGenerator() {
   const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [generatingType, setGeneratingType] = useState("");
+  const [brandData, setBrandData] = useState(null);
+  const [storyBrandData, setStoryBrandData] = useState(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const ideaKey = searchParams.get('ideaKey');
+
+  useEffect(() => {
+    if (ideaKey) {
+      loadBrandData();
+    }
+  }, [ideaKey]);
+
+  async function loadBrandData() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: brand } = await supabase
+        .from('brand_identity')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('idea_key', ideaKey)
+        .maybeSingle();
+
+      const { data: storyBrand } = await supabase
+        .from('storybrand_roadmap')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('idea_key', ideaKey)
+        .maybeSingle();
+
+      setBrandData(brand);
+      setStoryBrandData(storyBrand);
+    } catch (error) {
+      console.error('Error loading brand data:', error);
+    }
+  }
 
   async function handleGenerate(prompt, type, label) {
     setLoading(true);
@@ -71,6 +109,16 @@ export default function NanoGenerator() {
       "post",
       "Promo Post"
     );
+  }
+
+  async function generateStoryBrandFlyer() {
+    if (!brandData && !storyBrandData) {
+      alert('Please complete Brand Identity and StoryBrand setup first');
+      return;
+    }
+
+    const prompt = buildStoryBrandFlyerPrompt(brandData, storyBrandData);
+    await handleGenerate(prompt, "flyer", "StoryBrand Flyer");
   }
 
   return (
@@ -143,6 +191,21 @@ export default function NanoGenerator() {
                   </>
                 ) : (
                   "Generate Event Flyer"
+                )}
+              </button>
+
+              <button
+                onClick={generateStoryBrandFlyer}
+                disabled={loading || (!brandData && !storyBrandData)}
+                className="w-full px-6 py-3 bg-gradient-to-r from-[#9b59b6] to-[#3498db] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading && generatingType === "StoryBrand Flyer" ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  "Generate StoryBrand Flyer"
                 )}
               </button>
             </div>
