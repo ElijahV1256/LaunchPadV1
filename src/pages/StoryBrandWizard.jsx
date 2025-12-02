@@ -97,6 +97,7 @@ export default function StoryBrandWizard() {
   };
 
   const rocketBottomPosition = -10 + currentStep * 18;
+  const rocketScale = 1 + currentStep * 0.15;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f1e] relative overflow-hidden">
@@ -111,10 +112,13 @@ export default function StoryBrandWizard() {
         <div className="absolute top-[85%] left-[50%] w-1 h-1 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.7s' }}></div>
       </div>
 
-      {/* Rocket Animation - Launches from bottom to top */}
+      {/* Rocket Animation - Launches from bottom to top with increasing boost */}
       <div
         className="absolute left-12 transition-all duration-700 ease-out z-20"
-        style={{ bottom: `${rocketBottomPosition}%` }}
+        style={{
+          bottom: `${rocketBottomPosition}%`,
+          transform: `scale(${rocketScale})`
+        }}
       >
         <Rocket size={80} className="text-[#06D6A0] animate-pulse transform -rotate-45" />
       </div>
