@@ -102,7 +102,7 @@ export default function StoryBrandWizard() {
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f1e] relative overflow-hidden">
       {/* Rocket Animation */}
       <div
-        className="absolute left-1/2 transform -translate-x-1/2 transition-all duration-700 ease-out"
+        className="absolute right-12 transition-all duration-700 ease-out"
         style={{ top: `${rocketPosition}%` }}
       >
         <Rocket size={80} className="text-[#06D6A0] animate-pulse" />
