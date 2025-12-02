@@ -534,7 +534,7 @@ export default function Dashboard() {
                 </h2>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <button
-                    onClick={() => navigate(`/marketing-assets?ideaKey=${roadmapData.idea.id}`)}
+                    onClick={() => navigate(`/storybrand-wizard?ideaKey=${roadmapData.idea.id}`)}
                     className="p-6 bg-gradient-to-br from-pink-500/20 to-rose-500/20 border border-pink-400/30 rounded-lg hover:from-pink-500/30 hover:to-rose-500/30 transition-all text-left group"
                   >
                     <FileText

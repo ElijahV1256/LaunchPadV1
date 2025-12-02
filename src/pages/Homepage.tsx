@@ -59,7 +59,7 @@ export default function Homepage() {
       } else if (!marketingComplete) {
         currentStage = 'Marketing Assets';
         stageName = 'Marketing Assets';
-        link = `/marketing-assets?ideaKey=${ideaKey}`;
+        link = `/storybrand-wizard?ideaKey=${ideaKey}`;
       } else if (!operationsStarted) {
         currentStage = 'Operations';
         stageName = 'Operations & Tracking';

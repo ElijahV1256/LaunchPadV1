@@ -237,7 +237,7 @@ export default function Ideas() {
       } else if (!marketingComplete) {
         currentStage = 'Marketing Assets';
         stageName = 'Marketing Assets';
-        link = `/marketing-assets?ideaKey=${ideaKey}`;
+        link = `/storybrand-wizard?ideaKey=${ideaKey}`;
       } else if (!websiteComplete) {
         currentStage = 'Website Builder';
         stageName = 'Website Builder';

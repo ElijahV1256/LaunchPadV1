@@ -25,6 +25,7 @@ import ScaleOptimize from './pages/ScaleOptimize';
 import SavedIdeas from './pages/SavedIdeas';
 import SavedNames from './pages/SavedNames';
 import NanoGenerator from './pages/NanoGenerator';
+import StoryBrandWizard from './pages/StoryBrandWizard';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
@@ -212,6 +213,14 @@ function App() {
             element={
               <PrivateRoute>
                 <NanoGenerator />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/storybrand-wizard"
+            element={
+              <PrivateRoute>
+                <StoryBrandWizard />
               </PrivateRoute>
             }
           />

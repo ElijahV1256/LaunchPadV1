@@ -244,7 +244,7 @@ export default function Profile() {
           name: 'Marketing Assets',
           description: 'Generate flyers, social posts, and templates',
           completed: marketingData.data && marketingData.data.completed_steps?.length === 4,
-          link: `/marketing-assets?ideaKey=${ideaKey}`,
+          link: `/storybrand-wizard?ideaKey=${ideaKey}`,
           current: false,
         },
         {
