@@ -100,15 +100,26 @@ export default function StoryBrandWizard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f1e] relative overflow-hidden">
-      {/* Rocket Animation - Launches from bottom left to top */}
-      <div
-        className="absolute left-12 transition-all duration-700 ease-out"
-        style={{ bottom: `${rocketBottomPosition}%` }}
-      >
-        <Rocket size={80} className="text-[#06D6A0] animate-pulse transform rotate-45" />
+      {/* Space Launch Bar */}
+      <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-b from-[#0a0a15] via-[#1a1a3e] to-[#0a0a15] border-r border-white/10">
+        {/* Stars */}
+        <div className="absolute top-[10%] left-[30%] w-1 h-1 bg-white rounded-full animate-pulse"></div>
+        <div className="absolute top-[25%] left-[60%] w-1.5 h-1.5 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+        <div className="absolute top-[40%] left-[20%] w-1 h-1 bg-white rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-[55%] left-[70%] w-1 h-1 bg-white rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+        <div className="absolute top-[70%] left-[40%] w-1.5 h-1.5 bg-white rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-[85%] left-[50%] w-1 h-1 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.7s' }}></div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-8 relative z-10">
+      {/* Rocket Animation - Launches from bottom to top */}
+      <div
+        className="absolute left-12 transition-all duration-700 ease-out z-20"
+        style={{ bottom: `${rocketBottomPosition}%` }}
+      >
+        <Rocket size={80} className="text-[#06D6A0] animate-pulse transform -rotate-45" />
+      </div>
+
+      <div className="max-w-4xl mx-auto px-6 py-8 relative z-10 ml-32">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
