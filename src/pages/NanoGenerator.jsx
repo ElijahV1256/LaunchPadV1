@@ -23,9 +23,10 @@ export default function NanoGenerator() {
     setGeneratingType("");
   }
 
+  // ⭐ CLEAN, MODERN, TEXT-FREE FLYER PROMPTS
   async function generateBusinessFlyer() {
     await handleGenerate(
-      "clean modern business flyer with professional layout, contact information section, and bold headlines",
+      "clean modern business flyer layout, no words, no text, minimal shapes only, bold header space, professional visual design, premium layout",
       "flyer",
       "Business Flyer"
     );
@@ -33,7 +34,7 @@ export default function NanoGenerator() {
 
   async function generateServiceFlyer() {
     await handleGenerate(
-      "service flyer highlighting key offerings, pricing, and call-to-action with eye-catching design",
+      "clean minimal service flyer layout, geometric shapes only, no readable text, modern header area, premium marketing design",
       "flyer",
       "Service Flyer"
     );
@@ -41,15 +42,16 @@ export default function NanoGenerator() {
 
   async function generateEventFlyer() {
     await handleGenerate(
-      "event flyer with date, time, location details and exciting visuals",
+      "modern event flyer layout, bold shapes, clean spacing, no text or words, strong visual composition, professional aesthetic",
       "flyer",
       "Event Flyer"
     );
   }
 
+  // ⭐ CLEAN, MODERN, TEXT-FREE SOCIAL POST PROMPTS
   async function generateSocialPost() {
     await handleGenerate(
-      "social media post template with engaging graphics and text overlay space",
+      "modern social media post layout, clean shapes, no text, bold color blocking, premium visual style, minimal composition",
       "post",
       "Social Post"
     );
@@ -57,7 +59,7 @@ export default function NanoGenerator() {
 
   async function generateInstagramPost() {
     await handleGenerate(
-      "Instagram post template with modern aesthetic, brand colors, and room for captions",
+      "instagram post layout only, no text, clean shapes, bold aesthetic, premium gradient design, modern minimal look",
       "post",
       "Instagram Post"
     );
@@ -65,7 +67,7 @@ export default function NanoGenerator() {
 
   async function generatePromoPost() {
     await handleGenerate(
-      "promotional social media post with special offer layout and compelling visuals",
+      "promotional social post template, no text, clean geometric layout, bold shapes, modern marketing look, high contrast design",
       "post",
       "Promo Post"
     );
