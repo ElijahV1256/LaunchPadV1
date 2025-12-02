@@ -96,16 +96,16 @@ export default function StoryBrandWizard() {
     setFormData({ ...formData, [field]: value });
   };
 
-  const rocketPosition = 10 + currentStep * 14;
+  const rocketBottomPosition = -10 + currentStep * 18;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f1e] relative overflow-hidden">
-      {/* Rocket Animation */}
+      {/* Rocket Animation - Launches from bottom left to top */}
       <div
-        className="absolute right-12 transition-all duration-700 ease-out"
-        style={{ top: `${rocketPosition}%` }}
+        className="absolute left-12 transition-all duration-700 ease-out"
+        style={{ bottom: `${rocketBottomPosition}%` }}
       >
-        <Rocket size={80} className="text-[#06D6A0] animate-pulse" />
+        <Rocket size={80} className="text-[#06D6A0] animate-pulse transform rotate-45" />
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-8 relative z-10">
