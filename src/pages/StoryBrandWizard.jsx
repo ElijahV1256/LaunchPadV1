@@ -36,9 +36,9 @@ export default function StoryBrandWizard() {
       placeholder: "e.g., We provide simple tools, expert guidance, automated systems..."
     },
     {
-      question: "What transformation do you create?",
+      question: "How do you make things better for your customer?",
       field: "brandPromise",
-      placeholder: "e.g., They become successful, confident, profitable..."
+      placeholder: "Example: We give homeowners peace of mind by handling everything for them."
     },
     {
       question: "What is your call to action?",
@@ -94,6 +94,27 @@ export default function StoryBrandWizard() {
 
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
+  };
+
+  const generateAIAnswer = async (promptText, fieldKey) => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-business-ideas`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: promptText })
+        }
+      );
+
+      const data = await res.json();
+
+      // Simple extraction: take the first line
+      const aiText = data.ideas?.split("\n")[0] || "";
+      setFormData(prev => ({ ...prev, [fieldKey]: aiText }));
+    } catch (err) {
+      console.error("AI generation failed:", err);
+    }
   };
 
   const rocketBottomPosition = -10 + currentStep * 18;
@@ -209,13 +230,26 @@ export default function StoryBrandWizard() {
               </div>
             </div>
           ) : (
-            <textarea
-              value={formData[steps[currentStep].field]}
-              onChange={(e) => handleChange(steps[currentStep].field, e.target.value)}
-              placeholder={steps[currentStep].placeholder}
-              rows={6}
-              className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-lg text-white text-lg placeholder-gray-500 focus:outline-none focus:border-[#06D6A0] transition-colors resize-none"
-            />
+            <div>
+              <textarea
+                value={formData[steps[currentStep].field]}
+                onChange={(e) => handleChange(steps[currentStep].field, e.target.value)}
+                placeholder={steps[currentStep].placeholder}
+                rows={6}
+                className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-lg text-white text-lg placeholder-gray-500 focus:outline-none focus:border-[#06D6A0] transition-colors resize-none"
+              />
+              <button
+                onClick={() =>
+                  generateAIAnswer(
+                    `Help write a simple, clear StoryBrand answer to: ${steps[currentStep].question}. Keep it short and written at a 6th grade reading level.`,
+                    steps[currentStep].field
+                  )
+                }
+                className="mt-3 text-sm bg-white/10 px-3 py-2 rounded-lg hover:bg-white/20 transition"
+              >
+                Generate with AI
+              </button>
+            </div>
           )}
         </div>
 
