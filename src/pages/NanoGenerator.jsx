@@ -4,6 +4,7 @@ import { ArrowLeft, Loader2, Download } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../config/supabase";
 import { buildStoryBrandFlyerPrompt } from "../utils/storyBrandFlyerPrompt";
+import { generatePlacidFlyer } from "../lib/placidFlyer";
 
 export default function NanoGenerator() {
   const [imageUrl, setImageUrl] = useState("");
@@ -14,6 +15,21 @@ export default function NanoGenerator() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const ideaKey = searchParams.get('ideaKey');
+
+  const story = JSON.parse(localStorage.getItem("storyBrandFlyerData") || "{}");
+  const brand = JSON.parse(localStorage.getItem("brandGuide") || "{}");
+
+  const flyerFields = {
+    headline: story.customerWant || "",
+    subheadline: story.problem || "",
+    description: story.solution || "",
+    cta: story.cta || "",
+    contact_information: story.contact_information || "",
+    logo: brand.logoUrl || "",
+    image: story.imageUrl || "",
+    primary_color: brand.primaryColor || "#2979FF",
+    accent_color: brand.accentColor || "#06D6A0"
+  };
 
   useEffect(() => {
     if (ideaKey) {
@@ -112,13 +128,20 @@ export default function NanoGenerator() {
   }
 
   async function generateStoryBrandFlyer() {
-    if (!brandData && !storyBrandData) {
-      alert('Please complete Brand Identity and StoryBrand setup first');
-      return;
+    setLoading(true);
+    setGeneratingType("StoryBrand Flyer");
+    try {
+      const result = await generatePlacidFlyer(
+        "YOUR_PLACID_TEMPLATE_ID",
+        flyerFields
+      );
+      setImageUrl(result.imageUrl);
+    } catch (error) {
+      console.error("Error generating StoryBrand flyer:", error);
+      alert("Failed to generate flyer. Please try again.");
     }
-
-    const prompt = buildStoryBrandFlyerPrompt(brandData, storyBrandData);
-    await handleGenerate(prompt, "flyer", "StoryBrand Flyer");
+    setLoading(false);
+    setGeneratingType("");
   }
 
   return (
@@ -196,8 +219,8 @@ export default function NanoGenerator() {
 
               <button
                 onClick={generateStoryBrandFlyer}
-                disabled={loading || (!brandData && !storyBrandData)}
-                className="w-full px-6 py-3 bg-gradient-to-r from-[#9b59b6] to-[#3498db] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={loading}
+                className="w-full px-6 py-3 bg-gradient-to-r from-[#06D6A0] to-[#2979FF] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading && generatingType === "StoryBrand Flyer" ? (
                   <>
