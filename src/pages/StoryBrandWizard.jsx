@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Rocket } from "lucide-react";
+import { ArrowLeft, ArrowRight, Rocket, Loader2 } from "lucide-react";
+import { supabase } from "../config/supabase";
 
 export default function StoryBrandWizard() {
   const navigate = useNavigate();
@@ -8,6 +9,7 @@ export default function StoryBrandWizard() {
   const ideaKey = searchParams.get('ideaKey');
 
   const [currentStep, setCurrentStep] = useState(0);
+  const [generatingAI, setGeneratingAI] = useState(false);
   const [formData, setFormData] = useState({
     customerWant: "",
     problem: "",
@@ -96,24 +98,43 @@ export default function StoryBrandWizard() {
     setFormData({ ...formData, [field]: value });
   };
 
-  const generateAIAnswer = async (promptText, fieldKey) => {
+  const generateAIAnswer = async (question, field) => {
+    setGeneratingAI(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert("Please log in to use AI generation");
+        return;
+      }
+
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-business-ideas`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-storybrand-answer`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: promptText })
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            question,
+            field,
+            ideaKey
+          })
         }
       );
 
       const data = await res.json();
 
-      // Simple extraction: take the first line
-      const aiText = data.ideas?.split("\n")[0] || "";
-      setFormData(prev => ({ ...prev, [fieldKey]: aiText }));
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setFormData(prev => ({ ...prev, [field]: data.answer }));
     } catch (err) {
       console.error("AI generation failed:", err);
+      alert("Failed to generate answer. Please try again.");
+    } finally {
+      setGeneratingAI(false);
     }
   };
 
@@ -241,13 +262,21 @@ export default function StoryBrandWizard() {
               <button
                 onClick={() =>
                   generateAIAnswer(
-                    `Help write a simple, clear StoryBrand answer to: ${steps[currentStep].question}. Keep it short and written at a 6th grade reading level.`,
+                    steps[currentStep].question,
                     steps[currentStep].field
                   )
                 }
-                className="mt-3 text-sm bg-white/10 px-3 py-2 rounded-lg hover:bg-white/20 transition"
+                disabled={generatingAI}
+                className="mt-3 text-sm bg-white/10 px-3 py-2 rounded-lg hover:bg-white/20 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-white"
               >
-                Generate with AI
+                {generatingAI ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  "Generate with AI"
+                )}
               </button>
             </div>
           )}
