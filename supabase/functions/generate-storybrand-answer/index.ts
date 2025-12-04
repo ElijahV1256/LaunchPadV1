@@ -56,6 +56,20 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     let brandContext = '';
+
+    const { data: businessIdea } = await supabaseClient
+      .from("business_ideas")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("idea_id", ideaKey)
+      .maybeSingle();
+
+    if (businessIdea) {
+      brandContext = `
+Business Idea: ${businessIdea.name || 'Not specified'}
+Business Description: ${businessIdea.description || 'Not specified'}`;
+    }
+
     if (ideaKey) {
       const { data: brandIdentity } = await supabaseClient
         .from("brand_identity")
@@ -65,11 +79,12 @@ Deno.serve(async (req: Request) => {
         .maybeSingle();
 
       if (brandIdentity) {
-        brandContext = `
-Business Name: ${brandIdentity.business_name || 'Not specified'}
-Business Type: ${brandIdentity.business_type || 'Not specified'}
+        brandContext += `
+Business Name: ${brandIdentity.selected_name || 'Not specified'}
+Tagline: ${brandIdentity.selected_tagline || 'Not specified'}
 Target Audience: ${brandIdentity.target_audience || 'Not specified'}
-Unique Value: ${brandIdentity.unique_value || 'Not specified'}`;
+Offer Description: ${brandIdentity.offer_description || 'Not specified'}
+Brand Keywords: ${brandIdentity.brand_keywords || 'Not specified'}`;
       }
     }
 
