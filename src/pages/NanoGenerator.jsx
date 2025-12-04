@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, Loader2, Download } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../config/supabase";
+import { generatePlacidFlyer } from "../lib/placidFlyer";
 
 export default function NanoGenerator() {
   const [imageUrl, setImageUrl] = useState("");
@@ -56,51 +57,34 @@ export default function NanoGenerator() {
     setLoading(true);
     setGeneratingType("StoryBrand Flyer");
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        alert("Please log in to generate flyer");
-        setLoading(false);
-        return;
-      }
+      const businessName = brandData?.selected_name || brand.businessName || story.businessName || "Your Business";
+      const primaryColor = brandData?.brand_colors?.primary || story.primaryColor || "#06D6A0";
+      const accentColor = brandData?.brand_colors?.accent || story.accentColor || "#E0FBFC";
+      const tagline = brandData?.selected_tagline || brand.tagline || "";
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-flyers`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({
-            businessName: brandData?.selected_name || brand.businessName || "Your Business",
-            brandColors: brandData?.brand_colors || {
-              primary: story.primaryColor || "#06D6A0",
-              secondary: "#0F4C5C",
-              accent: story.accentColor || "#E0FBFC"
-            },
-            businessDescription: brandData?.offer_description || brand.businessDescription,
-            targetAudience: brandData?.target_audience || brand.targetAudience,
-            tagline: brandData?.selected_tagline || brand.tagline,
-            storyBrandData: {
-              character: story.customerWant,
-              problem: story.problem,
-              guide: story.solution,
-              plan: story.brandPromise,
-              call_to_action: story.cta,
-              success: story.brandPromise
-            }
-          })
-        }
+      const flyerFields = {
+        headline: story.customerWant || "",
+        subheadline: story.problem || "",
+        description: story.solution || "",
+        cta: story.cta || "Get Started Today",
+        contact_information: story.contact_information || `${businessName}\nwww.yourbusiness.com\n(555) 123-4567`,
+        logo: brand.logoUrl || "",
+        image: story.imageUrl || "",
+        primary_color: primaryColor,
+        accent_color: accentColor,
+        business_name: businessName,
+        tagline: tagline
+      };
+
+      const result = await generatePlacidFlyer(
+        "YOUR_PLACID_TEMPLATE_ID",
+        flyerFields
       );
 
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      if (data.flyers && data.flyers.length > 0) {
-        setImageUrl(data.flyers[0].imageUrl);
+      if (result.imageUrl) {
+        setImageUrl(result.imageUrl);
+      } else {
+        throw new Error("No image URL returned from Placid");
       }
     } catch (error) {
       console.error("Error generating StoryBrand flyer:", error);
