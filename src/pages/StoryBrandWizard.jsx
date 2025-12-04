@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Rocket, Loader2 } from "lucide-react";
 import { supabase } from "../config/supabase";
@@ -20,6 +20,36 @@ export default function StoryBrandWizard() {
     accentColor: "#06D6A0",
     imageUrl: ""
   });
+
+  useEffect(() => {
+    const fetchBrandColors = async () => {
+      if (!ideaKey) return;
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: brandIdentity } = await supabase
+          .from("brand_identity")
+          .select("brand_colors")
+          .eq("user_id", user.id)
+          .eq("idea_key", ideaKey)
+          .maybeSingle();
+
+        if (brandIdentity?.brand_colors) {
+          setFormData(prev => ({
+            ...prev,
+            primaryColor: brandIdentity.brand_colors.primary || prev.primaryColor,
+            accentColor: brandIdentity.brand_colors.accent || prev.accentColor
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching brand colors:", error);
+      }
+    };
+
+    fetchBrandColors();
+  }, [ideaKey]);
 
   const steps = [
     {
@@ -46,25 +76,11 @@ export default function StoryBrandWizard() {
       question: "What is your call to action?",
       field: "cta",
       placeholder: "e.g., Get Started Today, Schedule a Call, Try it Free..."
-    },
-    {
-      question: "Choose your brand colors",
-      field: "colors",
-      placeholder: ""
     }
   ];
 
   const handleNext = () => {
     const currentField = steps[currentStep].field;
-
-    if (currentField === "colors") {
-      if (currentStep < steps.length - 1) {
-        setCurrentStep(currentStep + 1);
-      } else {
-        handleComplete();
-      }
-      return;
-    }
 
     if (!formData[currentField]?.trim()) {
       alert("Please answer the question before continuing");
@@ -206,80 +222,34 @@ export default function StoryBrandWizard() {
             {steps[currentStep].question}
           </h2>
 
-          {steps[currentStep].field === "colors" ? (
-            <div className="space-y-6">
-              <div>
-                <label className="block text-white font-semibold mb-3 text-lg">
-                  Primary Color
-                </label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="color"
-                    value={formData.primaryColor}
-                    onChange={(e) => handleChange("primaryColor", e.target.value)}
-                    className="w-24 h-24 rounded-lg cursor-pointer border-2 border-white/20"
-                  />
-                  <input
-                    type="text"
-                    value={formData.primaryColor}
-                    onChange={(e) => handleChange("primaryColor", e.target.value)}
-                    className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#06D6A0] transition-colors"
-                    placeholder="#2979FF"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-white font-semibold mb-3 text-lg">
-                  Accent Color
-                </label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="color"
-                    value={formData.accentColor}
-                    onChange={(e) => handleChange("accentColor", e.target.value)}
-                    className="w-24 h-24 rounded-lg cursor-pointer border-2 border-white/20"
-                  />
-                  <input
-                    type="text"
-                    value={formData.accentColor}
-                    onChange={(e) => handleChange("accentColor", e.target.value)}
-                    className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#06D6A0] transition-colors"
-                    placeholder="#06D6A0"
-                  />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <textarea
-                value={formData[steps[currentStep].field]}
-                onChange={(e) => handleChange(steps[currentStep].field, e.target.value)}
-                placeholder={steps[currentStep].placeholder}
-                rows={6}
-                className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-lg text-white text-lg placeholder-gray-500 focus:outline-none focus:border-[#06D6A0] transition-colors resize-none"
-              />
-              <button
-                onClick={() =>
-                  generateAIAnswer(
-                    steps[currentStep].question,
-                    steps[currentStep].field
-                  )
-                }
-                disabled={generatingAI}
-                className="mt-3 text-sm bg-white/10 px-3 py-2 rounded-lg hover:bg-white/20 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-white"
-              >
-                {generatingAI ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate with AI"
-                )}
-              </button>
-            </div>
-          )}
+          <div>
+            <textarea
+              value={formData[steps[currentStep].field]}
+              onChange={(e) => handleChange(steps[currentStep].field, e.target.value)}
+              placeholder={steps[currentStep].placeholder}
+              rows={6}
+              className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-lg text-white text-lg placeholder-gray-500 focus:outline-none focus:border-[#06D6A0] transition-colors resize-none"
+            />
+            <button
+              onClick={() =>
+                generateAIAnswer(
+                  steps[currentStep].question,
+                  steps[currentStep].field
+                )
+              }
+              disabled={generatingAI}
+              className="mt-3 text-sm bg-white/10 px-3 py-2 rounded-lg hover:bg-white/20 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-white"
+            >
+              {generatingAI ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                "Generate with AI"
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Navigation Buttons */}
