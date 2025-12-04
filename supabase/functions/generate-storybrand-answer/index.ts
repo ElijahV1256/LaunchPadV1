@@ -105,7 +105,7 @@ User Profile:${profileContext || ' Not yet specified'}
 
 Instructions: ${instruction}
 
-Generate a short, clear answer to this question (2-3 sentences max). Write at a 6th grade reading level. Make it specific to this business context when available, but keep it simple and actionable. Return ONLY the answer text, no extra formatting or explanation.`;
+Generate ONE SHORT SENTENCE ONLY as the answer to this question. Write at a 6th grade reading level. Make it specific to this business context when available, but keep it simple and actionable. Return ONLY the answer text (one sentence), no extra formatting or explanation.`;
 
     const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) {
@@ -127,7 +127,7 @@ Generate a short, clear answer to this question (2-3 sentences max). Write at a 
           },
         ],
         temperature: 0.7,
-        max_tokens: 150,
+        max_tokens: 50,
       }),
     });
 
