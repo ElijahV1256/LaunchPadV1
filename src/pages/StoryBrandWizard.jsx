@@ -22,7 +22,7 @@ export default function StoryBrandWizard() {
   });
 
   useEffect(() => {
-    const fetchBrandColors = async () => {
+    const fetchBrandData = async () => {
       if (!ideaKey) return;
 
       try {
@@ -36,19 +36,37 @@ export default function StoryBrandWizard() {
           .eq("idea_key", ideaKey)
           .maybeSingle();
 
-        if (brandIdentity?.brand_colors) {
-          setFormData(prev => ({
-            ...prev,
-            primaryColor: brandIdentity.brand_colors.primary || prev.primaryColor,
-            accentColor: brandIdentity.brand_colors.accent || prev.accentColor
-          }));
-        }
+        const { data: storyBrandRoadmap } = await supabase
+          .from("storybrand_roadmap")
+          .select("step_answers")
+          .eq("user_id", user.id)
+          .eq("idea_key", ideaKey)
+          .maybeSingle();
+
+        setFormData(prev => {
+          const updated = { ...prev };
+
+          if (brandIdentity?.brand_colors) {
+            updated.primaryColor = brandIdentity.brand_colors.primary || prev.primaryColor;
+            updated.accentColor = brandIdentity.brand_colors.accent || prev.accentColor;
+          }
+
+          if (storyBrandRoadmap?.step_answers) {
+            updated.customerWant = storyBrandRoadmap.step_answers.customerWant || prev.customerWant;
+            updated.problem = storyBrandRoadmap.step_answers.problem || prev.problem;
+            updated.solution = storyBrandRoadmap.step_answers.solution || prev.solution;
+            updated.brandPromise = storyBrandRoadmap.step_answers.brandPromise || prev.brandPromise;
+            updated.cta = storyBrandRoadmap.step_answers.cta || prev.cta;
+          }
+
+          return updated;
+        });
       } catch (error) {
-        console.error("Error fetching brand colors:", error);
+        console.error("Error fetching brand data:", error);
       }
     };
 
-    fetchBrandColors();
+    fetchBrandData();
   }, [ideaKey]);
 
   const steps = [
@@ -79,13 +97,59 @@ export default function StoryBrandWizard() {
     }
   ];
 
-  const handleNext = () => {
+  const saveStepAnswer = async () => {
+    if (!ideaKey) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const stepAnswers = {
+        customerWant: formData.customerWant,
+        problem: formData.problem,
+        solution: formData.solution,
+        brandPromise: formData.brandPromise,
+        cta: formData.cta
+      };
+
+      const { data: existing } = await supabase
+        .from("storybrand_roadmap")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("idea_key", ideaKey)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from("storybrand_roadmap")
+          .update({
+            step_answers: stepAnswers,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", existing.id);
+      } else {
+        await supabase
+          .from("storybrand_roadmap")
+          .insert({
+            user_id: user.id,
+            idea_key: ideaKey,
+            step_answers: stepAnswers
+          });
+      }
+    } catch (error) {
+      console.error("Error saving step answer:", error);
+    }
+  };
+
+  const handleNext = async () => {
     const currentField = steps[currentStep].field;
 
     if (!formData[currentField]?.trim()) {
       alert("Please answer the question before continuing");
       return;
     }
+
+    await saveStepAnswer();
 
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
