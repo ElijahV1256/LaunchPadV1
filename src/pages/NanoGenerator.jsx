@@ -12,8 +12,9 @@ export default function NanoGenerator() {
   const [storyBrandData, setStoryBrandData] = useState(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const ideaKey = searchParams.get('ideaKey');
+  const ideaKey = searchParams.get("ideaKey");
 
+  // Pull StoryBrand + Brand Guide from localStorage
   const story = JSON.parse(localStorage.getItem("storyBrandFlyerData") || "{}");
   const brand = JSON.parse(localStorage.getItem("brandGuide") || "{}");
 
@@ -21,8 +22,9 @@ export default function NanoGenerator() {
     if (ideaKey) {
       loadBrandData();
     }
-    const autoGenerate = searchParams.get('autoGenerate');
-    if (autoGenerate === 'true') {
+
+    const autoGenerate = searchParams.get("autoGenerate");
+    if (autoGenerate === "true") {
       generateStoryBrandFlyer();
     }
   }, [ideaKey]);
@@ -33,63 +35,83 @@ export default function NanoGenerator() {
       if (!user) return;
 
       const { data: brand } = await supabase
-        .from('brand_identity')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('idea_key', ideaKey)
+        .from("brand_identity")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("idea_key", ideaKey)
         .maybeSingle();
 
       const { data: storyBrand } = await supabase
-        .from('storybrand_roadmap')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('idea_key', ideaKey)
+        .from("storybrand_roadmap")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("idea_key", ideaKey)
         .maybeSingle();
 
       setBrandData(brand);
       setStoryBrandData(storyBrand);
     } catch (error) {
-      console.error('Error loading brand data:', error);
+      console.error("Error loading brand data:", error);
     }
   }
 
   async function generateStoryBrandFlyer() {
     setLoading(true);
     setGeneratingType("StoryBrand Flyer");
-    try {
-      const businessName = brandData?.selected_name || brand.businessName || story.businessName || "Your Business";
-      const primaryColor = brandData?.brand_colors?.primary || story.primaryColor || "#06D6A0";
-      const accentColor = brandData?.brand_colors?.accent || story.accentColor || "#E0FBFC";
-      const tagline = brandData?.selected_tagline || brand.tagline || "";
 
+    try {
+      const businessName =
+        brandData?.selected_name ||
+        brand.businessName ||
+        story.businessName ||
+        "Your Business";
+
+      const primaryColor =
+        brandData?.brand_colors?.primary ||
+        brand.primaryColor ||
+        story.primaryColor ||
+        "#2979FF";
+
+      const accentColor =
+        brandData?.brand_colors?.accent ||
+        brand.accentColor ||
+        story.accentColor ||
+        "#06D6A0";
+
+      const logoUrl = brand.logoUrl || "";
+
+      // FINAL flyer field mapping for Placid
       const flyerFields = {
         headline: story.customerWant || "",
         subheadline: story.problem || "",
         description: story.solution || "",
         cta: story.cta || "Get Started Today",
-        contact_information: story.contact_information || `${businessName}\nwww.yourbusiness.com\n(555) 123-4567`,
-        logo: brand.logoUrl || "",
+        contact_information:
+          story.contact_information ||
+          `${businessName}\nwww.yourbusiness.com\n(555) 123-4567`,
+        logo: logoUrl,
         image: story.imageUrl || "",
         primary_color: primaryColor,
-        accent_color: accentColor,
-        business_name: businessName,
-        tagline: tagline
+        accent_color: accentColor
       };
 
+      // 🚀 CALL SUPABASE → PLACID (WITH YOUR TEMPLATE ID)
       const result = await generatePlacidFlyer(
-        "YOUR_PLACID_TEMPLATE_ID",
+        "wtevbj3ailraa", // ← YOUR TEMPLATE ID INSERTED HERE
         flyerFields
       );
 
-      if (result.imageUrl) {
-        setImageUrl(result.imageUrl);
-      } else {
-        throw new Error("No image URL returned from Placid");
+      if (!result.imageUrl) {
+        throw new Error("No flyer returned from Placid");
       }
+
+      setImageUrl(result.imageUrl);
+
     } catch (error) {
       console.error("Error generating StoryBrand flyer:", error);
       alert("Failed to generate flyer. Please try again.");
     }
+
     setLoading(false);
     setGeneratingType("");
   }
@@ -97,6 +119,8 @@ export default function NanoGenerator() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f1e]">
       <div className="max-w-6xl mx-auto px-6 py-8">
+        
+        {/* Back Button */}
         <button
           onClick={() => navigate("/marketing-assets")}
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
@@ -105,6 +129,7 @@ export default function NanoGenerator() {
           Back to Marketing Assets
         </button>
 
+        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-3">
             StoryBrand Marketing Flyer
@@ -114,11 +139,14 @@ export default function NanoGenerator() {
           </p>
         </div>
 
-        {/* Generated Image Display */}
+        {/* Flyer Output */}
         {imageUrl && (
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-white">Generated Design</h3>
+              <h3 className="text-2xl font-bold text-white">
+                Generated Flyer
+              </h3>
+
               <a
                 href={imageUrl}
                 download
@@ -130,25 +158,42 @@ export default function NanoGenerator() {
                 Download
               </a>
             </div>
+
             <div className="flex justify-center">
               <img
                 src={imageUrl}
-                alt="Generated Design"
+                alt="Generated Flyer"
                 className="max-w-full h-auto rounded-lg shadow-2xl"
               />
             </div>
           </div>
         )}
 
+        {/* Loading UI */}
         {loading && (
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-12 text-center">
-            <Loader2 size={48} className="animate-spin text-[#2979FF] mx-auto mb-4" />
+            <Loader2
+              size={48}
+              className="animate-spin text-[#2979FF] mx-auto mb-4"
+            />
             <p className="text-white text-lg font-semibold mb-2">
               Generating {generatingType}...
             </p>
             <p className="text-gray-400">
               This may take a few moments. Please be patient.
             </p>
+          </div>
+        )}
+
+        {/* Generate Button */}
+        {!loading && (
+          <div className="mt-10 text-center">
+            <button
+              onClick={generateStoryBrandFlyer}
+              className="px-8 py-4 bg-gradient-to-r from-[#06D6A0] to-[#2979FF] text-white font-bold rounded-xl hover:opacity-90 transition-opacity text-lg"
+            >
+              Generate StoryBrand Flyer
+            </button>
           </div>
         )}
       </div>
