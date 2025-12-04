@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
-import { generateNanoDesign } from "../nanoBanana";
 import { ArrowLeft, Loader2, Download } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../config/supabase";
-import { buildStoryBrandFlyerPrompt } from "../utils/storyBrandFlyerPrompt";
-import { generatePlacidFlyer } from "../lib/placidFlyer";
 
 export default function NanoGenerator() {
   const [imageUrl, setImageUrl] = useState("");
@@ -19,21 +16,13 @@ export default function NanoGenerator() {
   const story = JSON.parse(localStorage.getItem("storyBrandFlyerData") || "{}");
   const brand = JSON.parse(localStorage.getItem("brandGuide") || "{}");
 
-  const flyerFields = {
-    headline: story.customerWant || "",
-    subheadline: story.problem || "",
-    description: story.solution || "",
-    cta: story.cta || "",
-    contact_information: story.contact_information || "",
-    logo: brand.logoUrl || "",
-    image: story.imageUrl || "",
-    primary_color: brand.primaryColor || "#2979FF",
-    accent_color: brand.accentColor || "#06D6A0"
-  };
-
   useEffect(() => {
     if (ideaKey) {
       loadBrandData();
+    }
+    const autoGenerate = searchParams.get('autoGenerate');
+    if (autoGenerate === 'true') {
+      generateStoryBrandFlyer();
     }
   }, [ideaKey]);
 
@@ -63,79 +52,56 @@ export default function NanoGenerator() {
     }
   }
 
-  async function handleGenerate(prompt, type, label) {
-    setLoading(true);
-    setGeneratingType(label);
-    try {
-      const result = await generateNanoDesign(prompt, type);
-      setImageUrl(result.imageUrl);
-    } catch (error) {
-      console.error("Error generating design:", error);
-      alert("Failed to generate design. Please try again.");
-    }
-    setLoading(false);
-    setGeneratingType("");
-  }
-
-  // ⭐ CLEAN, MODERN, TEXT-FREE FLYER PROMPTS
-  async function generateBusinessFlyer() {
-    await handleGenerate(
-      "clean modern business flyer layout, no words, no text, minimal shapes only, bold header space, professional visual design, premium layout",
-      "flyer",
-      "Business Flyer"
-    );
-  }
-
-  async function generateServiceFlyer() {
-    await handleGenerate(
-      "clean minimal service flyer layout, geometric shapes only, no readable text, modern header area, premium marketing design",
-      "flyer",
-      "Service Flyer"
-    );
-  }
-
-  async function generateEventFlyer() {
-    await handleGenerate(
-      "modern event flyer layout, bold shapes, clean spacing, no text or words, strong visual composition, professional aesthetic",
-      "flyer",
-      "Event Flyer"
-    );
-  }
-
-  // ⭐ CLEAN, MODERN, TEXT-FREE SOCIAL POST PROMPTS
-  async function generateSocialPost() {
-    await handleGenerate(
-      "modern social media post layout, clean shapes, no text, bold color blocking, premium visual style, minimal composition",
-      "post",
-      "Social Post"
-    );
-  }
-
-  async function generateInstagramPost() {
-    await handleGenerate(
-      "instagram post layout only, no text, clean shapes, bold aesthetic, premium gradient design, modern minimal look",
-      "post",
-      "Instagram Post"
-    );
-  }
-
-  async function generatePromoPost() {
-    await handleGenerate(
-      "promotional social post template, no text, clean geometric layout, bold shapes, modern marketing look, high contrast design",
-      "post",
-      "Promo Post"
-    );
-  }
-
   async function generateStoryBrandFlyer() {
     setLoading(true);
     setGeneratingType("StoryBrand Flyer");
     try {
-      const result = await generatePlacidFlyer(
-        "YOUR_PLACID_TEMPLATE_ID",
-        flyerFields
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert("Please log in to generate flyer");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-flyers`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            businessName: brandData?.selected_name || brand.businessName || "Your Business",
+            brandColors: brandData?.brand_colors || {
+              primary: story.primaryColor || "#06D6A0",
+              secondary: "#0F4C5C",
+              accent: story.accentColor || "#E0FBFC"
+            },
+            businessDescription: brandData?.offer_description || brand.businessDescription,
+            targetAudience: brandData?.target_audience || brand.targetAudience,
+            tagline: brandData?.selected_tagline || brand.tagline,
+            storyBrandData: {
+              character: story.customerWant,
+              problem: story.problem,
+              guide: story.solution,
+              plan: story.brandPromise,
+              call_to_action: story.cta,
+              success: story.brandPromise
+            }
+          })
+        }
       );
-      setImageUrl(result.imageUrl);
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      if (data.flyers && data.flyers.length > 0) {
+        setImageUrl(data.flyers[0].imageUrl);
+      }
     } catch (error) {
       console.error("Error generating StoryBrand flyer:", error);
       alert("Failed to generate flyer. Please try again.");
@@ -157,136 +123,11 @@ export default function NanoGenerator() {
 
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-3">
-            NanoBanana AI Design Generator
+            StoryBrand Marketing Flyer
           </h1>
           <p className="text-gray-400 text-lg">
-            Generate professional flyers and social media posts instantly
+            Your professionally designed marketing flyer
           </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
-          {/* Flyers Section */}
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Flyers</h2>
-            <p className="text-gray-400 mb-6">
-              Create professional flyers for your business, services, or events
-            </p>
-            <div className="space-y-3">
-              <button
-                onClick={generateBusinessFlyer}
-                disabled={loading}
-                className="w-full px-6 py-3 bg-gradient-to-r from-[#2979FF] to-[#06D6A0] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading && generatingType === "Business Flyer" ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate Business Flyer"
-                )}
-              </button>
-
-              <button
-                onClick={generateServiceFlyer}
-                disabled={loading}
-                className="w-full px-6 py-3 bg-gradient-to-r from-[#06D6A0] to-[#2979FF] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading && generatingType === "Service Flyer" ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate Service Flyer"
-                )}
-              </button>
-
-              <button
-                onClick={generateEventFlyer}
-                disabled={loading}
-                className="w-full px-6 py-3 bg-gradient-to-r from-[#EF476F] to-[#FF6B9D] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading && generatingType === "Event Flyer" ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate Event Flyer"
-                )}
-              </button>
-
-              <button
-                onClick={generateStoryBrandFlyer}
-                disabled={loading}
-                className="w-full px-6 py-3 bg-gradient-to-r from-[#06D6A0] to-[#2979FF] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading && generatingType === "StoryBrand Flyer" ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate StoryBrand Flyer"
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Social Posts Section */}
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Social Media Posts</h2>
-            <p className="text-gray-400 mb-6">
-              Design eye-catching posts for your social media channels
-            </p>
-            <div className="space-y-3">
-              <button
-                onClick={generateSocialPost}
-                disabled={loading}
-                className="w-full px-6 py-3 bg-gradient-to-r from-[#2979FF] to-[#06D6A0] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading && generatingType === "Social Post" ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate Social Post"
-                )}
-              </button>
-
-              <button
-                onClick={generateInstagramPost}
-                disabled={loading}
-                className="w-full px-6 py-3 bg-gradient-to-r from-[#06D6A0] to-[#2979FF] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading && generatingType === "Instagram Post" ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate Instagram Post"
-                )}
-              </button>
-
-              <button
-                onClick={generatePromoPost}
-                disabled={loading}
-                className="w-full px-6 py-3 bg-gradient-to-r from-[#EF476F] to-[#FF6B9D] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading && generatingType === "Promo Post" ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate Promo Post"
-                )}
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Generated Image Display */}

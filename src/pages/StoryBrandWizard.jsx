@@ -104,9 +104,9 @@ export default function StoryBrandWizard() {
     localStorage.setItem("storyBrandFlyerData", JSON.stringify(formData));
 
     if (ideaKey) {
-      navigate(`/nano-generator?ideaKey=${ideaKey}`);
+      navigate(`/nano-generator?ideaKey=${ideaKey}&autoGenerate=true`);
     } else {
-      navigate('/nano-generator');
+      navigate('/nano-generator?autoGenerate=true');
     }
   };
 
