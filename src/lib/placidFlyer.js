@@ -1,12 +1,12 @@
 export async function generatePlacidFlyer(templateId, fields) {
-  // Hard-coded Supabase URL for now
-  const supabaseUrl = "https://pkravblnlyqtftjeezmr.supabase.co";
-
   const res = await fetch(
-    `${supabaseUrl}/functions/v1/generatePlacidFlyer`,
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generatePlacidFlyer`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({ templateId, fields })
     }
   );
