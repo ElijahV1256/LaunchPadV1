@@ -1,5 +1,6 @@
 export async function generatePlacidFlyer(templateId, fields) {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  // Hard-coded Supabase URL for now
+  const supabaseUrl = "https://pkravblnlyqtftjeezmr.supabase.co";
 
   const res = await fetch(
     `${supabaseUrl}/functions/v1/generatePlacidFlyer`,
@@ -10,5 +11,13 @@ export async function generatePlacidFlyer(templateId, fields) {
     }
   );
 
-  return await res.json();
+  const data = await res.json();
+
+  console.log("Placid flyer result:", data);
+
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to generate flyer");
+  }
+
+  return data;
 }
