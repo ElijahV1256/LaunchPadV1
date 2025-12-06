@@ -26,6 +26,9 @@ Deno.serve(async (req: Request) => {
       throw new Error("PLACID_API_TOKEN not configured");
     }
 
+    console.log("Calling Placid API with template:", templateId);
+    console.log("Fields:", JSON.stringify(fields, null, 2));
+
     const placidResponse = await fetch(
       `https://api.placid.app/api/rest/${templateId}`,
       {
@@ -43,10 +46,12 @@ Deno.serve(async (req: Request) => {
 
     if (!placidResponse.ok) {
       const errorText = await placidResponse.text();
+      console.error("Placid API error:", errorText);
       throw new Error(`Placid API error: ${errorText}`);
     }
 
     const placidData = await placidResponse.json();
+    console.log("Placid response:", placidData);
 
     return new Response(
       JSON.stringify({
