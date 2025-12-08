@@ -1,6 +1,5 @@
 export async function generatePlacidFlyer(templateId, fields) {
-  // Use environment variable for Supabase URL
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseUrl = "https://pkravblnlyqtftjeezmr.supabase.co";
 
   console.log("Calling generatePlacidFlyer with:", {
     url: `${supabaseUrl}/functions/v1/generatePlacidFlyer`,
