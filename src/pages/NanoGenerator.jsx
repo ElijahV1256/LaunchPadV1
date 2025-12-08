@@ -111,7 +111,8 @@ export default function NanoGenerator() {
 
     } catch (error) {
       console.error("Error generating StoryBrand flyer:", error);
-      alert("Failed to generate flyer. Please try again.");
+      console.error("Error details:", error.message, error.stack);
+      alert(`Failed to generate flyer: ${error.message || "Unknown error"}. Check console for details.`);
     }
 
     setLoading(false);
