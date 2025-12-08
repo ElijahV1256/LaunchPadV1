@@ -95,14 +95,16 @@ export default function NanoGenerator() {
         accent_color: accentColor
       };
 
-      // 🚀 CALL SUPABASE → PLACID (WITH YOUR TEMPLATE ID)
+      // Call Supabase -> Placid
       const result = await generatePlacidFlyer(
-        "wtevbj3ailraa", // ← YOUR TEMPLATE ID INSERTED HERE
+        "wtevbj3ailraa",
         flyerFields
       );
 
+      console.log("StoryBrand flyer result:", result);
+
       if (!result.imageUrl) {
-        throw new Error("No flyer returned from Placid");
+        throw new Error("No flyer returned from Supabase/Placid");
       }
 
       setImageUrl(result.imageUrl);
