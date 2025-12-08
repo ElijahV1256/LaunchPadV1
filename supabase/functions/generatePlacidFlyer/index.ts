@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
@@ -56,6 +56,7 @@ Deno.serve(async (req: Request) => {
     return new Response(
       JSON.stringify({
         imageUrl: placidData.image_url || placidData.url,
+        status: "success",
         data: placidData,
       }),
       {
@@ -70,6 +71,7 @@ Deno.serve(async (req: Request) => {
     return new Response(
       JSON.stringify({
         error: error.message || "Unknown error",
+        status: "error",
         details: error.stack,
       }),
       {
