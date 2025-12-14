@@ -25,12 +25,10 @@ Deno.serve(async (req: Request) => {
       businessType,
     } = await req.json();
 
-    // Try multiple possible environment variable names
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY') || 
                          Deno.env.get('OPENAI_KEY') ||
                          Deno.env.get('openai_api_key');
     
-    // Debug: log all available env vars (be careful with this in production)
     console.log('Available env vars:', Object.keys(Deno.env.toObject()));
     
     if (!openaiApiKey) {
@@ -40,104 +38,133 @@ Deno.serve(async (req: Request) => {
 
     console.log('OpenAI API key found, generating website...');
 
-    const prompt = `You are an elite web designer creating premium, conversion-optimized landing pages.
+    const prompt = `Generate a complete, modern, professional single-page website as a fully functional HTML document.
 
-BUSINESS DETAILS:
+# BUSINESS INFORMATION
 Business Name: ${businessName}
 Tagline: ${tagline}
-Brand Colors: Primary: ${brandColors.primary}, Secondary: ${brandColors.secondary}, Accent: ${brandColors.accent}
-Logo URL: ${logoUrl || 'No logo provided'}
+Brand Colors: Primary ${brandColors.primary}, Secondary ${brandColors.secondary}, Accent ${brandColors.accent}
+Logo: ${logoUrl || 'Use business name as text logo'}
 Description: ${description}
 Target Audience: ${targetAudience}
 Business Type: ${businessType}
 
-DESIGN REQUIREMENTS:
-
-TECHNICAL SPECIFICATIONS:
-- Use HTML5 with Tailwind CSS (include Tailwind CDN v3.4+)
-- Include Inter or similar modern font from Google Fonts
-- Fully responsive (mobile-first approach)
-- Semantic HTML structure
-- Clean, production-ready code
+# TECHNICAL REQUIREMENTS
+- Single HTML file with embedded CSS and minimal JavaScript
+- Tailwind CSS via CDN (version 3.4+)
+- Google Fonts: Inter or similar modern sans-serif
+- Fully responsive (mobile-first)
+- Semantic HTML5
 - Smooth scroll behavior
-- Modern CSS transitions and hover effects
+- No external dependencies except Tailwind CDN and Google Fonts
 
-PREMIUM DESIGN PRINCIPLES:
-- Generous white space (padding: py-20 lg:py-32 minimum for sections)
-- Large, bold typography (text-5xl lg:text-7xl for hero headlines)
-- Subtle gradients and shadows for depth
-- Modern card designs with hover effects
-- Professional color usage (use brand colors strategically)
-- Visual hierarchy with font sizes and weights
-- Micro-interactions on buttons and cards
-- Professional imagery placeholders with colored backgrounds
+# DESIGN SYSTEM
+Colors:
+- Use provided brand colors strategically
+- Gradients: subtle, modern (e.g., "from-blue-50 via-white to-purple-50")
+- Neutral palette: slate-50, slate-100, slate-600, slate-900
+- Always ensure high contrast for accessibility
 
-SECTIONS TO BUILD:
+Typography:
+- Hero headline: text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight
+- Subheadings: text-xl lg:text-2xl text-slate-600
+- Body: text-base lg:text-lg text-slate-600 leading-relaxed
+- Use font-bold, font-semibold, font-medium appropriately
 
-1. HERO SECTION (Full viewport height):
-   - Sticky/fixed transparent navigation that becomes solid on scroll
-   - Logo/brand name in nav
-   - Massive, attention-grabbing headline (test-5xl+)
-   - Compelling subheadline (text-xl, muted color)
-   - Two CTAs: Primary (bold, accent color) + Secondary (outline/ghost)
-   - Hero image or gradient background
-   - Scroll indicator or down arrow
+Spacing:
+- Sections: py-16 lg:py-24 xl:py-32
+- Containers: max-w-7xl mx-auto px-6 lg:px-8
+- Consistent gaps: gap-8, gap-12, gap-16
+- Generous whitespace
 
-2. FEATURES/BENEFITS SECTION:
-   - 3-6 feature cards in grid layout
-   - Icons or colored circles for each feature
-   - Clear titles and descriptions
-   - Subtle shadows and hover lift effects
-   - Use background gradients or subtle colors
+Components:
+- Buttons: px-6 py-3 lg:px-8 lg:py-4, rounded-lg, font-semibold, shadow-lg, transition-all duration-200, hover:scale-105 hover:shadow-xl
+- Cards: bg-white rounded-2xl shadow-lg hover:shadow-2xl p-8 transition-all duration-300 hover:-translate-y-2
+- Inputs: rounded-lg border-2 border-slate-200 focus:border-[brandcolor] px-4 py-3 transition-colors
 
-3. ABOUT/STORY SECTION:
-   - Split layout (text + image/illustration placeholder)
-   - Emotional, mission-driven copy
-   - Trust-building elements
-   - Professional formatting
+# LAYOUT STRUCTURE
 
-4. SOCIAL PROOF (if applicable):
-   - Testimonial cards or trust badges
-   - Customer logos or statistics
-   - Clean, minimalist design
+1. NAVIGATION (Fixed/Sticky)
+- Fixed top, backdrop-blur-lg bg-white/80
+- Transparent initially, solid on scroll (use simple JS)
+- Logo/business name left, nav links right
+- Mobile hamburger menu (simple, functional)
+- Smooth scroll to sections
+- Shadow on scroll
 
-5. FINAL CTA SECTION:
-   - Bold, centered call-to-action
-   - Contrasting background (gradient or solid color)
-   - Large button
-   - Brief reinforcement text
+2. HERO SECTION (min-h-screen)
+- Full viewport height with flex centering
+- Large headline (6-10 words, benefit-focused)
+- Subheadline (15-20 words, specific value prop)
+- Two CTAs: Primary (brand accent, bold) + Secondary (outline style)
+- Background: subtle gradient or modern pattern
+- Optional: Hero image/illustration on right (use colored div placeholder)
+- Scroll indicator at bottom
 
-6. FOOTER:
-   - Clean, organized layout
-   - Copyright, links, contact info
-   - Subtle background color
+3. FEATURES SECTION
+- Grid: grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8
+- 3-6 feature cards
+- Each card: icon (use emoji or colored circle), title, 2-line description
+- Hover effects: lift and shadow
+- Icons: Use large colored circles with emojis or initials
 
-STYLING BEST PRACTICES:
-- Buttons: px-8 py-4, rounded-lg, font-semibold, hover:scale-105 transition
-- Cards: bg-white, shadow-lg, hover:shadow-xl, rounded-2xl, p-8
-- Headings: font-bold, tracking-tight, leading-tight
-- Body text: text-gray-600, leading-relaxed
-- Spacing: Always use consistent spacing scale (p-4, p-6, p-8, py-20, etc.)
-- Colors: Use brand colors for accents, neutral grays for text
-- Shadows: shadow-sm, shadow-md, shadow-lg, shadow-xl for depth
-- Gradients: Use subtle gradients like "from-blue-50 to-white"
+4. ABOUT/VALUE PROPOSITION SECTION
+- Two-column layout (text left, visual right on desktop)
+- Compelling story (3-4 paragraphs)
+- Stats or highlights (numbers that matter)
+- Visual: gradient box or colored placeholder
 
-MODERN TOUCHES:
-- Add transition-all duration-300 to interactive elements
-- Use hover:translate-y-[-4px] on cards
-- Implement backdrop-blur for modern glassmorphism effects where appropriate
-- Use rounded-2xl or rounded-3xl for modern, soft corners
-- Add subtle border colors (border border-gray-100)
+5. TESTIMONIALS (if relevant)
+- 2-3 testimonial cards in grid
+- Each: quote, name, title, optional avatar placeholder
+- Clean, minimal design
+- Subtle background color
 
-COLOR USAGE:
-- Primary color: Main CTAs, important headings, accents
-- Secondary color: Secondary buttons, highlights, decorative elements
-- Accent color: Borders, icons, small highlights
-- Use neutral grays (gray-50, gray-100, gray-600, gray-900) for backgrounds and text
+6. CALL TO ACTION SECTION
+- Centered content
+- Contrasting background (gradient or solid brand color)
+- Large headline
+- Primary CTA button
+- Brief supporting text
 
-CRITICAL: Do NOT use placeholder text like "Lorem ipsum" or generic content. Create realistic, brand-appropriate text based on the business details provided. Make it feel like a real, professional website.
+7. FOOTER
+- Background: slate-50 or slate-100
+- Grid layout: brand/description, links, contact
+- Copyright
+- Clean, organized
 
-Return ONLY the complete HTML code starting with <!DOCTYPE html>. No markdown, no explanations, no code blocks - just pure HTML.`;
+# JAVASCRIPT (Minimal, Inline)
+Add simple vanilla JS for:
+1. Navbar background on scroll
+2. Smooth scroll to anchors
+3. Mobile menu toggle (if applicable)
+4. Simple animations on scroll (optional, use Intersection Observer)
+
+Keep JS minimal and functional.
+
+# CONTENT GUIDELINES
+- NO lorem ipsum or placeholder text
+- Write realistic, professional copy based on business details
+- Be specific to the industry and target audience
+- Use power words and clear value propositions
+- Professional, modern tone
+- Include realistic business examples
+
+# QUALITY STANDARDS
+✓ Production-ready code
+✓ Perfect spacing and alignment
+✓ Consistent design language
+✓ Accessible (proper contrast, semantic HTML)
+✓ Fast loading (minimal dependencies)
+✓ Mobile-perfect responsive design
+✓ Professional color usage
+✓ Smooth interactions
+
+# OUTPUT FORMAT
+Return ONLY the complete HTML document. Start with <!DOCTYPE html> and end with </html>.
+No markdown code blocks. No explanations. Just the raw HTML code.
+
+Make it beautiful, modern, and professional - like websites from Linear, Stripe, Vercel, or Notion.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -150,15 +177,15 @@ Return ONLY the complete HTML code starting with <!DOCTYPE html>. No markdown, n
         messages: [
           {
             role: 'system',
-            content: 'You are an elite web designer specializing in premium, conversion-optimized landing pages. Return only valid, production-ready HTML code with Tailwind CSS. No explanatory text, no markdown formatting, no code blocks - just pure HTML starting with <!DOCTYPE html>. Focus on modern design, excellent UX, and conversion optimization.',
+            content: 'You are an expert web developer and designer. Generate beautiful, modern, production-ready single-page websites. Return ONLY raw HTML code - no markdown, no code blocks, no explanations. Start with <!DOCTYPE html> and end with </html>. Use Tailwind CSS for styling. Make it look like a professional website from Linear, Stripe, or Vercel - clean, modern, with perfect spacing and typography.',
           },
           {
             role: 'user',
             content: prompt,
           },
         ],
-        temperature: 0.8,
-        max_tokens: 6000,
+        temperature: 0.9,
+        max_tokens: 8000,
       }),
     });
 
@@ -171,7 +198,6 @@ Return ONLY the complete HTML code starting with <!DOCTYPE html>. No markdown, n
     const data = await response.json();
     let html = data.choices[0].message.content.trim();
 
-    // Clean up any markdown code blocks if present
     html = html.replace(/^```html\n/, '').replace(/\n```$/, '');
     html = html.replace(/^```\n/, '').replace(/\n```$/, '');
 
