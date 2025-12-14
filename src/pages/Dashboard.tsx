@@ -545,15 +545,15 @@ export default function Dashboard() {
                     <p className="text-gray-300 text-sm">Generate flyers, social posts & more</p>
                   </button>
                   <button
-                    onClick={() => navigate(`/build-site?ideaKey=${roadmapData.idea.id}`)}
+                    onClick={() => navigate(`/website?ideaKey=${roadmapData.idea.id}`)}
                     className="p-6 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-400/30 rounded-lg hover:from-violet-500/30 hover:to-fuchsia-500/30 transition-all text-left group"
                   >
                     <Globe
                       className="text-violet-400 mb-3 group-hover:scale-110 transition-transform"
                       size={32}
                     />
-                    <h3 className="text-lg font-bold text-white mb-2">Build Website</h3>
-                    <p className="text-gray-300 text-sm">Create & publish a one-page site</p>
+                    <h3 className="text-lg font-bold text-white mb-2">Website</h3>
+                    <p className="text-gray-300 text-sm">Create AI or professional website</p>
                   </button>
                   <button
                     onClick={() => navigate(`/operations?ideaKey=${roadmapData.idea.id}`)}

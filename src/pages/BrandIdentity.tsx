@@ -1754,10 +1754,10 @@ export default function BrandIdentity() {
                   )}
                 </button>
                 <button
-                  onClick={() => navigate(`/build-site?ideaKey=${ideaKey}`)}
+                  onClick={() => navigate(`/website?ideaKey=${ideaKey}`)}
                   className="px-8 py-3 bg-[#2979FF] text-white rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all duration-300"
                 >
-                  Continue to Website Builder →
+                  Continue to Website →
                 </button>
               </div>
             </div>
