@@ -40,11 +40,9 @@ Deno.serve(async (req: Request) => {
 
     console.log('OpenAI API key found, generating website...');
 
-    const prompt = `You are an expert AI website designer named LaunchPad Site Builder.
+    const prompt = `You are an elite web designer creating premium, conversion-optimized landing pages.
 
-Your job is to create modern, editable, exportable one-page websites based on business information.
-
-Create a website for:
+BUSINESS DETAILS:
 Business Name: ${businessName}
 Tagline: ${tagline}
 Brand Colors: Primary: ${brandColors.primary}, Secondary: ${brandColors.secondary}, Accent: ${brandColors.accent}
@@ -53,38 +51,93 @@ Description: ${description}
 Target Audience: ${targetAudience}
 Business Type: ${businessType}
 
-Requirements:
-- Use clean HTML with Tailwind CSS classes (include Tailwind CDN)
-- Keep code well-formatted and production-ready
-- Include inline placeholders like [Edit this text] so users can update content
-- Keep it mobile-responsive
-- Use semantic structure (<header>, <section>, <footer>)
+DESIGN REQUIREMENTS:
 
-Sections to include:
+TECHNICAL SPECIFICATIONS:
+- Use HTML5 with Tailwind CSS (include Tailwind CDN v3.4+)
+- Include Inter or similar modern font from Google Fonts
+- Fully responsive (mobile-first approach)
+- Semantic HTML structure
+- Clean, production-ready code
+- Smooth scroll behavior
+- Modern CSS transitions and hover effects
 
-1. Hero Section (Cover):
-   - Logo in the top left (use business name if no logo)
-   - Headline that clearly explains what the business does
-   - Subheadline describing the value or mission
-   - CTA button (e.g., "Get Started" or "Learn More")
+PREMIUM DESIGN PRINCIPLES:
+- Generous white space (padding: py-20 lg:py-32 minimum for sections)
+- Large, bold typography (text-5xl lg:text-7xl for hero headlines)
+- Subtle gradients and shadows for depth
+- Modern card designs with hover effects
+- Professional color usage (use brand colors strategically)
+- Visual hierarchy with font sizes and weights
+- Micro-interactions on buttons and cards
+- Professional imagery placeholders with colored backgrounds
 
-2. About Section:
-   - Short story or mission statement about the company
+SECTIONS TO BUILD:
 
-3. Services / Products Section:
-   - 3-4 service or product cards with icons or placeholders
+1. HERO SECTION (Full viewport height):
+   - Sticky/fixed transparent navigation that becomes solid on scroll
+   - Logo/brand name in nav
+   - Massive, attention-grabbing headline (test-5xl+)
+   - Compelling subheadline (text-xl, muted color)
+   - Two CTAs: Primary (bold, accent color) + Secondary (outline/ghost)
+   - Hero image or gradient background
+   - Scroll indicator or down arrow
 
-4. Contact Section:
-   - Simple form layout or placeholder for user contact info
+2. FEATURES/BENEFITS SECTION:
+   - 3-6 feature cards in grid layout
+   - Icons or colored circles for each feature
+   - Clear titles and descriptions
+   - Subtle shadows and hover lift effects
+   - Use background gradients or subtle colors
 
-5. Footer:
-   - Basic copyright + brand name
+3. ABOUT/STORY SECTION:
+   - Split layout (text + image/illustration placeholder)
+   - Emotional, mission-driven copy
+   - Trust-building elements
+   - Professional formatting
 
-Use the provided brand colors throughout the design.
-Keep the tone modern, friendly, and trustworthy.
-Do not use lorem ipsum - use natural, brand-appropriate placeholder text based on the business details.
+4. SOCIAL PROOF (if applicable):
+   - Testimonial cards or trust badges
+   - Customer logos or statistics
+   - Clean, minimalist design
 
-Return ONLY valid HTML code with Tailwind CSS. Do not include any explanatory text, markdown formatting, or code blocks - just the raw HTML starting with <!DOCTYPE html>.`;
+5. FINAL CTA SECTION:
+   - Bold, centered call-to-action
+   - Contrasting background (gradient or solid color)
+   - Large button
+   - Brief reinforcement text
+
+6. FOOTER:
+   - Clean, organized layout
+   - Copyright, links, contact info
+   - Subtle background color
+
+STYLING BEST PRACTICES:
+- Buttons: px-8 py-4, rounded-lg, font-semibold, hover:scale-105 transition
+- Cards: bg-white, shadow-lg, hover:shadow-xl, rounded-2xl, p-8
+- Headings: font-bold, tracking-tight, leading-tight
+- Body text: text-gray-600, leading-relaxed
+- Spacing: Always use consistent spacing scale (p-4, p-6, p-8, py-20, etc.)
+- Colors: Use brand colors for accents, neutral grays for text
+- Shadows: shadow-sm, shadow-md, shadow-lg, shadow-xl for depth
+- Gradients: Use subtle gradients like "from-blue-50 to-white"
+
+MODERN TOUCHES:
+- Add transition-all duration-300 to interactive elements
+- Use hover:translate-y-[-4px] on cards
+- Implement backdrop-blur for modern glassmorphism effects where appropriate
+- Use rounded-2xl or rounded-3xl for modern, soft corners
+- Add subtle border colors (border border-gray-100)
+
+COLOR USAGE:
+- Primary color: Main CTAs, important headings, accents
+- Secondary color: Secondary buttons, highlights, decorative elements
+- Accent color: Borders, icons, small highlights
+- Use neutral grays (gray-50, gray-100, gray-600, gray-900) for backgrounds and text
+
+CRITICAL: Do NOT use placeholder text like "Lorem ipsum" or generic content. Create realistic, brand-appropriate text based on the business details provided. Make it feel like a real, professional website.
+
+Return ONLY the complete HTML code starting with <!DOCTYPE html>. No markdown, no explanations, no code blocks - just pure HTML.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -97,15 +150,15 @@ Return ONLY valid HTML code with Tailwind CSS. Do not include any explanatory te
         messages: [
           {
             role: 'system',
-            content: 'You are an expert web designer. Return only valid HTML code with no explanatory text or markdown formatting.',
+            content: 'You are an elite web designer specializing in premium, conversion-optimized landing pages. Return only valid, production-ready HTML code with Tailwind CSS. No explanatory text, no markdown formatting, no code blocks - just pure HTML starting with <!DOCTYPE html>. Focus on modern design, excellent UX, and conversion optimization.',
           },
           {
             role: 'user',
             content: prompt,
           },
         ],
-        temperature: 0.7,
-        max_tokens: 4000,
+        temperature: 0.8,
+        max_tokens: 6000,
       }),
     });
 
