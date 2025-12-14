@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Home, CheckCircle2, Circle, Loader2, Sparkles, RefreshCw, CreditCard as Edit2, X, Download, Upload, Bookmark, BookmarkCheck } from 'lucide-react';
-import { generateLogoConcepts, regenerateLogoWithChanges, generateSlogan, generateCompleteBrandFoundation } from '../services/openai';
+import { generateLogoConcepts, regenerateLogoWithChanges, generateCompleteBrandFoundation } from '../services/openai';
 import { downloadBrandGuide } from '../utils/brandGuide';
 
 interface ColorPalette {
@@ -490,12 +490,27 @@ export default function BrandIdentity() {
       const businessDesc = logoAnswers.businessDescription || offerDescription || `A business called ${data.selected_name}`;
       const audience = logoAnswers.targetAudience || targetAudience;
 
-      const tagline = await generateSlogan(
-        data.selected_name,
-        businessDesc,
-        audience,
-        logoAnswers.brandPersonality
-      );
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-tagline`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName: data.selected_name,
+          businessDescription: businessDesc,
+          targetAudience: audience,
+          brandPersonality: logoAnswers.brandPersonality,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate tagline');
+      }
+
+      const result = await response.json();
+      const tagline = result.tagline;
 
       await supabase
         .from('brand_identity')
