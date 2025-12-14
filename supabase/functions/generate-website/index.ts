@@ -44,7 +44,7 @@ Deno.serve(async (req: Request) => {
 Business Name: ${businessName}
 Tagline: ${tagline}
 Brand Colors: Primary ${brandColors.primary}, Secondary ${brandColors.secondary}, Accent ${brandColors.accent}
-Logo: ${logoUrl || 'Use business name as text logo'}
+Logo URL: ${logoUrl || 'Use business name as styled text logo'}
 Description: ${description}
 Target Audience: ${targetAudience}
 Business Type: ${businessType}
@@ -58,12 +58,41 @@ Business Type: ${businessType}
 - Smooth scroll behavior
 - No external dependencies except Tailwind CDN and Google Fonts
 
-# DESIGN SYSTEM
-Colors:
-- Use provided brand colors strategically
-- Gradients: subtle, modern (e.g., "from-blue-50 via-white to-purple-50")
-- Neutral palette: slate-50, slate-100, slate-600, slate-900
-- Always ensure high contrast for accessibility
+# VISUAL DESIGN REQUIREMENTS (CRITICAL)
+
+LOGO USAGE:
+${logoUrl ? `- MUST display the logo image at the top: <img src="${logoUrl}" alt="${businessName}" class="h-10 lg:h-12">` : `- Create a styled text logo with the business name using brand colors`}
+- Logo must appear in the navigation bar
+- Make the logo prominent and high quality
+
+COLORS (USE EXTENSIVELY):
+- PRIMARY COLOR (${brandColors.primary}):
+  * Hero section background or gradient
+  * All primary CTA buttons (use inline style="background-color: ${brandColors.primary}")
+  * Section accents and highlights
+  * Icon backgrounds
+
+- SECONDARY COLOR (${brandColors.secondary}):
+  * Gradient combinations with primary
+  * Alternate section backgrounds (use opacity: style="background-color: ${brandColors.secondary}; opacity: 0.1")
+  * Secondary buttons and elements
+  * Card borders or accents
+
+- ACCENT COLOR (${brandColors.accent}):
+  * Highlights and small accents
+  * Icon colors
+  * Hover states
+  * Decorative elements
+
+VISUAL ELEMENTS (REQUIRED):
+1. Colorful hero background: Use gradient or solid brand color, NOT plain white
+2. Image placeholders: Create beautiful colored placeholder boxes for images using gradients
+   Example: <div class="w-full h-64 rounded-2xl" style="background: linear-gradient(135deg, ${brandColors.primary} 0%, ${brandColors.secondary} 100%)"></div>
+3. Icon backgrounds: Colored circles or squares with icons/emojis
+4. Section alternation: Alternate between colored backgrounds and white
+5. Decorative shapes: Add subtle SVG shapes or gradients for visual interest
+
+DO NOT create a plain white website with only text. The website MUST be visually rich and colorful.
 
 Typography:
 - Hero headline: text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight
@@ -86,52 +115,60 @@ Components:
 
 1. NAVIGATION (Fixed/Sticky)
 - Fixed top, backdrop-blur-lg bg-white/80
-- Transparent initially, solid on scroll (use simple JS)
-- Logo/business name left, nav links right
-- Mobile hamburger menu (simple, functional)
-- Smooth scroll to sections
+- ${logoUrl ? `Display logo image: <img src="${logoUrl}" alt="${businessName}" class="h-10 lg:h-12">` : 'Styled text logo with brand color'}
+- Nav links on right with hover color change to brand color
+- Mobile hamburger menu
 - Shadow on scroll
 
-2. HERO SECTION (min-h-screen)
-- Full viewport height with flex centering
-- Large headline (6-10 words, benefit-focused)
-- Subheadline (15-20 words, specific value prop)
-- Two CTAs: Primary (brand accent, bold) + Secondary (outline style)
-- Background: subtle gradient or modern pattern
-- Optional: Hero image/illustration on right (use colored div placeholder)
-- Scroll indicator at bottom
+2. HERO SECTION (min-h-screen) - MUST BE COLORFUL
+- Background: Use inline style with gradient:
+  style="background: linear-gradient(135deg, ${brandColors.primary} 0%, ${brandColors.secondary} 100%)"
+  OR use a colored background with overlay
+- White or contrasting text color for readability
+- Large, bold headline (benefit-focused)
+- Subheadline with value proposition
+- Two CTAs: Primary button (use contrasting color like white with dark text), Secondary outline button
+- Hero visual on right: Create a gradient placeholder box or decorative shapes
+- Make this section visually striking and memorable
 
 3. FEATURES SECTION
+- White or very light background
 - Grid: grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8
-- 3-6 feature cards
-- Each card: icon (use emoji or colored circle), title, 2-line description
-- Hover effects: lift and shadow
-- Icons: Use large colored circles with emojis or initials
+- 3-6 feature cards with white background and shadow
+- Each card:
+  * Large colored circle/square icon background with emoji (use brand colors)
+  * Example: <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style="background-color: ${brandColors.accent}">🎯</div>
+  * Title and description
+- Hover effects: lift and enhanced shadow
 
 4. ABOUT/VALUE PROPOSITION SECTION
+- Colored background (use brand color with low opacity or gradient)
 - Two-column layout (text left, visual right on desktop)
-- Compelling story (3-4 paragraphs)
-- Stats or highlights (numbers that matter)
-- Visual: gradient box or colored placeholder
+- Compelling story about the business
+- Visual on right: Create a beautiful gradient placeholder
+  <div class="h-full min-h-[400px] rounded-2xl shadow-2xl" style="background: linear-gradient(135deg, ${brandColors.secondary} 0%, ${brandColors.accent} 100%)"></div>
 
-5. TESTIMONIALS (if relevant)
+5. TESTIMONIALS (if applicable)
+- White background
 - 2-3 testimonial cards in grid
-- Each: quote, name, title, optional avatar placeholder
-- Clean, minimal design
-- Subtle background color
+- Each card: quote, name, title/company
+- Colored accent borders or backgrounds (use brand colors)
+- Avatar placeholders as colored circles with initials
 
-6. CALL TO ACTION SECTION
-- Centered content
-- Contrasting background (gradient or solid brand color)
-- Large headline
-- Primary CTA button
-- Brief supporting text
+6. CALL TO ACTION SECTION - BOLD & COLORFUL
+- Full-width colored background:
+  style="background: linear-gradient(to right, ${brandColors.primary}, ${brandColors.secondary})"
+- White text for contrast
+- Large, centered headline
+- Primary CTA button (white background with dark text for contrast)
+- Make this section pop and grab attention
 
 7. FOOTER
-- Background: slate-50 or slate-100
-- Grid layout: brand/description, links, contact
+- Background with brand color: style="background-color: ${brandColors.primary}" OR use dark gray
+- Light text (white or light gray)
+- Grid layout: brand info, links, contact
 - Copyright
-- Clean, organized
+- Well organized and professional
 
 # JAVASCRIPT (Minimal, Inline)
 Add simple vanilla JS for:
@@ -154,17 +191,29 @@ Keep JS minimal and functional.
 ✓ Production-ready code
 ✓ Perfect spacing and alignment
 ✓ Consistent design language
+✓ VISUALLY RICH - Use colors, gradients, and visual elements throughout
+✓ Brand colors used prominently in hero, CTAs, sections, and accents
+✓ ${logoUrl ? 'Logo image displayed prominently in navigation' : 'Styled text logo with brand colors'}
+✓ NOT a plain white website - alternate section colors
+✓ Beautiful gradient backgrounds and colored placeholders instead of images
 ✓ Accessible (proper contrast, semantic HTML)
 ✓ Fast loading (minimal dependencies)
 ✓ Mobile-perfect responsive design
-✓ Professional color usage
-✓ Smooth interactions
+✓ Smooth interactions and hover effects
+
+# CRITICAL REMINDERS
+- The hero section MUST have a colored gradient background
+- Use inline styles for exact brand colors: style="background-color: ${brandColors.primary}"
+- Create gradient placeholders for images: style="background: linear-gradient(135deg, color1, color2)"
+- Alternate section backgrounds between white and colored
+- Make the design visually impressive and modern
 
 # OUTPUT FORMAT
 Return ONLY the complete HTML document. Start with <!DOCTYPE html> and end with </html>.
 No markdown code blocks. No explanations. Just the raw HTML code.
 
-Make it beautiful, modern, and professional - like websites from Linear, Stripe, Vercel, or Notion.`;
+Create a visually stunning, colorful website with the brand colors prominently displayed throughout.
+Make it beautiful and modern - like websites from Linear, Stripe, Vercel, or Framer - but MORE COLORFUL.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -177,7 +226,7 @@ Make it beautiful, modern, and professional - like websites from Linear, Stripe,
         messages: [
           {
             role: 'system',
-            content: 'You are an expert web developer and designer. Generate beautiful, modern, production-ready single-page websites. Return ONLY raw HTML code - no markdown, no code blocks, no explanations. Start with <!DOCTYPE html> and end with </html>. Use Tailwind CSS for styling. Make it look like a professional website from Linear, Stripe, or Vercel - clean, modern, with perfect spacing and typography.',
+            content: 'You are an expert web developer and designer creating visually stunning, colorful websites. Generate beautiful, modern, production-ready single-page websites with bold use of brand colors, gradients, and visual elements. Return ONLY raw HTML code - no markdown, no code blocks, no explanations. Start with <!DOCTYPE html> and end with </html>. Use Tailwind CSS and inline styles for exact colors. The website MUST be colorful and visually rich - NOT a plain white page. Use colored backgrounds, gradients, and visual elements throughout.',
           },
           {
             role: 'user',
