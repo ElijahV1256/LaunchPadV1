@@ -83,13 +83,16 @@ export default function WebsiteBuilder() {
         .maybeSingle();
 
       if (!website) {
-        // Create new website entry
+        // Create or update website entry using upsert
         const { data: newWebsite, error: createError } = await supabase
           .from('websites')
-          .insert({
+          .upsert({
             user_id: currentUser!.id,
             idea_key: ideaKey,
             completed_steps: [],
+          }, {
+            onConflict: 'user_id,idea_key',
+            ignoreDuplicates: false
           })
           .select()
           .single();
