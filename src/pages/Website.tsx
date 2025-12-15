@@ -215,25 +215,29 @@ export default function Website() {
     setGeneratingStage('Igniting engines...');
 
     const stages = [
-      { progress: 10, stage: 'Igniting engines...', delay: 500 },
-      { progress: 25, stage: 'Systems check complete...', delay: 1000 },
-      { progress: 40, stage: 'Analyzing your brand...', delay: 2000 },
-      { progress: 55, stage: 'Designing home page...', delay: 4000 },
-      { progress: 70, stage: 'Building shop page...', delay: 6000 },
-      { progress: 85, stage: 'Adding final polish...', delay: 8000 },
-      { progress: 95, stage: 'Preparing for landing...', delay: 10000 },
+      { progress: 8, stage: 'Igniting engines...' },
+      { progress: 18, stage: 'Systems check complete...' },
+      { progress: 32, stage: 'Analyzing your brand...' },
+      { progress: 48, stage: 'Designing home page...' },
+      { progress: 65, stage: 'Building shop page...' },
+      { progress: 78, stage: 'Adding final polish...' },
+      { progress: 88, stage: 'Almost there...' },
     ];
 
+    let stageIndex = 0;
     const progressInterval = setInterval(() => {
       setGeneratingProgress(prev => {
-        const currentStage = stages.find(s => s.progress > prev);
-        if (currentStage) {
-          setGeneratingStage(currentStage.stage);
-          return Math.min(prev + 1, currentStage.progress);
+        if (stageIndex < stages.length) {
+          const targetProgress = stages[stageIndex].progress;
+          if (prev >= targetProgress - 1) {
+            setGeneratingStage(stages[stageIndex].stage);
+            stageIndex++;
+          }
+          return Math.min(prev + 0.5, 88);
         }
         return prev;
       });
-    }, 200);
+    }, 400);
 
     try {
       const businessPackage = buildBusinessPackage();
