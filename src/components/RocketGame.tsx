@@ -27,6 +27,13 @@ export default function RocketGame({ progress, stage }: RocketGameProps) {
   const keysPressed = useRef<Set<string>>(new Set());
   const asteroidIdRef = useRef(0);
 
+  const difficultyLevel = Math.floor(score / 50);
+  const spawnRate = Math.max(400, 1200 - difficultyLevel * 100);
+  const baseSpeed = 1 + difficultyLevel * 0.3;
+  const maxSpeed = 2.5 + difficultyLevel * 0.4;
+  const baseSize = 15 + Math.min(difficultyLevel * 2, 10);
+  const maxSizeBonus = 20 + Math.min(difficultyLevel * 3, 15);
+
   const resetGame = () => {
     setRocketPos({ x: 50, y: 70 });
     setAsteroids([]);
@@ -85,15 +92,15 @@ export default function RocketGame({ progress, stage }: RocketGameProps) {
         id: asteroidIdRef.current++,
         x: Math.random() * 90 + 5,
         y: -10,
-        size: Math.random() * 20 + 15,
-        speed: Math.random() * 1.5 + 1,
+        size: Math.random() * maxSizeBonus + baseSize,
+        speed: Math.random() * (maxSpeed - baseSpeed) + baseSpeed,
         rotation: Math.random() * 360,
       };
       setAsteroids(prev => [...prev, newAsteroid]);
-    }, 1200);
+    }, spawnRate);
 
     return () => clearInterval(spawnInterval);
-  }, [gameOver]);
+  }, [gameOver, spawnRate, baseSpeed, maxSpeed, baseSize, maxSizeBonus]);
 
   useEffect(() => {
     if (gameOver) return;
@@ -158,8 +165,15 @@ export default function RocketGame({ progress, stage }: RocketGameProps) {
             />
           ))}
         </div>
-        <div className="text-[#06D6A0] font-mono text-sm">
-          Score: {score}
+        <div className="flex items-center gap-3">
+          {difficultyLevel > 0 && (
+            <span className="text-orange-400 text-xs font-medium">
+              LVL {difficultyLevel}
+            </span>
+          )}
+          <span className="text-[#06D6A0] font-mono text-sm">
+            {score}
+          </span>
         </div>
       </div>
 
