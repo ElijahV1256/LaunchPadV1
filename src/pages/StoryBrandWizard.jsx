@@ -248,7 +248,7 @@ export default function StoryBrandWizard() {
 
       <div className="max-w-4xl mx-auto px-6 py-8 relative z-10 ml-48">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(ideaKey ? `/website?ideaKey=${ideaKey}` : '/website')}
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
         >
           <ArrowLeft size={20} />
