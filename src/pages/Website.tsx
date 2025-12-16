@@ -247,17 +247,45 @@ export default function Website() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No active session');
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-starter-website`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ businessPackage }),
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 180000);
+
+      let response: Response | undefined;
+      let attempts = 0;
+      const maxAttempts = 2;
+
+      while (attempts < maxAttempts) {
+        attempts++;
+        try {
+          response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-starter-website`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ businessPackage }),
+              signal: controller.signal,
+            }
+          );
+          break;
+        } catch (fetchError: any) {
+          if (fetchError.name === 'AbortError') {
+            throw new Error('Request timed out. Please try again.');
+          }
+          if (attempts >= maxAttempts) {
+            throw fetchError;
+          }
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
-      );
+      }
+
+      clearTimeout(timeoutId);
+
+      if (!response) {
+        throw new Error('Failed to connect to server. Please try again.');
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
