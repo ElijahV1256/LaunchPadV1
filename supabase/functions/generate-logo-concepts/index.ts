@@ -32,60 +32,61 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    console.log('Starting SVG logo generation for:', businessName);
+    console.log('Starting logo concept generation for:', businessName);
 
     const primaryColor = brandColors?.primary || '#0B1320';
     const accentColor = brandColors?.accent || brandColors?.secondary || '#2979FF';
-    const regenNonce = Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
-
     const industry = businessDescription || 'general business';
 
-    const prompt = `You are a senior brand designer. Generate 3 distinct, high-quality modern logos as original SVG vectors (not mockups, not images).
+    const prompt = `You are a senior brand designer creating modern, professional startup logos.
 
-Business:
-Name: ${businessName}
+Create 3 distinct logo concepts for a business using the details below.
+
+Business Name: ${businessName}
 Industry: ${industry}
-${brandPersonality ? `Style preferences: ${brandPersonality}` : ''}
-Regenerate seed (always different each time): ${regenNonce}
+${brandPersonality ? `Brand personality: ${brandPersonality}` : ''}
+Brand colors provided: Primary ${primaryColor}, Accent ${accentColor}
 
-Brand colors to use:
-- Primary: ${primaryColor}
-- Accent: ${accentColor}
+Design requirements:
+- Clean, modern, minimal design
+- Professional and trustworthy (not playful or cartoon)
+- Flat design only (no gradients, shadows, or 3D effects)
+- Must work in black and white
+- Avoid clich\u00e9 industry icons and overused symbols
+- Avoid overly abstract or artistic designs
+- Do NOT default to an icon on the left and text on the right
 
-Rules:
-1. Produce 3 completely different directions (different concept + different composition).
-2. Do NOT force "icon left + wordmark right." Any layout is allowed (stacked, emblem, integrated wordmark, monogram, abstract mark).
-3. Keep it minimal and premium: flat vector only, use the brand colors provided, lots of whitespace.
-4. No gradients, no shadows, no 3D, no textures, no photos, no clipart.
-5. Use the business name in at least 2 of the 3 options (wordmark or integrated). The 3rd can be mark/monogram only if strong.
-6. The logos must be scalable and clean at small sizes (app icon / favicon).
-7. Make the concepts relevant to the industry, but avoid obvious clichés.
+Style guidance:
+- Prefer typography-first logos
+- Use clean, well-spaced typography
+- Subtle icon or mark only if it truly adds value
+- Logos should feel appropriate for real businesses, SaaS products, or professional services
 
-SVG requirements (very important):
-- Return valid SVG strings with transparent background.
-- Use viewBox="0 0 512 512".
-- Use simple shapes (path, rect, circle, line, polygon) with clean strokes or fills.
-- For text in SVG, use <text> elements with font-family specified.
-- Keep SVGs clean and minimal - no unnecessary complexity.
+For EACH logo concept, you must also generate a complete SVG implementation.
 
-Return JSON ONLY in this exact structure:
+SVG Requirements:
+- viewBox="0 0 512 512"
+- Use the brand colors provided (primary: ${primaryColor}, accent: ${accentColor})
+- For text, use <text> elements with font-family="Inter, system-ui, sans-serif"
+- Keep SVGs simple: use path, rect, circle, text elements only
+- No gradients, filters, or effects
+- Transparent background
+- Text should be prominent and well-positioned
+- If using an icon/mark, keep it subtle and integrated
+
+Return ONLY valid JSON in this exact structure:
 {
-  "business_name": "${businessName}",
-  "industry": "${industry}",
-  "regen_nonce": "${regenNonce}",
   "logos": [
     {
       "id": "A",
-      "direction_name": "1-3 words describing direction",
-      "concept": "1 sentence explaining the concept",
-      "palette": { "primary": "${primaryColor}", "accent": "${accentColor}" },
-      "layout_type": "stacked | emblem | wordmark | monogram | abstract",
-      "svg": "<svg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'>...</svg>",
-      "wordmark_style": {
-        "font_stack": "\"Inter\", system-ui, sans-serif",
-        "weight": 700,
-        "letter_spacing": "-0.01em"
-      }
+      "concept_name": "Short creative name for this direction",
+      "description": "1-2 sentence description of the concept",
+      "typography_style": "Description of font characteristics (weight, spacing, style)",
+      "icon_description": "Description of icon/symbol if any, or 'None - typography only'",
+      "color_usage": "How the brand colors are applied",
+      "why_it_works": "1 sentence on why this works for this business",
+      "layout_type": "wordmark | lettermark | combination | emblem",
+      "svg": "<svg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'>...</svg>"
     },
     {
       "id": "B",
@@ -96,13 +97,15 @@ Return JSON ONLY in this exact structure:
       ...same structure...
     }
   ],
-  "top_pick": "A"
+  "recommended": "A"
 }
 
-Hard anti-repeat instruction:
-Treat regen_nonce as a command to generate new shapes + new concepts every time. Do not reuse prior layouts, motifs, or geometry.
-
-Generate completely unique, professional SVG logos now. Return ONLY valid JSON, no markdown or extra text.`;
+Important:
+- Each logo concept must be visually and stylistically different from the others
+- At least one should be typography-only (wordmark or lettermark)
+- SVGs must be valid and render the actual logo design
+- Do NOT include placeholder text in SVGs - render the actual business name
+- Return structured JSON only, no markdown formatting`;
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -115,12 +118,12 @@ Generate completely unique, professional SVG logos now. Return ONLY valid JSON, 
         messages: [
           {
             role: "system",
-            content: "You are an expert brand designer who creates professional SVG vector logos. Always return valid JSON only, no markdown formatting."
+            content: "You are an expert brand designer who creates professional, modern logo concepts with clean SVG implementations. Focus on typography-first designs that look like real startup logos. Always return valid JSON only."
           },
           { role: "user", content: prompt }
         ],
         max_tokens: 8000,
-        temperature: 0.9,
+        temperature: 0.8,
       }),
     });
 
@@ -168,21 +171,24 @@ Generate completely unique, professional SVG logos now. Return ONLY valid JSON, 
 
     const concepts = (parsed.logos || []).map((logo: any) => ({
       id: logo.id,
-      directionName: logo.direction_name,
-      concept: logo.concept,
-      palette: logo.palette,
+      directionName: logo.concept_name,
+      concept: logo.description,
+      typographyStyle: logo.typography_style,
+      iconDescription: logo.icon_description,
+      colorUsage: logo.color_usage,
+      whyItWorks: logo.why_it_works,
       layoutType: logo.layout_type,
       svg: logo.svg,
-      wordmarkStyle: logo.wordmark_style,
+      palette: { primary: primaryColor, accent: accentColor },
     }));
 
-    console.log(`Generated ${concepts.length} SVG logo concepts`);
+    console.log(`Generated ${concepts.length} logo concepts`);
 
     return new Response(
       JSON.stringify({
         concepts,
-        topPick: parsed.top_pick,
-        businessName: parsed.business_name,
+        topPick: parsed.recommended,
+        businessName,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
