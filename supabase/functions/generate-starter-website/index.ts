@@ -80,10 +80,11 @@ TECH REQUIREMENTS:
 - Each page must include: <script src="https://cdn.tailwindcss.com"></script> in <head>.
 - Do NOT use <style> blocks.
 - Do NOT use any external JS frameworks.
-- IMPORTANT: Incorporate high-quality stock photos from Pexels that match the business type.
-  - Use 3-5 relevant, professional images throughout the website
+- CRITICAL: Include EXACTLY 2 high-quality Pexels stock photos:
+  1. HERO IMAGE: One large, prominent image in the hero section of the home page (right side of hero, alongside the title)
+  2. SHOP IMAGE: One professional image in the shop page header or checkout section to showcase products/service
   - Link directly to Pexels images (e.g., https://images.pexels.com/photos/...)
-  - Choose images that represent the business offerings, happy customers, or relevant lifestyle shots
+  - Choose images that match the business type and feel professional and authentic
   - Use the provided logoUrl for the brand logo
 - Must look premium, spacious, and trustworthy.
 - Use the brand colors from the business package for styling.
@@ -93,7 +94,9 @@ PAGES:
 1) Home page (index.html)
    Sections in this order:
    - Top nav (logo + links: Home, Shop)
-   - Hero (headline, subheadline, primary CTA button linking to shop.html)
+   - Hero (two-column layout):
+     * Left: headline, subheadline, primary CTA button linking to shop.html
+     * Right: REQUIRED HERO IMAGE - large Pexels image that represents the business
    - Social proof strip (3 short trust bullets)
    - About (short)
    - Features/Benefits (3-6 items)
@@ -104,7 +107,7 @@ PAGES:
 2) Shop page (shop.html)
    Sections:
    - Top nav (logo + links)
-   - Page header "Shop"
+   - Page header "Shop" with REQUIRED SHOP IMAGE - Pexels image showcasing products/service
    - 1-3 product cards (name, short benefit, price placeholder)
    - Each product card has a "Buy Now" button that links to: ${checkoutUrl}
      - Also include a small note: "To start selling, replace the checkout link with your Shopify/Stripe link."
