@@ -1444,20 +1444,75 @@ export default function BrandIdentity() {
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white mb-2">3. Logo Creation</h3>
-                <p className="text-gray-400 text-sm mb-6">
-                  Generate text-based logos featuring your business name in different typography styles.
+                <p className="text-gray-400 text-sm mb-4">
+                  Describe what you want in your logo and we'll create it with your business name and colors.
                 </p>
 
                 {!data.logo_data?.concepts?.length && !generatingLogoConcepts && (
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                      onClick={handleGenerateLogoConcepts}
-                      disabled={!data.selected_name || !data.brand_colors.primary}
-                      className="flex-1 px-6 py-3 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      <Sparkles size={18} />
-                      Generate Logos
-                    </button>
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <textarea
+                        placeholder="Describe what you want in your logo... (e.g., 'a simple leaf icon representing growth', 'a modern geometric shape', 'a friendly mascot', 'minimalist and professional')"
+                        value={logoSuggestions}
+                        onChange={(e) => setLogoSuggestions(e.target.value)}
+                        rows={3}
+                        className="w-full px-4 py-3 pr-12 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none"
+                      />
+                      <button
+                        onClick={async () => {
+                          setGeneratingStyle(true);
+                          try {
+                            let contextStr = '';
+                            if (data?.selected_name) {
+                              contextStr = `Business Name: ${data.selected_name}`;
+                            }
+                            if (offerDescription.trim()) {
+                              contextStr += `\nOffers: ${offerDescription}`;
+                            }
+                            if (targetAudience.trim()) {
+                              contextStr += `\nTarget Audience: ${targetAudience}`;
+                            }
+
+                            const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-suggestions`, {
+                              method: 'POST',
+                              headers: {
+                                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                context: contextStr || undefined,
+                                prompt: 'Suggest a creative logo concept for this business. Describe a specific icon or visual element that would work well (1-2 sentences, be specific about the icon/symbol). For example: "A minimalist coffee cup with steam forming a heart shape" or "An abstract geometric fox head representing cleverness"'
+                              }),
+                            });
+                            const result = await response.json();
+                            setLogoSuggestions(result.suggestion || '');
+                          } catch (err) {
+                            console.error('Error generating logo suggestion:', err);
+                          } finally {
+                            setGeneratingStyle(false);
+                          }
+                        }}
+                        disabled={generatingStyle}
+                        className="absolute right-3 top-3 p-2 text-[#2979FF] hover:text-[#2979FF]/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Get AI suggestion"
+                      >
+                        {generatingStyle ? (
+                          <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                          <Sparkles size={18} />
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        onClick={handleGenerateLogoConcepts}
+                        disabled={!data.selected_name || !data.brand_colors.primary}
+                        className="flex-1 px-6 py-3 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        <Sparkles size={18} />
+                        Generate Logos
+                      </button>
                     <div>
                       <input
                         ref={fileInputRef}
@@ -1476,6 +1531,7 @@ export default function BrandIdentity() {
                         {uploadingLogo ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
                         {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
                       </label>
+                    </div>
                     </div>
                   </div>
                 )}

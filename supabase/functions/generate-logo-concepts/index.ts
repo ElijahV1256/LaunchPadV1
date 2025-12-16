@@ -35,7 +35,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { businessName, brandColors } = await req.json();
+    const { businessName, brandColors, businessDescription, brandPersonality } = await req.json();
 
     if (!businessName) {
       return new Response(
@@ -48,24 +48,34 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log('Starting SVG logo generation for:', businessName);
+    console.log('Brand personality/description:', brandPersonality);
 
     const colors = brandColors || { primary: '#000000', secondary: '#666666', accent: '#999999' };
+
+    const hasCustomDescription = brandPersonality && brandPersonality.includes('Additional requirements:');
+    const customRequirements = hasCustomDescription
+      ? brandPersonality.split('Additional requirements:')[1]?.trim()
+      : null;
+
+    const iconGuidance = customRequirements
+      ? `ICON REQUIREMENTS (from user): ${customRequirements}`
+      : `The icon should be relevant to the business name/type`;
 
     const prompt = `Create 3 simple, clean SVG logos for the business "${businessName}".
 
 REQUIREMENTS:
 - Each logo has the business name "${businessName}" as styled text
 - Each logo has a small, simple icon to the LEFT of the text
-- The icon should be relevant to the business name/type
+- ${iconGuidance}
 - Clean, professional, minimal design
 - Primary color: ${colors.primary}
 - Secondary/accent color: ${colors.secondary || colors.accent || '#666666'}
-- Keep icons SIMPLE - basic geometric shapes, no complex illustrations
+- Keep icons SIMPLE but meaningful - basic geometric shapes, simple paths${businessDescription ? `\n- Business context: ${businessDescription}` : ''}${brandPersonality && !hasCustomDescription ? `\n- Brand context: ${brandPersonality}` : ''}
 
 Create exactly 3 variations:
-1. "Modern" - Bold sans-serif text, geometric minimal icon
-2. "Classic" - Elegant serif text, refined simple icon
-3. "Creative" - Unique stylized text, distinctive icon
+1. "Modern" - Bold sans-serif text, geometric minimal icon based on the requirements
+2. "Classic" - Elegant serif text, refined simple icon based on the requirements
+3. "Creative" - Unique stylized text, distinctive icon based on the requirements
 
 OUTPUT FORMAT - Return ONLY valid JSON, no markdown:
 {
