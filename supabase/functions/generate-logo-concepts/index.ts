@@ -23,7 +23,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { businessName, brandColors } = await req.json();
+    const { businessName, brandColors, businessDescription } = await req.json();
 
     if (!businessName) {
       return new Response(
@@ -33,6 +33,7 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log('Starting logo generation for:', businessName);
+    console.log('Business description:', businessDescription);
 
     const iconAccent = brandColors?.primary || '#2F6BFF';
 
@@ -40,21 +41,37 @@ Deno.serve(async (req: Request) => {
 
 Input:
 company_name: "${businessName}"
+business_description: "${businessDescription || 'Not provided'}"
+
+CRITICAL: Analyze the business name and description to determine the industry. Then select icons that are DIRECTLY RELEVANT to that industry. Do NOT use generic icons.
+
+Industry-specific icon guidance (use these as your PRIMARY choices):
+- Baby/Birth/Pregnancy/Postpartum: Baby, Heart, HeartHandshake, Flower2, Sun, Star
+- Health/Medical/Wellness: Stethoscope, Heart, ShieldCheck, Leaf, Sun
+- Tech/Software/Startups: Rocket, Zap, Bolt, Globe, Target
+- Food/Restaurant/Cafe: Coffee, Leaf, Sun, Flower2, Star
+- Home/Real Estate/Interior: Home, Sun, Mountain, TreePine, Compass
+- Fitness/Sports: Target, Zap, Bolt, Mountain, Star
+- Finance/Business: Briefcase, ShieldCheck, BadgeCheck, Target, Award
+- Education/Learning: Book, Pen, Star, Award, Compass
+- Travel/Tourism: Plane, Globe, Compass, Mountain, Anchor
+- Beauty/Fashion: Sparkles, Star, Crown, Flower2, Palette
+- Eco/Sustainability: Leaf, TreePine, Globe, Sun, Flower2
+- Childcare/Parenting: Baby, Heart, Star, Sun, HeartHandshake
+- Creative/Design: Palette, Pen, Camera, Sparkles, Star
+- Shipping/Logistics: Truck, Package, Globe, Anchor, Plane
 
 Goal:
-Create 8 logo options using only the company name. Each option must include:
-- Wordmark text = company_name
-- Optional 2nd text option: remove spaces (e.g., "Launch Pad" → "Launchpad") only if it looks better
-- Simple icon on the left (must be clean and minimal)
-- Typography + colors that look "startup-quality"
+Create 8 logo options. ALL 8 logos must use icons that make sense for the "${businessDescription || businessName}" business.
 
 Hard rules:
+- EVERY icon must be industry-relevant (no random icons)
+- At least 6 of the 8 logos should use the TOP recommended icons for this industry
 - Do NOT generate images or mockups
 - Output must be renderable as SVG + CSS
 - Flat, minimal, scalable, readable at small sizes
-- No gradients, shadows, 3D, textures, mascots, complex drawings
 
-Icon selection (choose ONE per concept from this allowlist):
+Available icons (pick ONLY from this list):
 Rocket, Sparkles, ShieldCheck, BadgeCheck, Leaf, Bolt, HeartHandshake, Stethoscope, Baby, Package, Store, Wrench, Hammer, TreePine, Mountain, Waves, Globe, CheckCircle, Circle, Star, Heart, Home, Users, Zap, Crown, Target, Award, Compass, Sun, Moon, Cloud, Coffee, Briefcase, Camera, Music, Palette, Pen, Book, Gift, Truck, Plane, Anchor, Flower2
 
 Font stacks (choose ONE per concept, vary them across all 8):
@@ -85,7 +102,7 @@ Return valid JSON exactly in this structure:
       "id": "A",
       "text_primary": "${businessName}",
       "text_alt": "${businessName.replace(/\\s+/g, '')}",
-      "icon_lucide": "Sparkles",
+      "icon_lucide": "Baby",
       "font_stack": "\\"Inter\\", system-ui, -apple-system, \\"Segoe UI\\", Arial, sans-serif",
       "font_weight": 700,
       "letter_spacing": "-0.01em",
@@ -101,13 +118,13 @@ Return valid JSON exactly in this structure:
         "icon_stroke": 2,
         "gap_px": 12
       },
-      "rationale": "1 short sentence why this matches the name"
+      "rationale": "1 short sentence why this icon matches the business"
     }
   ],
   "top_pick": "A"
 }
 
-Generate exactly 8 logos with IDs A through H. Each should have a DIFFERENT icon and font combination. Match icons to the business name meaning when possible.`;
+Generate exactly 8 logos with IDs A through H. Each should have a DIFFERENT icon and font combination. EVERY icon must be relevant to the business industry.`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
