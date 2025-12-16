@@ -32,122 +32,77 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    console.log('Starting logo generation for:', businessName);
+    console.log('Starting SVG logo generation for:', businessName);
 
     const primaryColor = brandColors?.primary || '#0B1320';
     const accentColor = brandColors?.accent || brandColors?.secondary || '#2979FF';
+    const regenNonce = Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
 
-    const prompt = `You are a world-class brand designer creating premium, minimalist logo concepts. Generate 8 unique logo variations for "${businessName}".
+    const industry = businessDescription || 'general business';
 
-Business context: ${businessDescription || 'Not provided'}
+    const prompt = `You are a senior brand designer. Generate 3 distinct, high-quality modern logos as original SVG vectors (not mockups, not images).
+
+Business:
+Name: ${businessName}
+Industry: ${industry}
 ${brandPersonality ? `Style preferences: ${brandPersonality}` : ''}
+Regenerate seed (always different each time): ${regenNonce}
 
-LOGO STYLE REQUIREMENTS:
-Create clean, sophisticated logos using ONLY typography and simple geometric accents. Think high-end brands like Apple, Nike, Airbnb, Stripe, Linear.
+Brand colors to use:
+- Primary: ${primaryColor}
+- Accent: ${accentColor}
 
-For each logo, specify ONE of these styles:
-1. "wordmark" - Pure typography with stylized lettering
-2. "monogram" - Initials only (1-3 letters) with distinctive treatment
-3. "wordmark-accent" - Typography with a simple geometric accent (line, dot, circle)
-4. "stacked" - Name split across two lines with intentional hierarchy
+Rules:
+1. Produce 3 completely different directions (different concept + different composition).
+2. Do NOT force "icon left + wordmark right." Any layout is allowed (stacked, emblem, integrated wordmark, monogram, abstract mark).
+3. Keep it minimal and premium: flat vector only, use the brand colors provided, lots of whitespace.
+4. No gradients, no shadows, no 3D, no textures, no photos, no clipart.
+5. Use the business name in at least 2 of the 3 options (wordmark or integrated). The 3rd can be mark/monogram only if strong.
+6. The logos must be scalable and clean at small sizes (app icon / favicon).
+7. Make the concepts relevant to the industry, but avoid obvious clichés.
 
-DESIGN RULES:
-- NO clipart, icons, or illustrations
-- NO complex shapes or mascots
-- Geometric accents must be SIMPLE: single line, dot, circle, or arc
-- Focus on typography weight, spacing, and arrangement
-- Make each option distinctly different
+SVG requirements (very important):
+- Return valid SVG strings with transparent background.
+- Use viewBox="0 0 512 512".
+- Use simple shapes (path, rect, circle, line, polygon) with clean strokes or fills.
+- For text in SVG, use <text> elements with font-family specified.
+- Keep SVGs clean and minimal - no unnecessary complexity.
 
-Available fonts (use exact names):
-- "Inter" (clean, modern)
-- "Manrope" (geometric, friendly)
-- "Space Grotesk" (technical, bold)
-- "DM Sans" (rounded, approachable)
-- "Sora" (contemporary, balanced)
-- "Poppins" (geometric, modern)
-- "Playfair Display" (elegant, serif)
-- "Libre Baskerville" (classic, refined)
-
-OUTPUT FORMAT (JSON only):
+Return JSON ONLY in this exact structure:
 {
+  "business_name": "${businessName}",
+  "industry": "${industry}",
+  "regen_nonce": "${regenNonce}",
   "logos": [
     {
       "id": "A",
-      "style": "wordmark",
-      "displayText": "${businessName}",
-      "font": "Inter",
-      "fontWeight": 700,
-      "letterSpacing": "-0.02em",
-      "textTransform": "none",
-      "textColor": "#0B1320",
-      "accent": null,
-      "layout": {
-        "type": "horizontal",
-        "alignment": "left"
-      },
-      "rationale": "Brief explanation"
+      "direction_name": "1-3 words describing direction",
+      "concept": "1 sentence explaining the concept",
+      "palette": { "primary": "${primaryColor}", "accent": "${accentColor}" },
+      "layout_type": "stacked | emblem | wordmark | monogram | abstract",
+      "svg": "<svg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'>...</svg>",
+      "wordmark_style": {
+        "font_stack": "\\"Inter\\", system-ui, sans-serif",
+        "weight": 700,
+        "letter_spacing": "-0.01em"
+      }
     },
     {
       "id": "B",
-      "style": "monogram",
-      "displayText": "HB",
-      "font": "Playfair Display",
-      "fontWeight": 600,
-      "letterSpacing": "0.1em",
-      "textTransform": "uppercase",
-      "textColor": "#0B1320",
-      "accent": {
-        "type": "circle-outline",
-        "color": "${accentColor}",
-        "position": "around"
-      },
-      "layout": {
-        "type": "centered",
-        "alignment": "center"
-      },
-      "rationale": "Brief explanation"
+      ...same structure...
     },
     {
       "id": "C",
-      "style": "wordmark-accent",
-      "displayText": "${businessName}",
-      "font": "Space Grotesk",
-      "fontWeight": 600,
-      "letterSpacing": "-0.01em",
-      "textTransform": "none",
-      "textColor": "#0B1320",
-      "accent": {
-        "type": "underline",
-        "color": "${accentColor}",
-        "position": "below"
-      },
-      "layout": {
-        "type": "horizontal",
-        "alignment": "left"
-      },
-      "rationale": "Brief explanation"
+      ...same structure...
     }
-  ]
+  ],
+  "top_pick": "A"
 }
 
-ACCENT OPTIONS (when style is "wordmark-accent" or "monogram"):
-- "underline" - Simple line below text
-- "dot" - Small circle before or after text
-- "circle-outline" - Thin circle around monogram
-- "line-left" - Vertical line to the left
-- "arc" - Curved line above or below
-- null - No accent (required for pure "wordmark" style)
+Hard anti-repeat instruction:
+Treat regen_nonce as a command to generate new shapes + new concepts every time. Do not reuse prior layouts, motifs, or geometry.
 
-For monograms, extract meaningful initials from "${businessName}".
-
-Generate exactly 8 logos with varied styles:
-- At least 2 pure wordmarks
-- At least 2 monograms
-- At least 2 with accents
-- Mix of serif and sans-serif fonts
-- Mix of weights and spacings
-
-Return ONLY valid JSON.`;
+Generate completely unique, professional SVG logos now.`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -158,7 +113,7 @@ Return ONLY valid JSON.`;
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 4000,
+        max_tokens: 8000,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -187,7 +142,7 @@ Return ONLY valid JSON.`;
       }
     } catch (parseError) {
       console.error("Failed to parse Claude response:", parseError);
-      console.error("Raw content:", content.substring(0, 500));
+      console.error("Raw content:", content.substring(0, 1000));
       return new Response(
         JSON.stringify({ error: "Failed to parse logo data" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -196,22 +151,22 @@ Return ONLY valid JSON.`;
 
     const concepts = (parsed.logos || []).map((logo: any) => ({
       id: logo.id,
-      style: logo.style,
-      displayText: logo.displayText,
-      font: logo.font,
-      fontWeight: logo.fontWeight,
-      letterSpacing: logo.letterSpacing,
-      textTransform: logo.textTransform || 'none',
-      textColor: logo.textColor || primaryColor,
-      accent: logo.accent,
-      layout: logo.layout,
-      rationale: logo.rationale,
+      directionName: logo.direction_name,
+      concept: logo.concept,
+      palette: logo.palette,
+      layoutType: logo.layout_type,
+      svg: logo.svg,
+      wordmarkStyle: logo.wordmark_style,
     }));
 
-    console.log(`Generated ${concepts.length} logo concepts`);
+    console.log(`Generated ${concepts.length} SVG logo concepts`);
 
     return new Response(
-      JSON.stringify({ concepts }),
+      JSON.stringify({
+        concepts,
+        topPick: parsed.top_pick,
+        businessName: parsed.business_name,
+      }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

@@ -14,169 +14,55 @@ interface ColorPalette {
   accent: string;
 }
 
-interface LogoAccent {
-  type: 'underline' | 'dot' | 'circle-outline' | 'line-left' | 'arc';
-  color: string;
-  position: string;
-}
-
 interface LogoConcept {
   id: string;
-  style: 'wordmark' | 'monogram' | 'wordmark-accent' | 'stacked';
-  displayText: string;
-  font: string;
-  fontWeight: number;
-  letterSpacing: string;
-  textTransform: string;
-  textColor: string;
-  accent: LogoAccent | null;
-  layout: {
-    type: string;
-    alignment: string;
+  directionName: string;
+  concept: string;
+  palette: {
+    primary: string;
+    accent: string;
   };
-  rationale: string;
+  layoutType: string;
+  svg: string;
+  wordmarkStyle?: {
+    font_stack: string;
+    weight: number;
+    letter_spacing: string;
+  };
 }
 
-const fontUrls: Record<string, string> = {
-  'Inter': 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap',
-  'Manrope': 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap',
-  'Space Grotesk': 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap',
-  'DM Sans': 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap',
-  'Sora': 'https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap',
-  'Poppins': 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap',
-  'Playfair Display': 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&display=swap',
-  'Libre Baskerville': 'https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap',
-};
-
-function LogoRenderer({ concept, size = 'normal' }: { concept: LogoConcept; size?: 'normal' | 'large' }) {
-  useEffect(() => {
-    if (concept.font && fontUrls[concept.font]) {
-      const existingLink = document.querySelector(`link[href="${fontUrls[concept.font]}"]`);
-      if (!existingLink) {
-        const link = document.createElement('link');
-        link.href = fontUrls[concept.font];
-        link.rel = 'stylesheet';
-        document.head.appendChild(link);
+function SVGLogoRenderer({ concept }: { concept: LogoConcept }) {
+  const sanitizeSVG = (svgString: string) => {
+    if (!svgString) return '';
+    let cleaned = svgString.trim();
+    if (!cleaned.startsWith('<svg')) {
+      const svgStart = cleaned.indexOf('<svg');
+      if (svgStart !== -1) {
+        cleaned = cleaned.substring(svgStart);
       }
     }
-  }, [concept.font]);
-
-  const fontSize = size === 'large' ? '1.75rem' : concept.style === 'monogram' ? '2rem' : '1.25rem';
-  const monogramSize = size === 'large' ? '3rem' : '2.5rem';
-
-  const textStyle: React.CSSProperties = {
-    fontFamily: `"${concept.font}", system-ui, sans-serif`,
-    fontWeight: concept.fontWeight,
-    letterSpacing: concept.letterSpacing,
-    textTransform: concept.textTransform as any,
-    color: concept.textColor,
-    fontSize: concept.style === 'monogram' ? monogramSize : fontSize,
-    lineHeight: 1.1,
-  };
-
-  const renderAccent = () => {
-    if (!concept.accent) return null;
-    const { type, color } = concept.accent;
-
-    switch (type) {
-      case 'underline':
-        return (
-          <div
-            className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full"
-            style={{ backgroundColor: color }}
-          />
-        );
-      case 'dot':
-        return (
-          <div
-            className="w-2 h-2 rounded-full flex-shrink-0"
-            style={{ backgroundColor: color }}
-          />
-        );
-      case 'line-left':
-        return (
-          <div
-            className="w-1 h-full rounded-full flex-shrink-0"
-            style={{ backgroundColor: color, minHeight: '24px' }}
-          />
-        );
-      case 'arc':
-        return (
-          <svg
-            className="absolute -bottom-2 left-1/2 -translate-x-1/2"
-            width="60"
-            height="8"
-            viewBox="0 0 60 8"
-          >
-            <path
-              d="M0 8 Q30 0 60 8"
-              fill="none"
-              stroke={color}
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        );
-      case 'circle-outline':
-        return (
-          <div
-            className="absolute inset-0 rounded-full border-2 -m-3"
-            style={{ borderColor: color }}
-          />
-        );
-      default:
-        return null;
+    const svgEnd = cleaned.lastIndexOf('</svg>');
+    if (svgEnd !== -1) {
+      cleaned = cleaned.substring(0, svgEnd + 6);
     }
+    return cleaned;
   };
 
-  if (concept.style === 'monogram') {
-    return (
-      <div className="flex items-center justify-center relative">
-        {concept.accent?.type === 'circle-outline' && (
-          <div
-            className="absolute rounded-full border-2"
-            style={{
-              borderColor: concept.accent.color,
-              width: 'calc(100% + 16px)',
-              height: 'calc(100% + 16px)',
-            }}
-          />
-        )}
-        <span style={textStyle}>{concept.displayText}</span>
-      </div>
-    );
-  }
+  const svgContent = sanitizeSVG(concept.svg);
 
-  if (concept.style === 'stacked') {
-    const words = concept.displayText.split(' ');
-    const midpoint = Math.ceil(words.length / 2);
-    const line1 = words.slice(0, midpoint).join(' ');
-    const line2 = words.slice(midpoint).join(' ');
-
+  if (!svgContent) {
     return (
-      <div className="flex flex-col items-start relative">
-        <span style={{ ...textStyle, fontSize: size === 'large' ? '1.5rem' : '1rem' }}>{line1}</span>
-        <span style={{ ...textStyle, fontSize: size === 'large' ? '1.5rem' : '1rem', opacity: 0.7 }}>{line2}</span>
-        {concept.accent?.type === 'underline' && renderAccent()}
+      <div className="w-full h-full flex items-center justify-center text-gray-400">
+        Logo preview unavailable
       </div>
     );
   }
 
   return (
     <div
-      className={`flex items-center gap-3 relative ${
-        concept.layout?.alignment === 'center' ? 'justify-center' : 'justify-start'
-      }`}
-    >
-      {concept.accent?.type === 'line-left' && renderAccent()}
-      {concept.accent?.type === 'dot' && concept.accent.position === 'before' && renderAccent()}
-      <span className="relative" style={textStyle}>
-        {concept.displayText}
-        {concept.accent?.type === 'underline' && renderAccent()}
-        {concept.accent?.type === 'arc' && renderAccent()}
-      </span>
-      {concept.accent?.type === 'dot' && concept.accent.position !== 'before' && renderAccent()}
-    </div>
+      className="w-full h-full flex items-center justify-center"
+      dangerouslySetInnerHTML={{ __html: svgContent }}
+    />
   );
 }
 
@@ -1606,14 +1492,14 @@ export default function BrandIdentity() {
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white mb-2">3. Logo Creation</h3>
                 <p className="text-gray-400 text-sm mb-4">
-                  Generate professional typography-based logos with wordmarks, monograms, and minimal accents.
+                  Generate 3 unique SVG vector logos with different styles - wordmarks, emblems, monograms, and abstract marks.
                 </p>
 
                 {!data.logo_data?.concepts?.length && !generatingLogoConcepts && (
                   <div className="space-y-4">
                     <div className="relative">
                       <textarea
-                        placeholder="Describe the style you want... (e.g., 'elegant and serif', 'bold and modern', 'minimal with clean lines', 'playful and rounded')"
+                        placeholder="Describe the style you want... (e.g., 'minimal and modern', 'bold emblem style', 'elegant with serif text', 'abstract geometric mark')"
                         value={logoSuggestions}
                         onChange={(e) => setLogoSuggestions(e.target.value)}
                         rows={3}
@@ -1642,7 +1528,7 @@ export default function BrandIdentity() {
                               },
                               body: JSON.stringify({
                                 context: contextStr || undefined,
-                                prompt: 'Suggest a typography style for this business logo. Focus on font personality and visual treatment (1-2 sentences). For example: "Bold sans-serif with tight letter spacing for a modern tech feel" or "Elegant serif with a subtle underline accent for sophistication"'
+                                prompt: 'Suggest a logo style direction for this business. Describe the visual approach (1-2 sentences). For example: "A bold emblem with geometric shapes representing strength" or "A minimal wordmark with clean lines for a premium tech feel"'
                               }),
                             });
                             const result = await response.json();
@@ -1727,7 +1613,7 @@ export default function BrandIdentity() {
 
                 {data.logo_data?.concepts && data.logo_data.concepts.length > 0 && !generatingLogoConcepts && (
                   <div className="space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-6">
                       {data.logo_data.concepts.map((concept, idx) => {
                         const isSelected = data.logo_data?.selected?.id === concept.id;
 
@@ -1735,38 +1621,48 @@ export default function BrandIdentity() {
                           <button
                             key={idx}
                             onClick={() => selectLogo(concept)}
-                            className={`group relative rounded-xl overflow-hidden transition-all ${
+                            className={`group relative rounded-2xl overflow-hidden transition-all text-left ${
                               isSelected
-                                ? 'ring-2 ring-[#2979FF] ring-offset-2 ring-offset-[#0A192F]'
-                                : 'hover:ring-2 hover:ring-white/30 hover:ring-offset-2 hover:ring-offset-[#0A192F]'
+                                ? 'ring-2 ring-[#2979FF] ring-offset-4 ring-offset-[#0A192F]'
+                                : 'hover:ring-2 hover:ring-white/30 hover:ring-offset-4 hover:ring-offset-[#0A192F]'
                             }`}
                           >
-                            <div className={`bg-white px-6 py-5 flex items-center ${
-                              concept.style === 'monogram' ? 'justify-center' : 'justify-start'
-                            }`}>
-                              <LogoRenderer concept={concept} />
-                            </div>
-                            <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4">
-                              <span className="text-white/60 text-xs uppercase tracking-wider mb-1">{concept.style}</span>
-                              <span className="text-white font-medium text-sm text-center">{concept.rationale}</span>
-                            </div>
-                            {isSelected && (
-                              <div className="absolute top-2 right-2 w-6 h-6 bg-[#2979FF] rounded-full flex items-center justify-center">
-                                <CheckCircle2 size={14} className="text-white" />
+                            <div className="bg-white p-8 flex items-center justify-center min-h-[180px]">
+                              <div className="w-full max-w-[280px] h-[120px] [&_svg]:w-full [&_svg]:h-full [&_svg]:max-w-full [&_svg]:max-h-full">
+                                <SVGLogoRenderer concept={concept} />
                               </div>
-                            )}
+                            </div>
+                            <div className="bg-[#0F2847] px-6 py-4 flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-[#2979FF] text-xs font-semibold uppercase tracking-wider">
+                                    {concept.layoutType}
+                                  </span>
+                                  <span className="text-white/40">-</span>
+                                  <span className="text-white font-medium text-sm">
+                                    {concept.directionName}
+                                  </span>
+                                </div>
+                                <p className="text-gray-400 text-sm line-clamp-2">{concept.concept}</p>
+                              </div>
+                              {isSelected && (
+                                <div className="w-6 h-6 bg-[#2979FF] rounded-full flex items-center justify-center flex-shrink-0">
+                                  <CheckCircle2 size={14} className="text-white" />
+                                </div>
+                              )}
+                            </div>
                           </button>
                         );
                       })}
                     </div>
 
                     <div className="pt-4 border-t border-white/10 space-y-4">
-                      <p className="text-sm text-gray-400">Want different logos? Describe the style:</p>
+                      <p className="text-sm text-gray-400">Want different logos? Describe what you're looking for:</p>
                       <div className="flex gap-3">
                         <div className="relative flex-1">
                           <input
                             type="text"
-                            placeholder="e.g., 'more elegant', 'bolder fonts', 'serif style', 'minimal'..."
+                            placeholder="e.g., 'more minimal', 'emblem style', 'abstract mark', 'bolder'..."
                             value={logoSuggestions}
                             onChange={(e) => setLogoSuggestions(e.target.value)}
                             className="w-full px-4 py-3 pr-12 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] text-sm"
@@ -1794,7 +1690,7 @@ export default function BrandIdentity() {
                                   },
                                   body: JSON.stringify({
                                     context: contextStr || undefined,
-                                    prompt: 'Suggest a typography style for this business logo. Focus on font personality and visual treatment (1-2 sentences). For example: "Bold sans-serif with tight letter spacing for a modern tech feel" or "Elegant serif with a subtle underline accent for sophistication"'
+                                    prompt: 'Suggest a logo style direction for this business. Describe the visual approach (1-2 sentences). For example: "A bold emblem with geometric shapes representing strength" or "A minimal wordmark with clean lines for a premium tech feel"'
                                   }),
                                 });
                                 const result = await response.json();
