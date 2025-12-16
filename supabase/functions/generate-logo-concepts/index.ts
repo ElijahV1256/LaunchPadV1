@@ -56,12 +56,10 @@ Deno.serve(async (req: Request) => {
 
     const colors = brandColors || { primary: '#000000', secondary: '#666666', accent: '#999999' };
 
-    const basePrompt = `Create a professional wordmark logo that displays the text "${businessName}" as the entire logo. This is a text-based logo design where the business name itself IS the logo. Use the colors ${colors.primary} (primary), ${colors.secondary} (secondary), and ${colors.accent} (accent). The design should be on a clean white background, suitable for business use. No icons, no symbols, no graphics - ONLY the stylized text "${businessName}" as a typographic logo.`;
-
     const variations = [
-      `${basePrompt} Use a bold, modern sans-serif typography style. Make it clean, professional, and memorable.`,
-      `${basePrompt} Use an elegant, sophisticated serif typography style. Make it look premium and trustworthy.`,
-      `${basePrompt} Use a creative, unique custom lettering style. Make it distinctive and eye-catching while remaining professional.`
+      `Professional wordmark logo showing ONLY the text "${businessName}" in bold modern sans-serif typography. Color: ${colors.primary}. Clean white background. No icons, no taglines, no extra elements - just the business name as stylized text.`,
+      `Elegant wordmark logo showing ONLY the text "${businessName}" in refined serif typography. Color: ${colors.primary}. Clean white background. No icons, no taglines, no extra elements - just the business name as stylized text.`,
+      `Creative wordmark logo showing ONLY the text "${businessName}" in unique custom lettering. Color: ${colors.primary}. Clean white background. No icons, no taglines, no extra elements - just the business name as stylized text.`
     ];
 
     const concepts: LogoConcept[] = [];
@@ -99,15 +97,10 @@ Deno.serve(async (req: Request) => {
         const imageUrl = data.data[0]?.url;
 
         if (imageUrl) {
-          const styleNames = ['Modern Sans-Serif', 'Elegant Serif', 'Custom Lettering'];
-          const styleDescriptions = [
-            'Bold, modern typography with clean lines',
-            'Sophisticated serif typography with a premium feel',
-            'Creative custom lettering with a unique style'
-          ];
+          const styleNames = ['Modern', 'Classic', 'Creative'];
           concepts.push({
-            name: `${businessName} - ${styleNames[i]}`,
-            description: styleDescriptions[i],
+            name: styleNames[i],
+            description: businessName,
             imageUrl: imageUrl,
             prompt: fullPrompt,
           });

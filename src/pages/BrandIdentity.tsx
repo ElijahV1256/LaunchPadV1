@@ -1443,294 +1443,140 @@ export default function BrandIdentity() {
                 )}
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-3">3. Logo Creation</h3>
-                <p className="text-gray-400 text-sm mb-4">
-                  AI generates 3 professional wordmark logos using your business name and brand colors. Each design features your business name as a stylized text logo in different typography styles.
+                <h3 className="text-xl font-bold text-white mb-2">3. Logo Creation</h3>
+                <p className="text-gray-400 text-sm mb-6">
+                  Generate text-based logos featuring your business name in different typography styles.
                 </p>
 
-                <div className="flex gap-3 mb-4">
-                  <button
-                    onClick={handleGenerateLogoConcepts}
-                    disabled={generatingLogoConcepts || !data.selected_name || !data.brand_colors.primary}
-                    className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {generatingLogoConcepts ? (
-                      <>
-                        <Loader2 size={18} className="animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles size={18} />
-                        Generate Logo Concepts
-                      </>
-                    )}
-                  </button>
-
-                  <div className="flex-1">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoUpload}
-                      className="hidden"
-                      id="logo-upload"
-                    />
-                    <label
-                      htmlFor="logo-upload"
-                      className={`px-6 py-2 bg-white/5 border border-white/20 text-white rounded-lg font-semibold hover:bg-white/10 transition-colors flex items-center gap-2 justify-center cursor-pointer ${
-                        uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
+                {!data.logo_data?.concepts?.length && !generatingLogoConcepts && (
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={handleGenerateLogoConcepts}
+                      disabled={!data.selected_name || !data.brand_colors.primary}
+                      className="flex-1 px-6 py-3 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                      {uploadingLogo ? (
-                        <>
-                          <Loader2 size={18} className="animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload size={18} />
-                          Upload Your Own Logo
-                        </>
-                      )}
-                    </label>
+                      <Sparkles size={18} />
+                      Generate Logos
+                    </button>
+                    <div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                        id="logo-upload"
+                      />
+                      <label
+                        htmlFor="logo-upload"
+                        className={`px-6 py-3 bg-white/10 border border-white/20 text-white rounded-lg font-medium hover:bg-white/15 transition-colors flex items-center gap-2 justify-center cursor-pointer ${
+                          uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        {uploadingLogo ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                        {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
+                      </label>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {uploadedLogoUrl && (
-                  <div className="bg-[#06D6A0]/10 border border-[#06D6A0]/30 rounded-lg p-4 mb-4">
-                    <div className="flex items-start gap-4">
-                      <div className="w-24 h-24 bg-white rounded-lg overflow-hidden flex-shrink-0">
-                        <img
-                          src={uploadedLogoUrl}
-                          alt="Uploaded logo"
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-white font-semibold mb-1">Your Uploaded Logo</h4>
-                        <p className="text-sm text-gray-400 mb-3">
-                          This logo will be used when generating your brand guide
-                        </p>
-                        <button
-                          onClick={removeUploadedLogo}
-                          className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1"
-                        >
-                          <X size={14} />
-                          Remove
-                        </button>
-                      </div>
+                  <div className="flex items-center gap-4 p-4 bg-[#06D6A0]/10 border border-[#06D6A0]/30 rounded-lg mb-4">
+                    <div className="w-16 h-16 bg-white rounded-lg overflow-hidden flex-shrink-0">
+                      <img src={uploadedLogoUrl} alt="Uploaded logo" className="w-full h-full object-contain" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-white font-medium text-sm">Custom Logo Uploaded</p>
+                      <button onClick={removeUploadedLogo} className="text-xs text-red-400 hover:text-red-300 mt-1">
+                        Remove
+                      </button>
                     </div>
                   </div>
                 )}
 
                 {generatingLogoConcepts && (
-                  <div className="bg-white/5 rounded-lg p-8 border border-white/10 mb-4">
-                    <div className="flex flex-col items-center gap-6 py-8">
-                      <div className="relative w-40 h-40">
-                        <svg className="w-40 h-40 transform -rotate-90">
-                          <circle
-                            cx="80"
-                            cy="80"
-                            r="72"
-                            stroke="rgba(255,255,255,0.1)"
-                            strokeWidth="10"
-                            fill="none"
-                          />
-                          <circle
-                            cx="80"
-                            cy="80"
-                            r="72"
-                            stroke="url(#gradient)"
-                            strokeWidth="10"
-                            fill="none"
-                            strokeDasharray={`${2 * Math.PI * 72}`}
-                            strokeDashoffset={`${2 * Math.PI * 72 * (1 - logoProgress.current / logoProgress.total)}`}
-                            strokeLinecap="round"
-                            className="transition-all duration-700 ease-out"
-                          />
-                          <defs>
-                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stopColor="#2979FF" />
-                              <stop offset="100%" stopColor="#06D6A0" />
-                            </linearGradient>
-                          </defs>
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-center">
-                            <div className="text-4xl font-bold bg-gradient-to-r from-[#2979FF] to-[#06D6A0] bg-clip-text text-transparent">
-                              {logoProgress.current}
-                            </div>
-                            <div className="text-sm opacity-75 text-gray-300">of {logoProgress.total}</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="w-full max-w-md space-y-4">
-                        <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden shadow-lg">
-                          <div
-                            className="h-full bg-gradient-to-r from-[#2979FF] to-[#06D6A0] transition-all duration-700 ease-out rounded-full shadow-[0_0_10px_rgba(41,121,255,0.5)]"
-                            style={{ width: `${(logoProgress.current / logoProgress.total) * 100}%` }}
-                          />
-                        </div>
-
-                        <div className="text-center space-y-2">
-                          <div className="text-xl font-semibold text-white">
-                            {logoProgress.current === 0 && 'Starting AI generation...'}
-                            {logoProgress.current >= 1 && logoProgress.current < logoProgress.total / 3 && 'Creating first concepts...'}
-                            {logoProgress.current >= logoProgress.total / 3 && logoProgress.current < (logoProgress.total * 2) / 3 && 'Halfway there!'}
-                            {logoProgress.current >= (logoProgress.total * 2) / 3 && logoProgress.current < logoProgress.total && 'Almost done!'}
-                            {logoProgress.current === logoProgress.total && 'Finalizing your logos...'}
-                          </div>
-                          <div className="text-sm text-gray-400">
-                            This takes 1-2 minutes. Creating professional AI-generated logos...
-                          </div>
-                          <div className="text-xs text-gray-500 mt-3">
-                            {Math.round((logoProgress.current / logoProgress.total) * 100)}% complete
-                          </div>
-                        </div>
-                      </div>
+                  <div className="flex flex-col items-center py-12">
+                    <Loader2 size={48} className="animate-spin text-[#2979FF] mb-4" />
+                    <p className="text-white font-medium mb-2">Generating {logoProgress.current} of {logoProgress.total} logos...</p>
+                    <p className="text-gray-400 text-sm">This takes about 1-2 minutes</p>
+                    <div className="w-full max-w-xs mt-4 bg-white/10 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full bg-[#2979FF] transition-all duration-500"
+                        style={{ width: `${(logoProgress.current / logoProgress.total) * 100}%` }}
+                      />
                     </div>
                   </div>
                 )}
 
-                {data.logo_data?.concepts && data.logo_data.concepts.length > 0 && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm text-gray-400">Choose your favorite logo design:</p>
-                      <button
-                        onClick={() => {
-                          if (confirm('Generate new logos? Your current logos will be replaced.')) {
-                            handleGenerateLogoConcepts();
-                          }
-                        }}
-                        disabled={generatingLogoConcepts}
-                        className="px-4 py-2 bg-white/5 text-white rounded-lg text-sm hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border border-white/10"
-                      >
-                        {generatingLogoConcepts ? (
-                          <>
-                            <Loader2 size={14} className="animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles size={14} />
-                            Generate New Logos
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {generatingLogoConcepts && (
-                      <div className="bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-4 mb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-white">
-                            Creating Logo {logoProgress.current} of {logoProgress.total}
-                          </span>
-                          <span className="text-sm text-[#2979FF] font-semibold">
-                            {Math.round((logoProgress.current / logoProgress.total) * 100)}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
-                          <div
-                            className="h-full bg-[#2979FF] transition-all duration-500 ease-out"
-                            style={{ width: `${(logoProgress.current / logoProgress.total) * 100}%` }}
-                          />
-                        </div>
-                        <p className="text-xs text-gray-400 mt-2">
-                          {logoProgress.current === 0 && 'Initializing logo generation...'}
-                          {logoProgress.current > 0 && logoProgress.current < logoProgress.total && 'Generating professional logo concepts with AI...'}
-                          {logoProgress.current === logoProgress.total && 'Finalizing your logos...'}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-4">
+                {data.logo_data?.concepts && data.logo_data.concepts.length > 0 && !generatingLogoConcepts && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-3 gap-4">
                       {data.logo_data.concepts.map((concept, idx) => (
-                        <div key={idx} className="relative">
-                          <button
-                            onClick={() => selectLogo(concept)}
-                            className={`w-full p-4 rounded-lg transition-all ${
-                              data.logo_data?.selected?.name === concept.name
-                                ? 'bg-[#2979FF]/20 border-2 border-[#2979FF]'
-                                : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                            }`}
-                          >
-                            <div className="w-full aspect-square mb-3 bg-white rounded-lg overflow-hidden flex items-center justify-center p-4 relative group">
-                              <div className="text-center">
-                                <img
-                                  src={concept.imageUrl}
-                                  alt={concept.name}
-                                  className="w-full h-auto object-contain mb-2"
-                                />
-                                {data.selected_tagline && (
-                                  <p className="text-xs text-gray-600 italic mt-2">"{data.selected_tagline}"</p>
-                                )}
-                              </div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigateToLogoEditor(idx);
-                                }}
-                                className="absolute top-2 right-2 p-2 bg-[#2979FF] text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#2979FF]/90 z-10"
-                                title="Edit this logo"
-                              >
-                                <Edit2 size={16} />
-                              </button>
+                        <button
+                          key={idx}
+                          onClick={() => selectLogo(concept)}
+                          className={`group relative rounded-xl overflow-hidden transition-all ${
+                            data.logo_data?.selected?.imageUrl === concept.imageUrl
+                              ? 'ring-2 ring-[#2979FF] ring-offset-2 ring-offset-[#0A192F]'
+                              : 'hover:ring-2 hover:ring-white/30 hover:ring-offset-2 hover:ring-offset-[#0A192F]'
+                          }`}
+                        >
+                          <div className="aspect-square bg-white p-3">
+                            <img src={concept.imageUrl} alt={concept.name} className="w-full h-full object-contain" />
+                          </div>
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-white font-medium text-sm">{concept.name}</span>
+                          </div>
+                          {data.logo_data?.selected?.imageUrl === concept.imageUrl && (
+                            <div className="absolute top-2 right-2 w-6 h-6 bg-[#2979FF] rounded-full flex items-center justify-center">
+                              <CheckCircle2 size={14} className="text-white" />
                             </div>
-                            <p className="text-sm font-semibold text-white text-center mb-1">{concept.name}</p>
-                            <p className="text-xs text-gray-400 text-center">{concept.description}</p>
-                          </button>
-                        </div>
+                          )}
+                        </button>
                       ))}
                     </div>
 
-                    {data.logo_data?.selected && (
-                      <div className="mt-6 space-y-4">
-                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-white font-semibold">Selected Logo</h4>
-                            <button
-                              onClick={() => navigateToLogoEditor()}
-                              className="px-3 py-1 bg-[#2979FF] text-white rounded-lg text-sm flex items-center gap-2 hover:bg-[#2979FF]/90 transition-colors"
-                            >
-                              <Edit2 size={14} />
-                              Edit Logo
-                            </button>
-                          </div>
+                    <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                      <button
+                        onClick={() => handleGenerateLogoConcepts()}
+                        disabled={generatingLogoConcepts}
+                        className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+                      >
+                        <RefreshCw size={14} />
+                        Regenerate
+                      </button>
+                      <div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoUpload}
+                          className="hidden"
+                          id="logo-upload-alt"
+                        />
+                        <label
+                          htmlFor="logo-upload-alt"
+                          className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+                        >
+                          <Upload size={14} />
+                          Upload instead
+                        </label>
+                      </div>
+                    </div>
 
-                          <div className="flex gap-4">
-                            <div className="w-32 h-32 bg-white rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
-                              <img
-                                src={data.logo_data.selected.imageUrl}
-                                alt={data.logo_data.selected.name}
-                                className="w-full h-full object-contain"
-                              />
-                            </div>
-
-                            <div className="flex-1">
-                              <p className="text-white font-medium mb-1">{data.logo_data.selected.name}</p>
-                              <p className="text-gray-400 text-xs mb-2">{data.logo_data.selected.description}</p>
-                              <p className="text-gray-500 text-xs mb-3">AI-generated using DALL-E 3</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {data.completed_steps.includes('generate-names') &&
-                         data.completed_steps.includes('select-colors') &&
-                         data.completed_steps.includes('generate-logo') && (
-                          <div className="flex justify-end mt-6">
-                            <button
-                              onClick={() => scrollToSection(completionRef)}
-                              className="px-6 py-3 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors flex items-center gap-2"
-                            >
-                              View Completion
-                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                              </svg>
-                            </button>
-                          </div>
-                        )}
+                    {data.logo_data?.selected && data.completed_steps.includes('generate-names') &&
+                     data.completed_steps.includes('select-colors') &&
+                     data.completed_steps.includes('generate-logo') && (
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => scrollToSection(completionRef)}
+                          className="px-6 py-3 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors flex items-center gap-2"
+                        >
+                          Continue
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </button>
                       </div>
                     )}
                   </div>
