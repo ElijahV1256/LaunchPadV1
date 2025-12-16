@@ -33,108 +33,121 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log('Starting logo generation for:', businessName);
-    console.log('Business description:', businessDescription);
-    console.log('Brand personality/requirements:', brandPersonality);
 
-    const iconAccent = brandColors?.primary || '#2F6BFF';
+    const primaryColor = brandColors?.primary || '#0B1320';
+    const accentColor = brandColors?.accent || brandColors?.secondary || '#2979FF';
 
-    const additionalRequirements = brandPersonality ? `\nAdditional requirements from user: "${brandPersonality}"` : '';
+    const prompt = `You are a world-class brand designer creating premium, minimalist logo concepts. Generate 8 unique logo variations for "${businessName}".
 
-    const prompt = `You are a brand designer generating clean, modern wordmark + icon logos that can be rendered in UI (not images).
+Business context: ${businessDescription || 'Not provided'}
+${brandPersonality ? `Style preferences: ${brandPersonality}` : ''}
 
-Input:
-company_name: "${businessName}"
-business_description: "${businessDescription || 'Not provided'}"${additionalRequirements}
+LOGO STYLE REQUIREMENTS:
+Create clean, sophisticated logos using ONLY typography and simple geometric accents. Think high-end brands like Apple, Nike, Airbnb, Stripe, Linear.
 
-Goal:
-Create 8 logo options using only the company name. Each option must include:
-- Wordmark text = company_name
-- Optional 2nd text option: remove spaces (e.g., "Launch Pad" -> "Launchpad") only if it looks better
-- Simple icon on the left (must be clean and minimal)
-- Typography + colors that look "startup-quality"
+For each logo, specify ONE of these styles:
+1. "wordmark" - Pure typography with stylized lettering
+2. "monogram" - Initials only (1-3 letters) with distinctive treatment
+3. "wordmark-accent" - Typography with a simple geometric accent (line, dot, circle)
+4. "stacked" - Name split across two lines with intentional hierarchy
 
-CRITICAL - Icon Selection Rules:
-1. If the user specified additional requirements (like "baby icon"), PRIORITIZE those requests
-2. Analyze what the company NAME means or evokes (e.g., "Haven" suggests safety/home, "Birth Kits" suggests baby/parenting)
-3. Consider the business industry/description
-4. Choose icons that match the user's request, name meaning, AND industry
-5. Do NOT use random or generic icons - every icon must have a clear connection to the business
+DESIGN RULES:
+- NO clipart, icons, or illustrations
+- NO complex shapes or mascots
+- Geometric accents must be SIMPLE: single line, dot, circle, or arc
+- Focus on typography weight, spacing, and arrangement
+- Make each option distinctly different
 
-Industry icon guidance (use as reference):
-- Baby/Birth/Parenting: Baby, Heart, HeartHandshake, Flower2, Sun, Star
-- Health/Medical/Wellness: Stethoscope, Heart, ShieldCheck, Leaf, Sun
-- Tech/Software: Rocket, Zap, Bolt, Globe, Target
-- Food/Restaurant: Coffee, Leaf, Sun, Flower2, Star
-- Home/Real Estate: Home, Sun, Mountain, TreePine, Compass
-- Fitness/Sports: Target, Zap, Bolt, Mountain, Star
-- Finance/Business: Briefcase, ShieldCheck, BadgeCheck, Target, Award
-- Education: Book, Pen, Star, Award, Compass
-- Travel: Plane, Globe, Compass, Mountain, Anchor
-- Beauty/Fashion: Sparkles, Star, Crown, Flower2, Palette
-- Eco/Green: Leaf, TreePine, Globe, Sun, Flower2
-- Creative/Design: Palette, Pen, Camera, Sparkles, Star
-- Shipping/Logistics: Truck, Package, Globe, Anchor, Plane
+Available fonts (use exact names):
+- "Inter" (clean, modern)
+- "Manrope" (geometric, friendly)
+- "Space Grotesk" (technical, bold)
+- "DM Sans" (rounded, approachable)
+- "Sora" (contemporary, balanced)
+- "Poppins" (geometric, modern)
+- "Playfair Display" (elegant, serif)
+- "Libre Baskerville" (classic, refined)
 
-Hard rules:
-- Do NOT generate images or mockups
-- Output must be renderable as SVG + CSS
-- Flat, minimal, scalable, readable at small sizes
-- No gradients, shadows, 3D, textures, mascots, complex drawings
-
-Available icons (pick ONLY from this list):
-Rocket, Sparkles, ShieldCheck, BadgeCheck, Leaf, Bolt, HeartHandshake, Stethoscope, Baby, Package, Store, Wrench, Hammer, TreePine, Mountain, Waves, Globe, CheckCircle, Circle, Star, Heart, Home, Users, Zap, Crown, Target, Award, Compass, Sun, Moon, Cloud, Coffee, Briefcase, Camera, Music, Palette, Pen, Book, Gift, Truck, Plane, Anchor, Flower2
-
-Font stacks (choose ONE per concept, vary them across all 8):
-- "Inter", system-ui, -apple-system, "Segoe UI", Arial, sans-serif
-- "Manrope", system-ui, -apple-system, "Segoe UI", Arial, sans-serif
-- "Montserrat", system-ui, -apple-system, "Segoe UI", Arial, sans-serif
-- "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif
-- "Sora", system-ui, -apple-system, "Segoe UI", Arial, sans-serif
-- "DM Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif
-- "Space Grotesk", system-ui, -apple-system, "Segoe UI", Arial, sans-serif
-- "Poppins", system-ui, -apple-system, "Segoe UI", Arial, sans-serif
-
-Weights allowed: 600, 700, 800
-Letter spacing allowed: -0.02em, -0.01em, 0em
-
-Color rules:
-- wordmark: #0B1320
-- icon accent: pick ONE from: ${iconAccent}, #2F6BFF, #16A34A, #F59E0B, #0EA5E9, #EF4444, #EC4899
-- Also provide black/white variants
-
-Output (JSON only):
-Return valid JSON exactly in this structure:
-
+OUTPUT FORMAT (JSON only):
 {
-  "company_name": "${businessName}",
   "logos": [
     {
       "id": "A",
-      "text_primary": "${businessName}",
-      "text_alt": "${businessName.replace(/\\s+/g, '')}",
-      "icon_lucide": "Baby",
-      "font_stack": "\\"Inter\\", system-ui, -apple-system, \\"Segoe UI\\", Arial, sans-serif",
-      "font_weight": 700,
-      "letter_spacing": "-0.01em",
-      "colors": {
-        "wordmark": "#0B1320",
-        "icon": "#2F6BFF",
-        "black": "#000000",
-        "white": "#FFFFFF"
+      "style": "wordmark",
+      "displayText": "${businessName}",
+      "font": "Inter",
+      "fontWeight": 700,
+      "letterSpacing": "-0.02em",
+      "textTransform": "none",
+      "textColor": "#0B1320",
+      "accent": null,
+      "layout": {
+        "type": "horizontal",
+        "alignment": "left"
+      },
+      "rationale": "Brief explanation"
+    },
+    {
+      "id": "B",
+      "style": "monogram",
+      "displayText": "HB",
+      "font": "Playfair Display",
+      "fontWeight": 600,
+      "letterSpacing": "0.1em",
+      "textTransform": "uppercase",
+      "textColor": "#0B1320",
+      "accent": {
+        "type": "circle-outline",
+        "color": "${accentColor}",
+        "position": "around"
       },
       "layout": {
-        "icon_left": true,
-        "icon_size_px": 28,
-        "icon_stroke": 2,
-        "gap_px": 12
+        "type": "centered",
+        "alignment": "center"
       },
-      "rationale": "1 short sentence why this icon matches the business"
+      "rationale": "Brief explanation"
+    },
+    {
+      "id": "C",
+      "style": "wordmark-accent",
+      "displayText": "${businessName}",
+      "font": "Space Grotesk",
+      "fontWeight": 600,
+      "letterSpacing": "-0.01em",
+      "textTransform": "none",
+      "textColor": "#0B1320",
+      "accent": {
+        "type": "underline",
+        "color": "${accentColor}",
+        "position": "below"
+      },
+      "layout": {
+        "type": "horizontal",
+        "alignment": "left"
+      },
+      "rationale": "Brief explanation"
     }
-  ],
-  "top_pick": "A"
+  ]
 }
 
-Generate exactly 8 logos with IDs A through H. Each should have a DIFFERENT icon and font combination. Match icons to BOTH the company name meaning AND the business industry.`;
+ACCENT OPTIONS (when style is "wordmark-accent" or "monogram"):
+- "underline" - Simple line below text
+- "dot" - Small circle before or after text
+- "circle-outline" - Thin circle around monogram
+- "line-left" - Vertical line to the left
+- "arc" - Curved line above or below
+- null - No accent (required for pure "wordmark" style)
+
+For monograms, extract meaningful initials from "${businessName}".
+
+Generate exactly 8 logos with varied styles:
+- At least 2 pure wordmarks
+- At least 2 monograms
+- At least 2 with accents
+- Mix of serif and sans-serif fonts
+- Mix of weights and spacings
+
+Return ONLY valid JSON.`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -183,22 +196,22 @@ Generate exactly 8 logos with IDs A through H. Each should have a DIFFERENT icon
 
     const concepts = (parsed.logos || []).map((logo: any) => ({
       id: logo.id,
-      name: `Style ${logo.id}`,
-      description: logo.rationale,
-      text_primary: logo.text_primary,
-      text_alt: logo.text_alt,
-      icon_lucide: logo.icon_lucide,
-      font_stack: logo.font_stack,
-      font_weight: logo.font_weight,
-      letter_spacing: logo.letter_spacing,
-      colors: logo.colors,
+      style: logo.style,
+      displayText: logo.displayText,
+      font: logo.font,
+      fontWeight: logo.fontWeight,
+      letterSpacing: logo.letterSpacing,
+      textTransform: logo.textTransform || 'none',
+      textColor: logo.textColor || primaryColor,
+      accent: logo.accent,
       layout: logo.layout,
+      rationale: logo.rationale,
     }));
 
     console.log(`Generated ${concepts.length} logo concepts`);
 
     return new Response(
-      JSON.stringify({ concepts, topPick: parsed.top_pick }),
+      JSON.stringify({ concepts }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

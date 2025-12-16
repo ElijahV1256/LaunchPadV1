@@ -3,16 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  Home, CheckCircle2, Circle, Loader2, Sparkles, RefreshCw, CreditCard as Edit2, X, Download, Upload, Bookmark, BookmarkCheck,
-  Rocket, ShieldCheck, BadgeCheck, Leaf, Bolt, HeartHandshake, Stethoscope, Baby, Package, Store, Wrench, Hammer, TreePine, Mountain, Waves, Globe, Star, Heart, Users, Zap, Crown, Target, Award, Compass, Sun, Moon, Cloud, Coffee, Briefcase, Camera, Music, Palette, Pen, Book, Gift, Truck, Plane, Anchor, Flower2,
-  type LucideIcon
+  Home, CheckCircle2, Circle, Loader2, Sparkles, RefreshCw, Download, Upload, Bookmark, BookmarkCheck
 } from 'lucide-react';
 import { generateLogoConcepts, regenerateLogoWithChanges, generateCompleteBrandFoundation } from '../services/openai';
 import { downloadBrandGuide } from '../utils/brandGuide';
-
-const iconMap: Record<string, LucideIcon> = {
-  Rocket, Sparkles, ShieldCheck, BadgeCheck, Leaf, Bolt, HeartHandshake, Stethoscope, Baby, Package, Store, Wrench, Hammer, TreePine, Mountain, Waves, Globe, CheckCircle: CheckCircle2, Circle, Star, Heart, Home, Users, Zap, Crown, Target, Award, Compass, Sun, Moon, Cloud, Coffee, Briefcase, Camera, Music, Palette, Pen, Book, Gift, Truck, Plane, Anchor, Flower2
-};
 
 interface ColorPalette {
   primary: string;
@@ -20,29 +14,170 @@ interface ColorPalette {
   accent: string;
 }
 
+interface LogoAccent {
+  type: 'underline' | 'dot' | 'circle-outline' | 'line-left' | 'arc';
+  color: string;
+  position: string;
+}
+
 interface LogoConcept {
-  id?: string;
-  name: string;
-  description: string;
-  imageUrl?: string;
-  text_primary?: string;
-  text_alt?: string;
-  icon_lucide?: string;
-  font_stack?: string;
-  font_weight?: number;
-  letter_spacing?: string;
-  colors?: {
-    wordmark: string;
-    icon: string;
-    black: string;
-    white: string;
+  id: string;
+  style: 'wordmark' | 'monogram' | 'wordmark-accent' | 'stacked';
+  displayText: string;
+  font: string;
+  fontWeight: number;
+  letterSpacing: string;
+  textTransform: string;
+  textColor: string;
+  accent: LogoAccent | null;
+  layout: {
+    type: string;
+    alignment: string;
   };
-  layout?: {
-    icon_left: boolean;
-    icon_size_px: number;
-    icon_stroke: number;
-    gap_px: number;
+  rationale: string;
+}
+
+const fontUrls: Record<string, string> = {
+  'Inter': 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap',
+  'Manrope': 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap',
+  'Space Grotesk': 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap',
+  'DM Sans': 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap',
+  'Sora': 'https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap',
+  'Poppins': 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap',
+  'Playfair Display': 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&display=swap',
+  'Libre Baskerville': 'https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap',
+};
+
+function LogoRenderer({ concept, size = 'normal' }: { concept: LogoConcept; size?: 'normal' | 'large' }) {
+  useEffect(() => {
+    if (concept.font && fontUrls[concept.font]) {
+      const existingLink = document.querySelector(`link[href="${fontUrls[concept.font]}"]`);
+      if (!existingLink) {
+        const link = document.createElement('link');
+        link.href = fontUrls[concept.font];
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+      }
+    }
+  }, [concept.font]);
+
+  const fontSize = size === 'large' ? '1.75rem' : concept.style === 'monogram' ? '2rem' : '1.25rem';
+  const monogramSize = size === 'large' ? '3rem' : '2.5rem';
+
+  const textStyle: React.CSSProperties = {
+    fontFamily: `"${concept.font}", system-ui, sans-serif`,
+    fontWeight: concept.fontWeight,
+    letterSpacing: concept.letterSpacing,
+    textTransform: concept.textTransform as any,
+    color: concept.textColor,
+    fontSize: concept.style === 'monogram' ? monogramSize : fontSize,
+    lineHeight: 1.1,
   };
+
+  const renderAccent = () => {
+    if (!concept.accent) return null;
+    const { type, color } = concept.accent;
+
+    switch (type) {
+      case 'underline':
+        return (
+          <div
+            className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full"
+            style={{ backgroundColor: color }}
+          />
+        );
+      case 'dot':
+        return (
+          <div
+            className="w-2 h-2 rounded-full flex-shrink-0"
+            style={{ backgroundColor: color }}
+          />
+        );
+      case 'line-left':
+        return (
+          <div
+            className="w-1 h-full rounded-full flex-shrink-0"
+            style={{ backgroundColor: color, minHeight: '24px' }}
+          />
+        );
+      case 'arc':
+        return (
+          <svg
+            className="absolute -bottom-2 left-1/2 -translate-x-1/2"
+            width="60"
+            height="8"
+            viewBox="0 0 60 8"
+          >
+            <path
+              d="M0 8 Q30 0 60 8"
+              fill="none"
+              stroke={color}
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        );
+      case 'circle-outline':
+        return (
+          <div
+            className="absolute inset-0 rounded-full border-2 -m-3"
+            style={{ borderColor: color }}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  if (concept.style === 'monogram') {
+    return (
+      <div className="flex items-center justify-center relative">
+        {concept.accent?.type === 'circle-outline' && (
+          <div
+            className="absolute rounded-full border-2"
+            style={{
+              borderColor: concept.accent.color,
+              width: 'calc(100% + 16px)',
+              height: 'calc(100% + 16px)',
+            }}
+          />
+        )}
+        <span style={textStyle}>{concept.displayText}</span>
+      </div>
+    );
+  }
+
+  if (concept.style === 'stacked') {
+    const words = concept.displayText.split(' ');
+    const midpoint = Math.ceil(words.length / 2);
+    const line1 = words.slice(0, midpoint).join(' ');
+    const line2 = words.slice(midpoint).join(' ');
+
+    return (
+      <div className="flex flex-col items-start relative">
+        <span style={{ ...textStyle, fontSize: size === 'large' ? '1.5rem' : '1rem' }}>{line1}</span>
+        <span style={{ ...textStyle, fontSize: size === 'large' ? '1.5rem' : '1rem', opacity: 0.7 }}>{line2}</span>
+        {concept.accent?.type === 'underline' && renderAccent()}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`flex items-center gap-3 relative ${
+        concept.layout?.alignment === 'center' ? 'justify-center' : 'justify-start'
+      }`}
+    >
+      {concept.accent?.type === 'line-left' && renderAccent()}
+      {concept.accent?.type === 'dot' && concept.accent.position === 'before' && renderAccent()}
+      <span className="relative" style={textStyle}>
+        {concept.displayText}
+        {concept.accent?.type === 'underline' && renderAccent()}
+        {concept.accent?.type === 'arc' && renderAccent()}
+      </span>
+      {concept.accent?.type === 'dot' && concept.accent.position !== 'before' && renderAccent()}
+    </div>
+  );
 }
 
 interface NameOption {
@@ -1471,14 +1606,14 @@ export default function BrandIdentity() {
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white mb-2">3. Logo Creation</h3>
                 <p className="text-gray-400 text-sm mb-4">
-                  Describe what you want in your logo and we'll create it with your business name and colors.
+                  Generate professional typography-based logos with wordmarks, monograms, and minimal accents.
                 </p>
 
                 {!data.logo_data?.concepts?.length && !generatingLogoConcepts && (
                   <div className="space-y-4">
                     <div className="relative">
                       <textarea
-                        placeholder="Describe what you want in your logo... (e.g., 'a simple leaf icon representing growth', 'a modern geometric shape', 'a friendly mascot', 'minimalist and professional')"
+                        placeholder="Describe the style you want... (e.g., 'elegant and serif', 'bold and modern', 'minimal with clean lines', 'playful and rounded')"
                         value={logoSuggestions}
                         onChange={(e) => setLogoSuggestions(e.target.value)}
                         rows={3}
@@ -1507,7 +1642,7 @@ export default function BrandIdentity() {
                               },
                               body: JSON.stringify({
                                 context: contextStr || undefined,
-                                prompt: 'Suggest a creative logo concept for this business. Describe a specific icon or visual element that would work well (1-2 sentences, be specific about the icon/symbol). For example: "A minimalist coffee cup with steam forming a heart shape" or "An abstract geometric fox head representing cleverness"'
+                                prompt: 'Suggest a typography style for this business logo. Focus on font personality and visual treatment (1-2 sentences). For example: "Bold sans-serif with tight letter spacing for a modern tech feel" or "Elegant serif with a subtle underline accent for sophistication"'
                               }),
                             });
                             const result = await response.json();
@@ -1594,9 +1729,7 @@ export default function BrandIdentity() {
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {data.logo_data.concepts.map((concept, idx) => {
-                        const isSelected = data.logo_data?.selected?.id === concept.id ||
-                          (concept.imageUrl && data.logo_data?.selected?.imageUrl === concept.imageUrl);
-                        const IconComponent = concept.icon_lucide ? iconMap[concept.icon_lucide] : null;
+                        const isSelected = data.logo_data?.selected?.id === concept.id;
 
                         return (
                           <button
@@ -1608,38 +1741,14 @@ export default function BrandIdentity() {
                                 : 'hover:ring-2 hover:ring-white/30 hover:ring-offset-2 hover:ring-offset-[#0A192F]'
                             }`}
                           >
-                            <div className="h-20 bg-white px-6 flex items-center justify-start">
-                              {concept.icon_lucide && IconComponent ? (
-                                <div
-                                  className="flex items-center"
-                                  style={{ gap: concept.layout?.gap_px || 12 }}
-                                >
-                                  <IconComponent
-                                    size={concept.layout?.icon_size_px || 28}
-                                    strokeWidth={concept.layout?.icon_stroke || 2}
-                                    style={{ color: concept.colors?.icon || '#2F6BFF' }}
-                                  />
-                                  <span
-                                    style={{
-                                      fontFamily: concept.font_stack || '"Inter", system-ui, sans-serif',
-                                      fontWeight: concept.font_weight || 700,
-                                      letterSpacing: concept.letter_spacing || '-0.01em',
-                                      color: concept.colors?.wordmark || '#0B1320',
-                                      fontSize: '1.25rem',
-                                      lineHeight: 1,
-                                    }}
-                                  >
-                                    {concept.text_primary || data.selected_name}
-                                  </span>
-                                </div>
-                              ) : concept.imageUrl ? (
-                                <img src={concept.imageUrl} alt={concept.name} className="h-10 w-auto object-contain" />
-                              ) : (
-                                <span className="text-gray-400">Logo preview</span>
-                              )}
+                            <div className={`bg-white px-6 py-5 flex items-center ${
+                              concept.style === 'monogram' ? 'justify-center' : 'justify-start'
+                            }`}>
+                              <LogoRenderer concept={concept} />
                             </div>
-                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <span className="text-white font-medium text-sm px-4 text-center">{concept.description || concept.name}</span>
+                            <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4">
+                              <span className="text-white/60 text-xs uppercase tracking-wider mb-1">{concept.style}</span>
+                              <span className="text-white font-medium text-sm text-center">{concept.rationale}</span>
                             </div>
                             {isSelected && (
                               <div className="absolute top-2 right-2 w-6 h-6 bg-[#2979FF] rounded-full flex items-center justify-center">
@@ -1652,12 +1761,12 @@ export default function BrandIdentity() {
                     </div>
 
                     <div className="pt-4 border-t border-white/10 space-y-4">
-                      <p className="text-sm text-gray-400">Want different logos? Describe what you're looking for:</p>
+                      <p className="text-sm text-gray-400">Want different logos? Describe the style:</p>
                       <div className="flex gap-3">
                         <div className="relative flex-1">
                           <input
                             type="text"
-                            placeholder="e.g., 'a nest icon', 'lotus flower', 'abstract heart shape'..."
+                            placeholder="e.g., 'more elegant', 'bolder fonts', 'serif style', 'minimal'..."
                             value={logoSuggestions}
                             onChange={(e) => setLogoSuggestions(e.target.value)}
                             className="w-full px-4 py-3 pr-12 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] text-sm"
@@ -1685,7 +1794,7 @@ export default function BrandIdentity() {
                                   },
                                   body: JSON.stringify({
                                     context: contextStr || undefined,
-                                    prompt: 'Suggest a creative logo concept for this business. Describe a specific icon or visual element that would work well (1-2 sentences, be specific about the icon/symbol). For example: "A minimalist coffee cup with steam forming a heart shape" or "An abstract geometric fox head representing cleverness"'
+                                    prompt: 'Suggest a typography style for this business logo. Focus on font personality and visual treatment (1-2 sentences). For example: "Bold sans-serif with tight letter spacing for a modern tech feel" or "Elegant serif with a subtle underline accent for sophistication"'
                                   }),
                                 });
                                 const result = await response.json();
