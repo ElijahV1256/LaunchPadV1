@@ -1,87 +1,11 @@
 import { useNavigate } from 'react-router-dom';
-import { Rocket, ArrowRight, CheckCircle, Star, Target, TrendingUp, Sparkles, MapPin } from 'lucide-react';
+import { Rocket, ArrowRight, Star, Target, Sparkles, MapPin } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useState, useEffect } from 'react';
 import { supabase } from '../config/supabase';
 
 export default function Homepage() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const [lastProgress, setLastProgress] = useState<any>(null);
-
-  useEffect(() => {
-    if (currentUser) {
-      loadLastProgress();
-    }
-  }, [currentUser]);
-
-  const loadLastProgress = async () => {
-    if (!currentUser) return;
-
-    try {
-      const { data: ideas } = await supabase
-        .from('business_ideas')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (!ideas || ideas.length === 0) return;
-
-      const latestIdea = ideas[0];
-      const ideaKey = latestIdea.idea_id;
-
-      const [brandData, marketingData, operationsData] = await Promise.all([
-        supabase.from('brand_identity').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
-        supabase.from('marketing_assets').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
-        supabase.from('profit_loss_entries').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).limit(1),
-      ]);
-
-      let currentStage = null;
-      let stageName = '';
-      let link = '';
-      let isComplete = false;
-
-      const brandComplete = brandData.data && brandData.data.selected_name && brandData.data.brand_colors && brandData.data.logo_data?.selected;
-      const marketingComplete = marketingData.data && marketingData.data.completed_steps && marketingData.data.completed_steps.length >= 4;
-      const operationsStarted = operationsData.data && operationsData.data.length > 0;
-
-      const hasAnyProgress = brandData.data || marketingData.data || operationsStarted;
-
-      if (!hasAnyProgress) {
-        return;
-      }
-
-      if (!brandComplete) {
-        currentStage = 'Brand Identity';
-        stageName = 'Brand Identity';
-        link = `/brand-identity?ideaKey=${ideaKey}`;
-      } else if (!marketingComplete) {
-        currentStage = 'Marketing Assets';
-        stageName = 'Marketing Assets';
-        link = `/storybrand-wizard?ideaKey=${ideaKey}`;
-      } else if (!operationsStarted) {
-        currentStage = 'Operations';
-        stageName = 'Operations & Tracking';
-        link = `/operations?ideaKey=${ideaKey}`;
-      } else {
-        currentStage = 'Completed';
-        stageName = 'All stages complete!';
-        link = `/operations?ideaKey=${ideaKey}`;
-        isComplete = true;
-      }
-
-      setLastProgress({
-        ideaName: latestIdea.name,
-        currentStage,
-        stageName,
-        link,
-        isComplete,
-      });
-    } catch (err) {
-      console.error('Failed to load last progress:', err);
-    }
-  };
 
   const handleGetStarted = async () => {
     if (!currentUser) {
@@ -101,25 +25,10 @@ export default function Homepage() {
         return;
       }
 
-      const { data: ideas } = await supabase
-        .from('business_ideas')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .limit(1);
-
-      if (!ideas || ideas.length === 0) {
-        navigate('/ideas');
-        return;
-      }
-
-      if (lastProgress && lastProgress.link) {
-        navigate(lastProgress.link);
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/ideas');
     } catch (err) {
       console.error('Error determining start point:', err);
-      navigate('/dashboard');
+      navigate('/ideas');
     }
   };
 
