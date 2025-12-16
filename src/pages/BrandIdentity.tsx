@@ -2,9 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import {
-  Home, CheckCircle2, Circle, Loader2, Sparkles, RefreshCw, Download, Upload, Bookmark, BookmarkCheck
-} from 'lucide-react';
+import { Home, CheckCircle2, Circle, Loader2, Sparkles, RefreshCw, CreditCard as Edit2, X, Download, Upload, Bookmark, BookmarkCheck } from 'lucide-react';
 import { generateLogoConcepts, regenerateLogoWithChanges, generateCompleteBrandFoundation } from '../services/openai';
 import { downloadBrandGuide } from '../utils/brandGuide';
 
@@ -15,55 +13,10 @@ interface ColorPalette {
 }
 
 interface LogoConcept {
-  id: string;
-  directionName: string;
-  concept: string;
-  palette: {
-    primary: string;
-    accent: string;
-  };
-  layoutType: string;
-  svg: string;
-  wordmarkStyle?: {
-    font_stack: string;
-    weight: number;
-    letter_spacing: string;
-  };
-}
-
-function SVGLogoRenderer({ concept }: { concept: LogoConcept }) {
-  const sanitizeSVG = (svgString: string) => {
-    if (!svgString) return '';
-    let cleaned = svgString.trim();
-    if (!cleaned.startsWith('<svg')) {
-      const svgStart = cleaned.indexOf('<svg');
-      if (svgStart !== -1) {
-        cleaned = cleaned.substring(svgStart);
-      }
-    }
-    const svgEnd = cleaned.lastIndexOf('</svg>');
-    if (svgEnd !== -1) {
-      cleaned = cleaned.substring(0, svgEnd + 6);
-    }
-    return cleaned;
-  };
-
-  const svgContent = sanitizeSVG(concept.svg);
-
-  if (!svgContent) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-gray-400">
-        Logo preview unavailable
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="w-full h-full flex items-center justify-center"
-      dangerouslySetInnerHTML={{ __html: svgContent }}
-    />
-  );
+  name: string;
+  description: string;
+  imageUrl: string;
+  prompt: string;
 }
 
 interface NameOption {
@@ -114,7 +67,7 @@ export default function BrandIdentity() {
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [generatingLogoConcepts, setGeneratingLogoConcepts] = useState(false);
-  const [logoProgress, setLogoProgress] = useState({ current: 0, total: 8 });
+  const [logoProgress, setLogoProgress] = useState({ current: 0, total: 6 });
   const [editingLogo, setEditingLogo] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
   const [regeneratingLogo, setRegeneratingLogo] = useState(false);
@@ -675,7 +628,7 @@ export default function BrandIdentity() {
     }
 
     setGeneratingLogoConcepts(true);
-    setLogoProgress({ current: 0, total: 8 });
+    setLogoProgress({ current: 0, total: 3 });
 
     try {
       const businessDescription = logoAnswers.businessDescription.trim()
@@ -740,7 +693,7 @@ export default function BrandIdentity() {
       alert(`Failed to generate logos: ${err?.message || 'Unknown error'}. Check console for details.`);
     } finally {
       setGeneratingLogoConcepts(false);
-      setLogoProgress({ current: 0, total: 8 });
+      setLogoProgress({ current: 0, total: 6 });
     }
   };
 
@@ -1490,271 +1443,294 @@ export default function BrandIdentity() {
                 )}
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-2">3. Logo Creation</h3>
+                <h3 className="text-xl font-bold text-white mb-3">3. Logo Creation</h3>
                 <p className="text-gray-400 text-sm mb-4">
-                  Generate 3 unique SVG vector logos with different styles - wordmarks, emblems, monograms, and abstract marks.
+                  AI generates 3 premium geometric symbol marks using your brand colors. Pure icon-only designs (no text) - perfect for app icons, favicons, or add your business name later.
                 </p>
 
-                {!data.logo_data?.concepts?.length && !generatingLogoConcepts && (
-                  <div className="space-y-4">
-                    <div className="relative">
-                      <textarea
-                        placeholder="Describe the style you want... (e.g., 'minimal and modern', 'bold emblem style', 'elegant with serif text', 'abstract geometric mark')"
-                        value={logoSuggestions}
-                        onChange={(e) => setLogoSuggestions(e.target.value)}
-                        rows={3}
-                        className="w-full px-4 py-3 pr-12 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none"
-                      />
-                      <button
-                        onClick={async () => {
-                          setGeneratingStyle(true);
-                          try {
-                            let contextStr = '';
-                            if (data?.selected_name) {
-                              contextStr = `Business Name: ${data.selected_name}`;
-                            }
-                            if (offerDescription.trim()) {
-                              contextStr += `\nOffers: ${offerDescription}`;
-                            }
-                            if (targetAudience.trim()) {
-                              contextStr += `\nTarget Audience: ${targetAudience}`;
-                            }
-
-                            const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-suggestions`, {
-                              method: 'POST',
-                              headers: {
-                                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                                'Content-Type': 'application/json',
-                              },
-                              body: JSON.stringify({
-                                context: contextStr || undefined,
-                                prompt: 'Suggest a logo style direction for this business. Describe the visual approach (1-2 sentences). For example: "A bold emblem with geometric shapes representing strength" or "A minimal wordmark with clean lines for a premium tech feel"'
-                              }),
-                            });
-                            const result = await response.json();
-                            setLogoSuggestions(result.suggestion || '');
-                          } catch (err) {
-                            console.error('Error generating logo suggestion:', err);
-                          } finally {
-                            setGeneratingStyle(false);
-                          }
-                        }}
-                        disabled={generatingStyle}
-                        className="absolute right-3 top-3 p-2 text-[#2979FF] hover:text-[#2979FF]/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Get AI suggestion"
-                      >
-                        {generatingStyle ? (
-                          <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                          <Sparkles size={18} />
-                        )}
-                      </button>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <button
-                        onClick={handleGenerateLogoConcepts}
-                        disabled={!data.selected_name || !data.brand_colors.primary}
-                        className="flex-1 px-6 py-3 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      >
+                <div className="flex gap-3 mb-4">
+                  <button
+                    onClick={handleGenerateLogoConcepts}
+                    disabled={generatingLogoConcepts || !data.selected_name || !data.brand_colors.primary}
+                    className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {generatingLogoConcepts ? (
+                      <>
+                        <Loader2 size={18} className="animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
                         <Sparkles size={18} />
-                        Generate Logos
-                      </button>
-                    <div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        className="hidden"
-                        id="logo-upload"
-                      />
-                      <label
-                        htmlFor="logo-upload"
-                        className={`px-6 py-3 bg-white/10 border border-white/20 text-white rounded-lg font-medium hover:bg-white/15 transition-colors flex items-center gap-2 justify-center cursor-pointer ${
-                          uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        {uploadingLogo ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
-                        {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
-                      </label>
-                    </div>
-                    </div>
+                        Generate Logo Concepts
+                      </>
+                    )}
+                  </button>
+
+                  <div className="flex-1">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                      id="logo-upload"
+                    />
+                    <label
+                      htmlFor="logo-upload"
+                      className={`px-6 py-2 bg-white/5 border border-white/20 text-white rounded-lg font-semibold hover:bg-white/10 transition-colors flex items-center gap-2 justify-center cursor-pointer ${
+                        uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {uploadingLogo ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={18} />
+                          Upload Your Own Logo
+                        </>
+                      )}
+                    </label>
                   </div>
-                )}
+                </div>
 
                 {uploadedLogoUrl && (
-                  <div className="flex items-center gap-4 p-4 bg-[#06D6A0]/10 border border-[#06D6A0]/30 rounded-lg mb-4">
-                    <div className="w-16 h-16 bg-white rounded-lg overflow-hidden flex-shrink-0">
-                      <img src={uploadedLogoUrl} alt="Uploaded logo" className="w-full h-full object-contain" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-white font-medium text-sm">Custom Logo Uploaded</p>
-                      <button onClick={removeUploadedLogo} className="text-xs text-red-400 hover:text-red-300 mt-1">
-                        Remove
-                      </button>
+                  <div className="bg-[#06D6A0]/10 border border-[#06D6A0]/30 rounded-lg p-4 mb-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-24 h-24 bg-white rounded-lg overflow-hidden flex-shrink-0">
+                        <img
+                          src={uploadedLogoUrl}
+                          alt="Uploaded logo"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-white font-semibold mb-1">Your Uploaded Logo</h4>
+                        <p className="text-sm text-gray-400 mb-3">
+                          This logo will be used when generating your brand guide
+                        </p>
+                        <button
+                          onClick={removeUploadedLogo}
+                          className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1"
+                        >
+                          <X size={14} />
+                          Remove
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {generatingLogoConcepts && (
-                  <div className="flex flex-col items-center py-12">
-                    <Loader2 size={48} className="animate-spin text-[#2979FF] mb-4" />
-                    <p className="text-white font-medium mb-2">Generating {logoProgress.current} of {logoProgress.total} logos...</p>
-                    <p className="text-gray-400 text-sm">This takes about 1-2 minutes</p>
-                    <div className="w-full max-w-xs mt-4 bg-white/10 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="h-full bg-[#2979FF] transition-all duration-500"
-                        style={{ width: `${(logoProgress.current / logoProgress.total) * 100}%` }}
-                      />
+                  <div className="bg-white/5 rounded-lg p-8 border border-white/10 mb-4">
+                    <div className="flex flex-col items-center gap-6 py-8">
+                      <div className="relative w-40 h-40">
+                        <svg className="w-40 h-40 transform -rotate-90">
+                          <circle
+                            cx="80"
+                            cy="80"
+                            r="72"
+                            stroke="rgba(255,255,255,0.1)"
+                            strokeWidth="10"
+                            fill="none"
+                          />
+                          <circle
+                            cx="80"
+                            cy="80"
+                            r="72"
+                            stroke="url(#gradient)"
+                            strokeWidth="10"
+                            fill="none"
+                            strokeDasharray={`${2 * Math.PI * 72}`}
+                            strokeDashoffset={`${2 * Math.PI * 72 * (1 - logoProgress.current / logoProgress.total)}`}
+                            strokeLinecap="round"
+                            className="transition-all duration-700 ease-out"
+                          />
+                          <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor="#2979FF" />
+                              <stop offset="100%" stopColor="#06D6A0" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-4xl font-bold bg-gradient-to-r from-[#2979FF] to-[#06D6A0] bg-clip-text text-transparent">
+                              {logoProgress.current}
+                            </div>
+                            <div className="text-sm opacity-75 text-gray-300">of {logoProgress.total}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="w-full max-w-md space-y-4">
+                        <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden shadow-lg">
+                          <div
+                            className="h-full bg-gradient-to-r from-[#2979FF] to-[#06D6A0] transition-all duration-700 ease-out rounded-full shadow-[0_0_10px_rgba(41,121,255,0.5)]"
+                            style={{ width: `${(logoProgress.current / logoProgress.total) * 100}%` }}
+                          />
+                        </div>
+
+                        <div className="text-center space-y-2">
+                          <div className="text-xl font-semibold text-white">
+                            {logoProgress.current === 0 && 'Starting AI generation...'}
+                            {logoProgress.current >= 1 && logoProgress.current < logoProgress.total / 3 && 'Creating first concepts...'}
+                            {logoProgress.current >= logoProgress.total / 3 && logoProgress.current < (logoProgress.total * 2) / 3 && 'Halfway there!'}
+                            {logoProgress.current >= (logoProgress.total * 2) / 3 && logoProgress.current < logoProgress.total && 'Almost done!'}
+                            {logoProgress.current === logoProgress.total && 'Finalizing your logos...'}
+                          </div>
+                          <div className="text-sm text-gray-400">
+                            This takes 1-2 minutes. Creating professional AI-generated logos...
+                          </div>
+                          <div className="text-xs text-gray-500 mt-3">
+                            {Math.round((logoProgress.current / logoProgress.total) * 100)}% complete
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {data.logo_data?.concepts && data.logo_data.concepts.length > 0 && !generatingLogoConcepts && (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 gap-6">
-                      {data.logo_data.concepts.map((concept, idx) => {
-                        const isSelected = data.logo_data?.selected?.id === concept.id;
+                {data.logo_data?.concepts && data.logo_data.concepts.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-gray-400">Choose your favorite logo design:</p>
+                      <button
+                        onClick={() => {
+                          if (confirm('Generate new logos? Your current logos will be replaced.')) {
+                            handleGenerateLogoConcepts();
+                          }
+                        }}
+                        disabled={generatingLogoConcepts}
+                        className="px-4 py-2 bg-white/5 text-white rounded-lg text-sm hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border border-white/10"
+                      >
+                        {generatingLogoConcepts ? (
+                          <>
+                            <Loader2 size={14} className="animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles size={14} />
+                            Generate New Logos
+                          </>
+                        )}
+                      </button>
+                    </div>
 
-                        return (
+                    {generatingLogoConcepts && (
+                      <div className="bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-4 mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-white">
+                            Creating Logo {logoProgress.current} of {logoProgress.total}
+                          </span>
+                          <span className="text-sm text-[#2979FF] font-semibold">
+                            {Math.round((logoProgress.current / logoProgress.total) * 100)}%
+                          </span>
+                        </div>
+                        <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className="h-full bg-[#2979FF] transition-all duration-500 ease-out"
+                            style={{ width: `${(logoProgress.current / logoProgress.total) * 100}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2">
+                          {logoProgress.current === 0 && 'Initializing logo generation...'}
+                          {logoProgress.current > 0 && logoProgress.current < logoProgress.total && 'Generating professional logo concepts with AI...'}
+                          {logoProgress.current === logoProgress.total && 'Finalizing your logos...'}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                      {data.logo_data.concepts.map((concept, idx) => (
+                        <div key={idx} className="relative">
                           <button
-                            key={idx}
                             onClick={() => selectLogo(concept)}
-                            className={`group relative rounded-2xl overflow-hidden transition-all text-left ${
-                              isSelected
-                                ? 'ring-2 ring-[#2979FF] ring-offset-4 ring-offset-[#0A192F]'
-                                : 'hover:ring-2 hover:ring-white/30 hover:ring-offset-4 hover:ring-offset-[#0A192F]'
+                            className={`w-full p-4 rounded-lg transition-all ${
+                              data.logo_data?.selected?.name === concept.name
+                                ? 'bg-[#2979FF]/20 border-2 border-[#2979FF]'
+                                : 'bg-white/5 border border-white/10 hover:bg-white/10'
                             }`}
                           >
-                            <div className="bg-white p-8 flex items-center justify-center min-h-[180px]">
-                              <div className="w-full max-w-[280px] h-[120px] [&_svg]:w-full [&_svg]:h-full [&_svg]:max-w-full [&_svg]:max-h-full">
-                                <SVGLogoRenderer concept={concept} />
+                            <div className="w-full aspect-square mb-3 bg-white rounded-lg overflow-hidden flex items-center justify-center p-4 relative group">
+                              <div className="text-center">
+                                <img
+                                  src={concept.imageUrl}
+                                  alt={concept.name}
+                                  className="w-full h-auto object-contain mb-2"
+                                />
+                                {data.selected_tagline && (
+                                  <p className="text-xs text-gray-600 italic mt-2">"{data.selected_tagline}"</p>
+                                )}
                               </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigateToLogoEditor(idx);
+                                }}
+                                className="absolute top-2 right-2 p-2 bg-[#2979FF] text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#2979FF]/90 z-10"
+                                title="Edit this logo"
+                              >
+                                <Edit2 size={16} />
+                              </button>
                             </div>
-                            <div className="bg-[#0F2847] px-6 py-4 flex items-start justify-between gap-4">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-[#2979FF] text-xs font-semibold uppercase tracking-wider">
-                                    {concept.layoutType}
-                                  </span>
-                                  <span className="text-white/40">-</span>
-                                  <span className="text-white font-medium text-sm">
-                                    {concept.directionName}
-                                  </span>
-                                </div>
-                                <p className="text-gray-400 text-sm line-clamp-2">{concept.concept}</p>
-                              </div>
-                              {isSelected && (
-                                <div className="w-6 h-6 bg-[#2979FF] rounded-full flex items-center justify-center flex-shrink-0">
-                                  <CheckCircle2 size={14} className="text-white" />
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <div className="pt-4 border-t border-white/10 space-y-4">
-                      <p className="text-sm text-gray-400">Want different logos? Describe what you're looking for:</p>
-                      <div className="flex gap-3">
-                        <div className="relative flex-1">
-                          <input
-                            type="text"
-                            placeholder="e.g., 'more minimal', 'emblem style', 'abstract mark', 'bolder'..."
-                            value={logoSuggestions}
-                            onChange={(e) => setLogoSuggestions(e.target.value)}
-                            className="w-full px-4 py-3 pr-12 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] text-sm"
-                          />
-                          <button
-                            onClick={async () => {
-                              setGeneratingStyle(true);
-                              try {
-                                let contextStr = '';
-                                if (data?.selected_name) {
-                                  contextStr = `Business Name: ${data.selected_name}`;
-                                }
-                                if (offerDescription.trim()) {
-                                  contextStr += `\nOffers: ${offerDescription}`;
-                                }
-                                if (targetAudience.trim()) {
-                                  contextStr += `\nTarget Audience: ${targetAudience}`;
-                                }
-
-                                const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-suggestions`, {
-                                  method: 'POST',
-                                  headers: {
-                                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                                    'Content-Type': 'application/json',
-                                  },
-                                  body: JSON.stringify({
-                                    context: contextStr || undefined,
-                                    prompt: 'Suggest a logo style direction for this business. Describe the visual approach (1-2 sentences). For example: "A bold emblem with geometric shapes representing strength" or "A minimal wordmark with clean lines for a premium tech feel"'
-                                  }),
-                                });
-                                const result = await response.json();
-                                setLogoSuggestions(result.suggestion || '');
-                              } catch (err) {
-                                console.error('Error generating logo suggestion:', err);
-                              } finally {
-                                setGeneratingStyle(false);
-                              }
-                            }}
-                            disabled={generatingStyle}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-[#2979FF] hover:text-[#2979FF]/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Get AI suggestion"
-                          >
-                            {generatingStyle ? (
-                              <Loader2 size={16} className="animate-spin" />
-                            ) : (
-                              <Sparkles size={16} />
-                            )}
+                            <p className="text-sm font-semibold text-white text-center mb-1">{concept.name}</p>
+                            <p className="text-xs text-gray-400 text-center">{concept.description}</p>
                           </button>
                         </div>
-                        <button
-                          onClick={() => handleGenerateLogoConcepts()}
-                          disabled={generatingLogoConcepts}
-                          className="px-6 py-3 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
-                        >
-                          <Sparkles size={16} />
-                          Generate
-                        </button>
-                      </div>
-                      <div className="flex justify-end">
-                        <div>
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleLogoUpload}
-                            className="hidden"
-                            id="logo-upload-alt"
-                          />
-                          <label
-                            htmlFor="logo-upload-alt"
-                            className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
-                          >
-                            <Upload size={14} />
-                            Upload instead
-                          </label>
-                        </div>
-                      </div>
+                      ))}
                     </div>
 
-                    {data.logo_data?.selected && data.completed_steps.includes('generate-names') &&
-                     data.completed_steps.includes('select-colors') &&
-                     data.completed_steps.includes('generate-logo') && (
-                      <div className="flex justify-end">
-                        <button
-                          onClick={() => scrollToSection(completionRef)}
-                          className="px-6 py-3 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors flex items-center gap-2"
-                        >
-                          Continue
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                          </svg>
-                        </button>
+                    {data.logo_data?.selected && (
+                      <div className="mt-6 space-y-4">
+                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-white font-semibold">Selected Logo</h4>
+                            <button
+                              onClick={() => navigateToLogoEditor()}
+                              className="px-3 py-1 bg-[#2979FF] text-white rounded-lg text-sm flex items-center gap-2 hover:bg-[#2979FF]/90 transition-colors"
+                            >
+                              <Edit2 size={14} />
+                              Edit Logo
+                            </button>
+                          </div>
+
+                          <div className="flex gap-4">
+                            <div className="w-32 h-32 bg-white rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
+                              <img
+                                src={data.logo_data.selected.imageUrl}
+                                alt={data.logo_data.selected.name}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+
+                            <div className="flex-1">
+                              <p className="text-white font-medium mb-1">{data.logo_data.selected.name}</p>
+                              <p className="text-gray-400 text-xs mb-2">{data.logo_data.selected.description}</p>
+                              <p className="text-gray-500 text-xs mb-3">AI-generated using DALL-E 3</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {data.completed_steps.includes('generate-names') &&
+                         data.completed_steps.includes('select-colors') &&
+                         data.completed_steps.includes('generate-logo') && (
+                          <div className="flex justify-end mt-6">
+                            <button
+                              onClick={() => scrollToSection(completionRef)}
+                              className="px-6 py-3 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors flex items-center gap-2"
+                            >
+                              View Completion
+                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                              </svg>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
