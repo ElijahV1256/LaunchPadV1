@@ -43,33 +43,39 @@ Input:
 company_name: "${businessName}"
 business_description: "${businessDescription || 'Not provided'}"
 
-CRITICAL: Analyze the business name and description to determine the industry. Then select icons that are DIRECTLY RELEVANT to that industry. Do NOT use generic icons.
+Goal:
+Create 8 logo options using only the company name. Each option must include:
+- Wordmark text = company_name
+- Optional 2nd text option: remove spaces (e.g., "Launch Pad" -> "Launchpad") only if it looks better
+- Simple icon on the left (must be clean and minimal)
+- Typography + colors that look "startup-quality"
 
-Industry-specific icon guidance (use these as your PRIMARY choices):
-- Baby/Birth/Pregnancy/Postpartum: Baby, Heart, HeartHandshake, Flower2, Sun, Star
+CRITICAL - Icon Selection Rules:
+1. First, analyze what the company NAME means or evokes (e.g., "Haven" suggests safety/home, "Birth Kits" suggests baby/parenting)
+2. Then consider the business industry/description
+3. Choose icons that match BOTH the name meaning AND the industry
+4. Do NOT use random or generic icons - every icon must have a clear connection to the business
+
+Industry icon guidance (use as reference):
+- Baby/Birth/Parenting: Baby, Heart, HeartHandshake, Flower2, Sun, Star
 - Health/Medical/Wellness: Stethoscope, Heart, ShieldCheck, Leaf, Sun
-- Tech/Software/Startups: Rocket, Zap, Bolt, Globe, Target
-- Food/Restaurant/Cafe: Coffee, Leaf, Sun, Flower2, Star
-- Home/Real Estate/Interior: Home, Sun, Mountain, TreePine, Compass
+- Tech/Software: Rocket, Zap, Bolt, Globe, Target
+- Food/Restaurant: Coffee, Leaf, Sun, Flower2, Star
+- Home/Real Estate: Home, Sun, Mountain, TreePine, Compass
 - Fitness/Sports: Target, Zap, Bolt, Mountain, Star
 - Finance/Business: Briefcase, ShieldCheck, BadgeCheck, Target, Award
-- Education/Learning: Book, Pen, Star, Award, Compass
-- Travel/Tourism: Plane, Globe, Compass, Mountain, Anchor
+- Education: Book, Pen, Star, Award, Compass
+- Travel: Plane, Globe, Compass, Mountain, Anchor
 - Beauty/Fashion: Sparkles, Star, Crown, Flower2, Palette
-- Eco/Sustainability: Leaf, TreePine, Globe, Sun, Flower2
-- Childcare/Parenting: Baby, Heart, Star, Sun, HeartHandshake
+- Eco/Green: Leaf, TreePine, Globe, Sun, Flower2
 - Creative/Design: Palette, Pen, Camera, Sparkles, Star
 - Shipping/Logistics: Truck, Package, Globe, Anchor, Plane
 
-Goal:
-Create 8 logo options. ALL 8 logos must use icons that make sense for the "${businessDescription || businessName}" business.
-
 Hard rules:
-- EVERY icon must be industry-relevant (no random icons)
-- At least 6 of the 8 logos should use the TOP recommended icons for this industry
 - Do NOT generate images or mockups
 - Output must be renderable as SVG + CSS
 - Flat, minimal, scalable, readable at small sizes
+- No gradients, shadows, 3D, textures, mascots, complex drawings
 
 Available icons (pick ONLY from this list):
 Rocket, Sparkles, ShieldCheck, BadgeCheck, Leaf, Bolt, HeartHandshake, Stethoscope, Baby, Package, Store, Wrench, Hammer, TreePine, Mountain, Waves, Globe, CheckCircle, Circle, Star, Heart, Home, Users, Zap, Crown, Target, Award, Compass, Sun, Moon, Cloud, Coffee, Briefcase, Camera, Music, Palette, Pen, Book, Gift, Truck, Plane, Anchor, Flower2
@@ -124,7 +130,7 @@ Return valid JSON exactly in this structure:
   "top_pick": "A"
 }
 
-Generate exactly 8 logos with IDs A through H. Each should have a DIFFERENT icon and font combination. EVERY icon must be relevant to the business industry.`;
+Generate exactly 8 logos with IDs A through H. Each should have a DIFFERENT icon and font combination. Match icons to BOTH the company name meaning AND the business industry.`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
