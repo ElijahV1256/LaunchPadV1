@@ -15,10 +15,10 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!anthropicApiKey) {
+    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!openaiApiKey) {
       return new Response(
-        JSON.stringify({ error: "Anthropic API key not configured" }),
+        JSON.stringify({ error: "OpenAI API key not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -82,7 +82,7 @@ Return JSON ONLY in this exact structure:
       "layout_type": "stacked | emblem | wordmark | monogram | abstract",
       "svg": "<svg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'>...</svg>",
       "wordmark_style": {
-        "font_stack": "\\"Inter\\", system-ui, sans-serif",
+        "font_stack": "\"Inter\", system-ui, sans-serif",
         "weight": 700,
         "letter_spacing": "-0.01em"
       }
@@ -102,25 +102,31 @@ Return JSON ONLY in this exact structure:
 Hard anti-repeat instruction:
 Treat regen_nonce as a command to generate new shapes + new concepts every time. Do not reuse prior layouts, motifs, or geometry.
 
-Generate completely unique, professional SVG logos now.`;
+Generate completely unique, professional SVG logos now. Return ONLY valid JSON, no markdown or extra text.`;
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": anthropicApiKey,
-        "anthropic-version": "2023-06-01",
+        "Authorization": `Bearer ${openaiApiKey}`,
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert brand designer who creates professional SVG vector logos. Always return valid JSON only, no markdown formatting."
+          },
+          { role: "user", content: prompt }
+        ],
         max_tokens: 8000,
-        messages: [{ role: "user", content: prompt }],
+        temperature: 0.9,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Anthropic API error:", errorText);
+      console.error("OpenAI API error:", errorText);
       return new Response(
         JSON.stringify({ error: "Failed to generate logo concepts" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -128,20 +134,31 @@ Generate completely unique, professional SVG logos now.`;
     }
 
     const data = await response.json();
-    const content = data.content?.[0]?.text || "";
+    const content = data.choices?.[0]?.message?.content || "";
 
-    console.log('Claude response received, parsing...');
+    console.log('OpenAI response received, parsing...');
 
     let parsed;
     try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      let cleanContent = content.trim();
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.slice(7);
+      } else if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.slice(3);
+      }
+      if (cleanContent.endsWith('```')) {
+        cleanContent = cleanContent.slice(0, -3);
+      }
+      cleanContent = cleanContent.trim();
+
+      const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsed = JSON.parse(jsonMatch[0]);
       } else {
         throw new Error("No JSON found in response");
       }
     } catch (parseError) {
-      console.error("Failed to parse Claude response:", parseError);
+      console.error("Failed to parse OpenAI response:", parseError);
       console.error("Raw content:", content.substring(0, 1000));
       return new Response(
         JSON.stringify({ error: "Failed to parse logo data" }),
