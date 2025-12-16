@@ -1593,68 +1593,71 @@ export default function BrandIdentity() {
                     </div>
 
                     <div className="pt-4 border-t border-white/10 space-y-4">
-                      <div className="relative">
-                        <textarea
-                          placeholder="Want different logos? Describe what you're looking for... (e.g., 'a simple leaf icon', 'a modern geometric shape', 'something more playful')"
-                          value={logoSuggestions}
-                          onChange={(e) => setLogoSuggestions(e.target.value)}
-                          rows={2}
-                          className="w-full px-4 py-3 pr-12 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none text-sm"
-                        />
-                        <button
-                          onClick={async () => {
-                            setGeneratingStyle(true);
-                            try {
-                              let contextStr = '';
-                              if (data?.selected_name) {
-                                contextStr = `Business Name: ${data.selected_name}`;
-                              }
-                              if (offerDescription.trim()) {
-                                contextStr += `\nOffers: ${offerDescription}`;
-                              }
-                              if (targetAudience.trim()) {
-                                contextStr += `\nTarget Audience: ${targetAudience}`;
-                              }
+                      <p className="text-sm text-gray-400">Want different logos? Describe what you're looking for:</p>
+                      <div className="flex gap-3">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            placeholder="e.g., 'a nest icon', 'lotus flower', 'abstract heart shape'..."
+                            value={logoSuggestions}
+                            onChange={(e) => setLogoSuggestions(e.target.value)}
+                            className="w-full px-4 py-3 pr-12 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] text-sm"
+                          />
+                          <button
+                            onClick={async () => {
+                              setGeneratingStyle(true);
+                              try {
+                                let contextStr = '';
+                                if (data?.selected_name) {
+                                  contextStr = `Business Name: ${data.selected_name}`;
+                                }
+                                if (offerDescription.trim()) {
+                                  contextStr += `\nOffers: ${offerDescription}`;
+                                }
+                                if (targetAudience.trim()) {
+                                  contextStr += `\nTarget Audience: ${targetAudience}`;
+                                }
 
-                              const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-suggestions`, {
-                                method: 'POST',
-                                headers: {
-                                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                                  'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                  context: contextStr || undefined,
-                                  prompt: 'Suggest a creative logo concept for this business. Describe a specific icon or visual element that would work well (1-2 sentences, be specific about the icon/symbol). For example: "A minimalist coffee cup with steam forming a heart shape" or "An abstract geometric fox head representing cleverness"'
-                                }),
-                              });
-                              const result = await response.json();
-                              setLogoSuggestions(result.suggestion || '');
-                            } catch (err) {
-                              console.error('Error generating logo suggestion:', err);
-                            } finally {
-                              setGeneratingStyle(false);
-                            }
-                          }}
-                          disabled={generatingStyle}
-                          className="absolute right-3 top-3 p-2 text-[#2979FF] hover:text-[#2979FF]/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Get AI suggestion"
-                        >
-                          {generatingStyle ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <Sparkles size={16} />
-                          )}
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-between">
+                                const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-suggestions`, {
+                                  method: 'POST',
+                                  headers: {
+                                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                                    'Content-Type': 'application/json',
+                                  },
+                                  body: JSON.stringify({
+                                    context: contextStr || undefined,
+                                    prompt: 'Suggest a creative logo concept for this business. Describe a specific icon or visual element that would work well (1-2 sentences, be specific about the icon/symbol). For example: "A minimalist coffee cup with steam forming a heart shape" or "An abstract geometric fox head representing cleverness"'
+                                  }),
+                                });
+                                const result = await response.json();
+                                setLogoSuggestions(result.suggestion || '');
+                              } catch (err) {
+                                console.error('Error generating logo suggestion:', err);
+                              } finally {
+                                setGeneratingStyle(false);
+                              }
+                            }}
+                            disabled={generatingStyle}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-[#2979FF] hover:text-[#2979FF]/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Get AI suggestion"
+                          >
+                            {generatingStyle ? (
+                              <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                              <Sparkles size={16} />
+                            )}
+                          </button>
+                        </div>
                         <button
                           onClick={() => handleGenerateLogoConcepts()}
                           disabled={generatingLogoConcepts}
-                          className="text-sm text-[#2979FF] hover:text-[#2979FF]/80 transition-colors flex items-center gap-2 font-medium"
+                          className="px-6 py-3 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
                         >
-                          <RefreshCw size={14} />
-                          Regenerate Logos
+                          <Sparkles size={16} />
+                          Generate
                         </button>
+                      </div>
+                      <div className="flex justify-end">
                         <div>
                           <input
                             ref={fileInputRef}
