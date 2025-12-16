@@ -38,16 +38,31 @@ Deno.serve(async (req: Request) => {
 
     console.log('OpenAI API key found, generating website...');
 
+    const logoInstruction = logoUrl
+      ? `CRITICAL - LOGO IMAGE:
+You MUST use this EXACT img tag for the logo in the navigation bar:
+<img src="${logoUrl}" alt="${businessName} Logo" class="h-10 w-auto object-contain" />
+
+Do NOT:
+- Use placeholder images
+- Use text instead of the logo
+- Change the src URL
+- Use background-image
+
+The logo MUST be an <img> element with the exact URL: ${logoUrl}`
+      : `Create a styled text logo with the business name using brand colors`;
+
     const prompt = `Generate a complete, modern, professional single-page website as a fully functional HTML document.
 
 # BUSINESS INFORMATION
 Business Name: ${businessName}
 Tagline: ${tagline}
 Brand Colors: Primary ${brandColors.primary}, Secondary ${brandColors.secondary}, Accent ${brandColors.accent}
-Logo URL: ${logoUrl || 'Use business name as styled text logo'}
 Description: ${description}
 Target Audience: ${targetAudience}
 Business Type: ${businessType}
+
+${logoInstruction}
 
 # TECHNICAL REQUIREMENTS
 - Single HTML file with embedded CSS and minimal JavaScript
@@ -60,10 +75,10 @@ Business Type: ${businessType}
 
 # VISUAL DESIGN REQUIREMENTS (CRITICAL)
 
-LOGO USAGE:
-${logoUrl ? `- MUST display the logo image at the top: <img src="${logoUrl}" alt="${businessName}" class="h-10 lg:h-12">` : `- Create a styled text logo with the business name using brand colors`}
-- Logo must appear in the navigation bar
-- Make the logo prominent and high quality
+LOGO IN NAVIGATION:
+${logoUrl ? `- The navigation bar MUST contain: <img src="${logoUrl}" alt="${businessName} Logo" class="h-10 w-auto object-contain" />` : `- Create a styled text logo with the business name using brand colors`}
+- Logo appears on the left side of the navigation
+- Do NOT skip the logo or use placeholder text
 
 COLORS (USE EXTENSIVELY):
 - PRIMARY COLOR (${brandColors.primary}):
@@ -115,10 +130,11 @@ Components:
 
 1. NAVIGATION (Fixed/Sticky)
 - Fixed top, backdrop-blur-lg bg-white/80
-- ${logoUrl ? `Display logo image: <img src="${logoUrl}" alt="${businessName}" class="h-10 lg:h-12">` : 'Styled text logo with brand color'}
-- Nav links on right with hover color change to brand color
+- LEFT SIDE: ${logoUrl ? `MUST display this exact logo: <img src="${logoUrl}" alt="${businessName} Logo" class="h-10 w-auto object-contain" />` : 'Styled text logo with brand color'}
+- RIGHT SIDE: Nav links with hover color change to brand color
 - Mobile hamburger menu
 - Shadow on scroll
+- The logo image is REQUIRED - do not use placeholder or text
 
 2. HERO SECTION (min-h-screen) - MUST BE COLORFUL
 - Background: Use inline style with gradient:
@@ -193,7 +209,7 @@ Keep JS minimal and functional.
 ✓ Consistent design language
 ✓ VISUALLY RICH - Use colors, gradients, and visual elements throughout
 ✓ Brand colors used prominently in hero, CTAs, sections, and accents
-✓ ${logoUrl ? 'Logo image displayed prominently in navigation' : 'Styled text logo with brand colors'}
+✓ ${logoUrl ? `Logo image MUST be in navigation using: <img src="${logoUrl}" class="h-10 w-auto object-contain" />` : 'Styled text logo with brand colors'}
 ✓ NOT a plain white website - alternate section colors
 ✓ Beautiful gradient backgrounds and colored placeholders instead of images
 ✓ Accessible (proper contrast, semantic HTML)
@@ -202,6 +218,7 @@ Keep JS minimal and functional.
 ✓ Smooth interactions and hover effects
 
 # CRITICAL REMINDERS
+${logoUrl ? `- LOGO: You MUST include <img src="${logoUrl}" alt="${businessName} Logo" class="h-10 w-auto object-contain" /> in the navigation bar` : ''}
 - The hero section MUST have a colored gradient background
 - Use inline styles for exact brand colors: style="background-color: ${brandColors.primary}"
 - Create gradient placeholders for images: style="background: linear-gradient(135deg, color1, color2)"
@@ -226,7 +243,7 @@ Make it beautiful and modern - like websites from Linear, Stripe, Vercel, or Fra
         messages: [
           {
             role: 'system',
-            content: 'You are an expert web developer and designer creating visually stunning, colorful websites. Generate beautiful, modern, production-ready single-page websites with bold use of brand colors, gradients, and visual elements. Return ONLY raw HTML code - no markdown, no code blocks, no explanations. Start with <!DOCTYPE html> and end with </html>. Use Tailwind CSS and inline styles for exact colors. The website MUST be colorful and visually rich - NOT a plain white page. Use colored backgrounds, gradients, and visual elements throughout.',
+            content: `You are an expert web developer and designer creating visually stunning, colorful websites. Generate beautiful, modern, production-ready single-page websites with bold use of brand colors, gradients, and visual elements. Return ONLY raw HTML code - no markdown, no code blocks, no explanations. Start with <!DOCTYPE html> and end with </html>. Use Tailwind CSS and inline styles for exact colors. The website MUST be colorful and visually rich - NOT a plain white page. Use colored backgrounds, gradients, and visual elements throughout.${logoUrl ? ` CRITICAL: When a logo URL is provided, you MUST use an <img> tag with that exact URL in the navigation bar. Do not use placeholder images or text logos when a logo URL is given.` : ''}`,
           },
           {
             role: 'user',
