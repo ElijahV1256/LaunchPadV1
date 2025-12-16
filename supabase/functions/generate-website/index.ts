@@ -101,8 +101,13 @@ COLORS (USE EXTENSIVELY):
 
 VISUAL ELEMENTS (REQUIRED):
 1. Colorful hero background: Use gradient or solid brand color, NOT plain white
-2. Image placeholders: Create beautiful colored placeholder boxes for images using gradients
-   Example: <div class="w-full h-64 rounded-2xl" style="background: linear-gradient(135deg, ${brandColors.primary} 0%, ${brandColors.secondary} 100%)"></div>
+2. IMAGES - Use high-quality stock photos from Pexels:
+   - Incorporate 3-5 professional Pexels images throughout the website
+   - Link directly to Pexels images (e.g., https://images.pexels.com/photos/...)
+   - Choose images that match the business type and target audience
+   - Use for: hero section, about section, feature highlights, testimonial backgrounds
+   - Example: <img src="https://images.pexels.com/photos/..." alt="..." class="w-full h-64 object-cover rounded-2xl" />
+   - Choose images that feel professional, authentic, and relevant to the business
 3. Icon backgrounds: Colored circles or squares with icons/emojis
 4. Section alternation: Alternate between colored backgrounds and white
 5. Decorative shapes: Add subtle SVG shapes or gradients for visual interest
@@ -144,7 +149,8 @@ Components:
 - Large, bold headline (benefit-focused)
 - Subheadline with value proposition
 - Two CTAs: Primary button (use contrasting color like white with dark text), Secondary outline button
-- Hero visual on right: Create a gradient placeholder box or decorative shapes
+- Hero visual on right: Use a relevant Pexels image that matches the business type
+  Example: <img src="https://images.pexels.com/photos/..." alt="..." class="rounded-2xl shadow-2xl" />
 - Make this section visually striking and memorable
 
 3. FEATURES SECTION
@@ -161,8 +167,8 @@ Components:
 - Colored background (use brand color with low opacity or gradient)
 - Two-column layout (text left, visual right on desktop)
 - Compelling story about the business
-- Visual on right: Create a beautiful gradient placeholder
-  <div class="h-full min-h-[400px] rounded-2xl shadow-2xl" style="background: linear-gradient(135deg, ${brandColors.secondary} 0%, ${brandColors.accent} 100%)"></div>
+- Visual on right: Use a professional Pexels image that showcases the business or happy customers
+  <img src="https://images.pexels.com/photos/..." alt="..." class="h-full min-h-[400px] w-full object-cover rounded-2xl shadow-2xl" />
 
 5. TESTIMONIALS (if applicable)
 - White background
@@ -224,6 +230,7 @@ ${logoUrl ? `- LOGO: You MUST include <img src="${logoUrl}" alt="${businessName}
 - Create gradient placeholders for images: style="background: linear-gradient(135deg, color1, color2)"
 - Alternate section backgrounds between white and colored
 - Make the design visually impressive and modern
+- Use 3-5 Pexels images throughout the website
 
 # OUTPUT FORMAT
 Return ONLY the complete HTML document. Start with <!DOCTYPE html> and end with </html>.
@@ -243,7 +250,7 @@ Make it beautiful and modern - like websites from Linear, Stripe, Vercel, or Fra
         messages: [
           {
             role: 'system',
-            content: `You are an expert web developer and designer creating visually stunning, colorful websites. Generate beautiful, modern, production-ready single-page websites with bold use of brand colors, gradients, and visual elements. Return ONLY raw HTML code - no markdown, no code blocks, no explanations. Start with <!DOCTYPE html> and end with </html>. Use Tailwind CSS and inline styles for exact colors. The website MUST be colorful and visually rich - NOT a plain white page. Use colored backgrounds, gradients, and visual elements throughout.${logoUrl ? ` CRITICAL: When a logo URL is provided, you MUST use an <img> tag with that exact URL in the navigation bar. Do not use placeholder images or text logos when a logo URL is given.` : ''}`,
+            content: `You are an expert web developer and designer creating visually stunning, colorful websites. Generate beautiful, modern, production-ready single-page websites with bold use of brand colors, gradients, and visual elements. IMPORTANT: Incorporate 3-5 high-quality stock photos from Pexels that match the business type. Link directly to Pexels images (e.g., https://images.pexels.com/photos/...). Return ONLY raw HTML code - no markdown, no code blocks, no explanations. Start with <!DOCTYPE html> and end with </html>. Use Tailwind CSS and inline styles for exact colors. The website MUST be colorful and visually rich - NOT a plain white page. Use colored backgrounds, gradients, and visual elements throughout.${logoUrl ? ` CRITICAL: When a logo URL is provided, you MUST use an <img> tag with that exact URL in the navigation bar. Do not use placeholder images or text logos when a logo URL is given.` : ''}`,
           },
           {
             role: 'user',

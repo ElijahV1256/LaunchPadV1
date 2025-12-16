@@ -80,7 +80,11 @@ TECH REQUIREMENTS:
 - Each page must include: <script src="https://cdn.tailwindcss.com"></script> in <head>.
 - Do NOT use <style> blocks.
 - Do NOT use any external JS frameworks.
-- Keep images optional. If needed, use simple placeholders or the provided logoUrl.
+- IMPORTANT: Incorporate high-quality stock photos from Pexels that match the business type.
+  - Use 3-5 relevant, professional images throughout the website
+  - Link directly to Pexels images (e.g., https://images.pexels.com/photos/...)
+  - Choose images that represent the business offerings, happy customers, or relevant lifestyle shots
+  - Use the provided logoUrl for the brand logo
 - Must look premium, spacious, and trustworthy.
 - Use the brand colors from the business package for styling.
 - If brandColors are provided, use them for buttons, accents, and key elements.
