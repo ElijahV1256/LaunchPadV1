@@ -193,20 +193,20 @@ export async function generateLogoConcepts(
 
   // Call the Supabase Edge Function instead of OpenAI directly
   try {
-    onProgress?.(0, 3);
+    onProgress?.(0, 6);
 
     // Create an AbortController for timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout
+    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minute timeout for 6 logos
 
     // Simulate progress updates while waiting for the edge function
     let currentProgress = 0;
     const progressInterval = setInterval(() => {
-      if (currentProgress < 2.7) {
-        currentProgress += 0.3;
-        onProgress?.(Math.min(currentProgress, 2.7), 3);
+      if (currentProgress < 5) {
+        currentProgress += 1;
+        onProgress?.(currentProgress, 6);
       }
-    }, 10000); // Update every 10 seconds
+    }, 15000); // Update every 15 seconds
 
     try {
       const response = await fetch(
@@ -243,7 +243,7 @@ export async function generateLogoConcepts(
 
       const { concepts } = await response.json();
 
-      onProgress?.(3, 3);
+      onProgress?.(6, 6);
 
       console.log(`Generated ${concepts.length} logo concepts total`);
 

@@ -1559,7 +1559,7 @@ export default function BrandIdentity() {
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="text-center">
                             <div className="text-4xl font-bold bg-gradient-to-r from-[#2979FF] to-[#06D6A0] bg-clip-text text-transparent">
-                              {logoProgress.current}
+                              {Math.floor(logoProgress.current)}
                             </div>
                             <div className="text-sm opacity-75 text-gray-300">of {logoProgress.total}</div>
                           </div>
@@ -1583,10 +1583,10 @@ export default function BrandIdentity() {
                             {logoProgress.current === logoProgress.total && 'Finalizing your logos...'}
                           </div>
                           <div className="text-sm text-gray-400">
-                            This takes 1-2 minutes. Creating professional AI-generated logos...
+                            This takes 2-3 minutes. Creating 6 professional AI-generated logos...
                           </div>
                           <div className="text-xs text-gray-500 mt-3">
-                            {Math.round((logoProgress.current / logoProgress.total) * 100)}% complete
+                            {Math.floor((logoProgress.current / logoProgress.total) * 100)}% complete
                           </div>
                         </div>
                       </div>
@@ -1625,10 +1625,10 @@ export default function BrandIdentity() {
                       <div className="bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-4 mb-4">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-medium text-white">
-                            Creating Logo {logoProgress.current} of {logoProgress.total}
+                            Creating Logo {Math.floor(logoProgress.current)} of {logoProgress.total}
                           </span>
                           <span className="text-sm text-[#2979FF] font-semibold">
-                            {Math.round((logoProgress.current / logoProgress.total) * 100)}%
+                            {Math.floor((logoProgress.current / logoProgress.total) * 100)}%
                           </span>
                         </div>
                         <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
