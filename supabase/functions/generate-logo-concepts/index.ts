@@ -54,14 +54,14 @@ Deno.serve(async (req: Request) => {
 
     console.log('Starting logo generation for:', businessName);
 
-    const descriptionText = businessDescription || `A business called ${businessName}`;
-    const personalityText = brandPersonality || 'professional, modern, trustworthy';
     const colors = brandColors || { primary: '#000000', secondary: '#666666', accent: '#999999' };
 
+    const basePrompt = `Create a professional wordmark logo that displays the text "${businessName}" as the entire logo. This is a text-based logo design where the business name itself IS the logo. Use the colors ${colors.primary} (primary), ${colors.secondary} (secondary), and ${colors.accent} (accent). The design should be on a clean white background, suitable for business use. No icons, no symbols, no graphics - ONLY the stylized text "${businessName}" as a typographic logo.`;
+
     const variations = [
-      `A professional logo for ${businessName} using colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}`,
-      `A modern logo design for ${businessName} with ${colors.primary}, ${colors.secondary}, and ${colors.accent} color scheme`,
-      `A clean, minimal logo for ${businessName} incorporating ${colors.primary}, ${colors.secondary}, and ${colors.accent}`
+      `${basePrompt} Use a bold, modern sans-serif typography style. Make it clean, professional, and memorable.`,
+      `${basePrompt} Use an elegant, sophisticated serif typography style. Make it look premium and trustworthy.`,
+      `${basePrompt} Use a creative, unique custom lettering style. Make it distinctive and eye-catching while remaining professional.`
     ];
 
     const concepts: LogoConcept[] = [];
@@ -99,9 +99,15 @@ Deno.serve(async (req: Request) => {
         const imageUrl = data.data[0]?.url;
 
         if (imageUrl) {
+          const styleNames = ['Modern Sans-Serif', 'Elegant Serif', 'Custom Lettering'];
+          const styleDescriptions = [
+            'Bold, modern typography with clean lines',
+            'Sophisticated serif typography with a premium feel',
+            'Creative custom lettering with a unique style'
+          ];
           concepts.push({
-            name: `${businessName} Logo ${i + 1}`,
-            description: fullPrompt,
+            name: `${businessName} - ${styleNames[i]}`,
+            description: styleDescriptions[i],
             imageUrl: imageUrl,
             prompt: fullPrompt,
           });

@@ -1445,7 +1445,7 @@ export default function BrandIdentity() {
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white mb-3">3. Logo Creation</h3>
                 <p className="text-gray-400 text-sm mb-4">
-                  AI generates 3 premium geometric symbol marks using your brand colors. Pure icon-only designs (no text) - perfect for app icons, favicons, or add your business name later.
+                  AI generates 3 professional wordmark logos using your business name and brand colors. Each design features your business name as a stylized text logo in different typography styles.
                 </p>
 
                 <div className="flex gap-3 mb-4">
