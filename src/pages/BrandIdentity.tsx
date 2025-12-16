@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Home, CheckCircle2, Circle, Loader2, Sparkles, RefreshCw, CreditCard as Edit2, X, Download, Upload, Bookmark, BookmarkCheck } from 'lucide-react';
 import { generateLogoConcepts, regenerateLogoWithChanges, generateCompleteBrandFoundation } from '../services/openai';
 import { downloadBrandGuide } from '../utils/brandGuide';
+import RocketGame from '../components/RocketGame';
 
 interface ColorPalette {
   primary: string;
@@ -1525,72 +1526,21 @@ export default function BrandIdentity() {
                 )}
 
                 {generatingLogoConcepts && (
-                  <div className="bg-white/5 rounded-lg p-8 border border-white/10 mb-4">
-                    <div className="flex flex-col items-center gap-6 py-8">
-                      <div className="relative w-40 h-40">
-                        <svg className="w-40 h-40 transform -rotate-90">
-                          <circle
-                            cx="80"
-                            cy="80"
-                            r="72"
-                            stroke="rgba(255,255,255,0.1)"
-                            strokeWidth="10"
-                            fill="none"
-                          />
-                          <circle
-                            cx="80"
-                            cy="80"
-                            r="72"
-                            stroke="url(#gradient)"
-                            strokeWidth="10"
-                            fill="none"
-                            strokeDasharray={`${2 * Math.PI * 72}`}
-                            strokeDashoffset={`${2 * Math.PI * 72 * (1 - logoProgress.current / logoProgress.total)}`}
-                            strokeLinecap="round"
-                            className="transition-all duration-700 ease-out"
-                          />
-                          <defs>
-                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stopColor="#2979FF" />
-                              <stop offset="100%" stopColor="#06D6A0" />
-                            </linearGradient>
-                          </defs>
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-center">
-                            <div className="text-4xl font-bold bg-gradient-to-r from-[#2979FF] to-[#06D6A0] bg-clip-text text-transparent">
-                              {Math.floor(logoProgress.current)}
-                            </div>
-                            <div className="text-sm opacity-75 text-gray-300">of {logoProgress.total}</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="w-full max-w-md space-y-4">
-                        <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden shadow-lg">
-                          <div
-                            className="h-full bg-gradient-to-r from-[#2979FF] to-[#06D6A0] transition-all duration-700 ease-out rounded-full shadow-[0_0_10px_rgba(41,121,255,0.5)]"
-                            style={{ width: `${(logoProgress.current / logoProgress.total) * 100}%` }}
-                          />
-                        </div>
-
-                        <div className="text-center space-y-2">
-                          <div className="text-xl font-semibold text-white">
-                            {logoProgress.current === 0 && 'Starting AI generation...'}
-                            {logoProgress.current >= 1 && logoProgress.current < logoProgress.total / 3 && 'Creating first concepts...'}
-                            {logoProgress.current >= logoProgress.total / 3 && logoProgress.current < (logoProgress.total * 2) / 3 && 'Halfway there!'}
-                            {logoProgress.current >= (logoProgress.total * 2) / 3 && logoProgress.current < logoProgress.total && 'Almost done!'}
-                            {logoProgress.current === logoProgress.total && 'Finalizing your logos...'}
-                          </div>
-                          <div className="text-sm text-gray-400">
-                            This takes 2-3 minutes. Creating 6 professional AI-generated logos...
-                          </div>
-                          <div className="text-xs text-gray-500 mt-3">
-                            {Math.floor((logoProgress.current / logoProgress.total) * 100)}% complete
-                          </div>
-                        </div>
-                      </div>
+                  <div className="bg-white/5 rounded-lg p-6 border border-white/10 mb-4">
+                    <div className="text-center mb-4">
+                      <h3 className="text-lg font-semibold text-white mb-1">Creating Your Logos</h3>
+                      <p className="text-sm text-gray-400">Play while you wait! Use arrow keys to dodge asteroids.</p>
                     </div>
+                    <RocketGame
+                      progress={Math.floor((logoProgress.current / logoProgress.total) * 100)}
+                      stage={
+                        logoProgress.current === 0 ? 'Starting AI generation...' :
+                        logoProgress.current >= 1 && logoProgress.current < logoProgress.total / 3 ? 'Creating first concepts...' :
+                        logoProgress.current >= logoProgress.total / 3 && logoProgress.current < (logoProgress.total * 2) / 3 ? 'Halfway there!' :
+                        logoProgress.current >= (logoProgress.total * 2) / 3 && logoProgress.current < logoProgress.total ? 'Almost done!' :
+                        'Finalizing your logos...'
+                      }
+                    />
                   </div>
                 )}
 
