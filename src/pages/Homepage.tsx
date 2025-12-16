@@ -101,25 +101,10 @@ export default function Homepage() {
         return;
       }
 
-      const { data: ideas } = await supabase
-        .from('business_ideas')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .limit(1);
-
-      if (!ideas || ideas.length === 0) {
-        navigate('/ideas');
-        return;
-      }
-
-      if (lastProgress && lastProgress.link) {
-        navigate(lastProgress.link);
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/ideas');
     } catch (err) {
       console.error('Error determining start point:', err);
-      navigate('/dashboard');
+      navigate('/ideas');
     }
   };
 
