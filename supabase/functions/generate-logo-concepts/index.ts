@@ -23,7 +23,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { businessName, brandColors, businessDescription } = await req.json();
+    const { businessName, brandColors, businessDescription, brandPersonality } = await req.json();
 
     if (!businessName) {
       return new Response(
@@ -34,14 +34,17 @@ Deno.serve(async (req: Request) => {
 
     console.log('Starting logo generation for:', businessName);
     console.log('Business description:', businessDescription);
+    console.log('Brand personality/requirements:', brandPersonality);
 
     const iconAccent = brandColors?.primary || '#2F6BFF';
+
+    const additionalRequirements = brandPersonality ? `\nAdditional requirements from user: "${brandPersonality}"` : '';
 
     const prompt = `You are a brand designer generating clean, modern wordmark + icon logos that can be rendered in UI (not images).
 
 Input:
 company_name: "${businessName}"
-business_description: "${businessDescription || 'Not provided'}"
+business_description: "${businessDescription || 'Not provided'}"${additionalRequirements}
 
 Goal:
 Create 8 logo options using only the company name. Each option must include:
@@ -51,10 +54,11 @@ Create 8 logo options using only the company name. Each option must include:
 - Typography + colors that look "startup-quality"
 
 CRITICAL - Icon Selection Rules:
-1. First, analyze what the company NAME means or evokes (e.g., "Haven" suggests safety/home, "Birth Kits" suggests baby/parenting)
-2. Then consider the business industry/description
-3. Choose icons that match BOTH the name meaning AND the industry
-4. Do NOT use random or generic icons - every icon must have a clear connection to the business
+1. If the user specified additional requirements (like "baby icon"), PRIORITIZE those requests
+2. Analyze what the company NAME means or evokes (e.g., "Haven" suggests safety/home, "Birth Kits" suggests baby/parenting)
+3. Consider the business industry/description
+4. Choose icons that match the user's request, name meaning, AND industry
+5. Do NOT use random or generic icons - every icon must have a clear connection to the business
 
 Industry icon guidance (use as reference):
 - Baby/Birth/Parenting: Baby, Heart, HeartHandshake, Flower2, Sun, Star
