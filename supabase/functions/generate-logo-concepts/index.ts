@@ -51,20 +51,21 @@ Deno.serve(async (req: Request) => {
 
     const colors = brandColors || { primary: '#000000', secondary: '#666666', accent: '#999999' };
 
-    const prompt = `Create 3 simple, clean SVG wordmark logos for the business "${businessName}".
+    const prompt = `Create 3 simple, clean SVG logos for the business "${businessName}".
 
 REQUIREMENTS:
-- Each logo shows ONLY the business name "${businessName}" as styled text
-- NO icons, NO symbols, NO graphics - just the text
+- Each logo has the business name "${businessName}" as styled text
+- Each logo has a small, simple icon to the LEFT of the text
+- The icon should be relevant to the business name/type
 - Clean, professional, minimal design
-- Use the color: ${colors.primary}
-- White background (or transparent)
-- Simple typography only
+- Primary color: ${colors.primary}
+- Secondary/accent color: ${colors.secondary || colors.accent || '#666666'}
+- Keep icons SIMPLE - basic geometric shapes, no complex illustrations
 
 Create exactly 3 variations:
-1. "Modern" - Bold sans-serif, clean and minimal
-2. "Classic" - Elegant serif, refined and timeless
-3. "Creative" - Unique stylized lettering, still simple
+1. "Modern" - Bold sans-serif text, geometric minimal icon
+2. "Classic" - Elegant serif text, refined simple icon
+3. "Creative" - Unique stylized text, distinctive icon
 
 OUTPUT FORMAT - Return ONLY valid JSON, no markdown:
 {
@@ -85,12 +86,18 @@ OUTPUT FORMAT - Return ONLY valid JSON, no markdown:
 }
 
 SVG REQUIREMENTS:
-- viewBox="0 0 400 120"
-- Width 400, height 120
-- Text centered vertically and horizontally
-- Use standard web fonts: Arial, Georgia, or Verdana
-- Keep it simple - just a <text> element with styling
-- Fill color: ${colors.primary}
+- viewBox="0 0 400 100"
+- Use xmlns="http://www.w3.org/2000/svg"
+- Icon on the left (around x=15-55), sized about 40-50px
+- Text to the right of icon (starting around x=70)
+- Text vertically centered (y around 55-60)
+- Use web-safe fonts: Arial, Georgia, Verdana
+- Icon uses primary color: ${colors.primary}
+- Text uses primary color: ${colors.primary}
+- Can use secondary color ${colors.secondary || colors.accent || '#666666'} for icon accents
+- Keep icons simple: circles, squares, lines, basic paths only
+- NO gradients, NO filters, NO complex effects
+- Font size around 32-38px for readability
 
 Return ONLY the JSON object, nothing else.`;
 
