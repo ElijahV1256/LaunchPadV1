@@ -61,7 +61,10 @@ Deno.serve(async (req: Request) => {
     const variations = [
       `A professional logo for ${businessName} using colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}`,
       `A modern logo design for ${businessName} with ${colors.primary}, ${colors.secondary}, and ${colors.accent} color scheme`,
-      `A clean, minimal logo for ${businessName} incorporating ${colors.primary}, ${colors.secondary}, and ${colors.accent}`
+      `A clean, minimal logo for ${businessName} incorporating ${colors.primary}, ${colors.secondary}, and ${colors.accent}`,
+      `A bold, geometric logo for ${businessName} featuring ${colors.primary}, ${colors.secondary}, and ${colors.accent}`,
+      `An elegant, sophisticated logo for ${businessName} with ${colors.primary}, ${colors.secondary}, and ${colors.accent} palette`,
+      `A creative, unique logo for ${businessName} using ${colors.primary}, ${colors.secondary}, and ${colors.accent} colors`
     ];
 
     const concepts: LogoConcept[] = [];
