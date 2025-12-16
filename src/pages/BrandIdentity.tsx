@@ -686,7 +686,6 @@ export default function BrandIdentity() {
       setData({ ...data, logo_data: { ...data!.logo_data, concepts }, completed_steps: newCompletedSteps });
 
       console.log('Logo generation complete!');
-      setShowLogoQuestionnaire(false);
     } catch (err: any) {
       console.error('Error generating logo concepts:', err);
       console.error('Error message:', err?.message);
