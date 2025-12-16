@@ -1566,7 +1566,7 @@ export default function BrandIdentity() {
 
                 {data.logo_data?.concepts && data.logo_data.concepts.length > 0 && !generatingLogoConcepts && (
                   <div className="space-y-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {data.logo_data.concepts.map((concept, idx) => (
                         <button
                           key={idx}
@@ -1577,11 +1577,11 @@ export default function BrandIdentity() {
                               : 'hover:ring-2 hover:ring-white/30 hover:ring-offset-2 hover:ring-offset-[#0A192F]'
                           }`}
                         >
-                          <div className="aspect-[3/1] bg-white p-4 flex items-center justify-center">
-                            <img src={concept.imageUrl} alt={concept.name} className="max-w-full max-h-full object-contain" />
+                          <div className="h-20 bg-white px-6 flex items-center justify-start">
+                            <img src={concept.imageUrl} alt={concept.name} className="h-10 w-auto object-contain" />
                           </div>
                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="text-white font-medium text-xs px-2 text-center">{concept.description || concept.name}</span>
+                            <span className="text-white font-medium text-sm px-4 text-center">{concept.description || concept.name}</span>
                           </div>
                           {data.logo_data?.selected?.imageUrl === concept.imageUrl && (
                             <div className="absolute top-2 right-2 w-6 h-6 bg-[#2979FF] rounded-full flex items-center justify-center">
