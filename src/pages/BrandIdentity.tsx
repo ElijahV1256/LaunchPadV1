@@ -2,9 +2,17 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Home, CheckCircle2, Circle, Loader2, Sparkles, RefreshCw, CreditCard as Edit2, X, Download, Upload, Bookmark, BookmarkCheck } from 'lucide-react';
+import {
+  Home, CheckCircle2, Circle, Loader2, Sparkles, RefreshCw, CreditCard as Edit2, X, Download, Upload, Bookmark, BookmarkCheck,
+  Rocket, ShieldCheck, BadgeCheck, Leaf, Bolt, HeartHandshake, Stethoscope, Baby, Package, Store, Wrench, Hammer, TreePine, Mountain, Waves, Globe, Star, Heart, Users, Zap, Crown, Target, Award, Compass, Sun, Moon, Cloud, Coffee, Briefcase, Camera, Music, Palette, Pen, Book, Gift, Truck, Plane, Anchor, Flower2,
+  type LucideIcon
+} from 'lucide-react';
 import { generateLogoConcepts, regenerateLogoWithChanges, generateCompleteBrandFoundation } from '../services/openai';
 import { downloadBrandGuide } from '../utils/brandGuide';
+
+const iconMap: Record<string, LucideIcon> = {
+  Rocket, Sparkles, ShieldCheck, BadgeCheck, Leaf, Bolt, HeartHandshake, Stethoscope, Baby, Package, Store, Wrench, Hammer, TreePine, Mountain, Waves, Globe, CheckCircle: CheckCircle2, Circle, Star, Heart, Home, Users, Zap, Crown, Target, Award, Compass, Sun, Moon, Cloud, Coffee, Briefcase, Camera, Music, Palette, Pen, Book, Gift, Truck, Plane, Anchor, Flower2
+};
 
 interface ColorPalette {
   primary: string;
@@ -13,10 +21,28 @@ interface ColorPalette {
 }
 
 interface LogoConcept {
+  id?: string;
   name: string;
   description: string;
-  imageUrl: string;
-  prompt: string;
+  imageUrl?: string;
+  text_primary?: string;
+  text_alt?: string;
+  icon_lucide?: string;
+  font_stack?: string;
+  font_weight?: number;
+  letter_spacing?: string;
+  colors?: {
+    wordmark: string;
+    icon: string;
+    black: string;
+    white: string;
+  };
+  layout?: {
+    icon_left: boolean;
+    icon_size_px: number;
+    icon_stroke: number;
+    gap_px: number;
+  };
 }
 
 interface NameOption {
@@ -1567,29 +1593,62 @@ export default function BrandIdentity() {
                 {data.logo_data?.concepts && data.logo_data.concepts.length > 0 && !generatingLogoConcepts && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {data.logo_data.concepts.map((concept, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => selectLogo(concept)}
-                          className={`group relative rounded-xl overflow-hidden transition-all ${
-                            data.logo_data?.selected?.imageUrl === concept.imageUrl
-                              ? 'ring-2 ring-[#2979FF] ring-offset-2 ring-offset-[#0A192F]'
-                              : 'hover:ring-2 hover:ring-white/30 hover:ring-offset-2 hover:ring-offset-[#0A192F]'
-                          }`}
-                        >
-                          <div className="h-20 bg-white px-6 flex items-center justify-start">
-                            <img src={concept.imageUrl} alt={concept.name} className="h-10 w-auto object-contain" />
-                          </div>
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="text-white font-medium text-sm px-4 text-center">{concept.description || concept.name}</span>
-                          </div>
-                          {data.logo_data?.selected?.imageUrl === concept.imageUrl && (
-                            <div className="absolute top-2 right-2 w-6 h-6 bg-[#2979FF] rounded-full flex items-center justify-center">
-                              <CheckCircle2 size={14} className="text-white" />
+                      {data.logo_data.concepts.map((concept, idx) => {
+                        const isSelected = data.logo_data?.selected?.id === concept.id ||
+                          (concept.imageUrl && data.logo_data?.selected?.imageUrl === concept.imageUrl);
+                        const IconComponent = concept.icon_lucide ? iconMap[concept.icon_lucide] : null;
+
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => selectLogo(concept)}
+                            className={`group relative rounded-xl overflow-hidden transition-all ${
+                              isSelected
+                                ? 'ring-2 ring-[#2979FF] ring-offset-2 ring-offset-[#0A192F]'
+                                : 'hover:ring-2 hover:ring-white/30 hover:ring-offset-2 hover:ring-offset-[#0A192F]'
+                            }`}
+                          >
+                            <div className="h-20 bg-white px-6 flex items-center justify-start">
+                              {concept.icon_lucide && IconComponent ? (
+                                <div
+                                  className="flex items-center"
+                                  style={{ gap: concept.layout?.gap_px || 12 }}
+                                >
+                                  <IconComponent
+                                    size={concept.layout?.icon_size_px || 28}
+                                    strokeWidth={concept.layout?.icon_stroke || 2}
+                                    style={{ color: concept.colors?.icon || '#2F6BFF' }}
+                                  />
+                                  <span
+                                    style={{
+                                      fontFamily: concept.font_stack || '"Inter", system-ui, sans-serif',
+                                      fontWeight: concept.font_weight || 700,
+                                      letterSpacing: concept.letter_spacing || '-0.01em',
+                                      color: concept.colors?.wordmark || '#0B1320',
+                                      fontSize: '1.25rem',
+                                      lineHeight: 1,
+                                    }}
+                                  >
+                                    {concept.text_primary || data.selected_name}
+                                  </span>
+                                </div>
+                              ) : concept.imageUrl ? (
+                                <img src={concept.imageUrl} alt={concept.name} className="h-10 w-auto object-contain" />
+                              ) : (
+                                <span className="text-gray-400">Logo preview</span>
+                              )}
                             </div>
-                          )}
-                        </button>
-                      ))}
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <span className="text-white font-medium text-sm px-4 text-center">{concept.description || concept.name}</span>
+                            </div>
+                            {isSelected && (
+                              <div className="absolute top-2 right-2 w-6 h-6 bg-[#2979FF] rounded-full flex items-center justify-center">
+                                <CheckCircle2 size={14} className="text-white" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
 
                     <div className="pt-4 border-t border-white/10 space-y-4">
