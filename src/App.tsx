@@ -27,6 +27,7 @@ import SavedNames from './pages/SavedNames';
 import NanoGenerator from './pages/NanoGenerator';
 import StoryBrandWizard from './pages/StoryBrandWizard';
 import Website from './pages/Website';
+import WebsiteEditor from './pages/WebsiteEditor';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
@@ -230,6 +231,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Website />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/website-editor"
+            element={
+              <PrivateRoute>
+                <WebsiteEditor />
               </PrivateRoute>
             }
           />
