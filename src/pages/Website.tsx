@@ -128,6 +128,13 @@ export default function Website() {
     loadData();
   }, [currentUser, ideaKey]);
 
+  useEffect(() => {
+    const shouldShowSetup = searchParams.get('setup') === 'true';
+    if (shouldShowSetup && !starterWebsite?.home_html && view === 'selection') {
+      setShowQuestionnaire(true);
+    }
+  }, [searchParams, starterWebsite, view]);
+
   const loadData = async () => {
     try {
       const [brandResult, ideaResult, starterResult, proResult, setupResult] = await Promise.all([
