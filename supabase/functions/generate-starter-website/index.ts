@@ -67,6 +67,10 @@ Deno.serve(async (req: Request) => {
     }
 
     const checkoutUrl = businessPackage.checkoutUrl || "#";
+    const hasProductImages = businessPackage.images && businessPackage.images.length > 0;
+    const hasSocialLinks = businessPackage.socialLinks && Object.keys(businessPackage.socialLinks).length > 0;
+    const hasContactPhone = businessPackage.contact?.phone && businessPackage.contact.phone.trim() !== '';
+    const hasLocation = businessPackage.location && businessPackage.location.trim() !== '';
 
     const prompt = `You are an elite web designer specializing in Apple-inspired minimalist design.
 
@@ -74,6 +78,13 @@ Create a CLEAN, SIMPLE, MOBILE-RESPONSIVE 2-page starter website for the busines
 
 BUSINESS PACKAGE (JSON):
 ${JSON.stringify(businessPackage, null, 2)}
+
+IMPORTANT CUSTOMER-PROVIDED DATA:
+${hasProductImages ? `- The customer provided ${businessPackage.images.length} product image(s). YOU MUST USE THESE IMAGES for product cards on the shop page.` : '- No product images provided. Use relevant Pexels images only if appropriate for the business type.'}
+${hasSocialLinks ? `- Social media links provided: ${Object.keys(businessPackage.socialLinks).join(', ')}. Include these in the footer.` : '- No social media links provided.'}
+${hasContactPhone ? `- Phone number provided: ${businessPackage.contact.phone}. Display this prominently in the footer or contact section.` : ''}
+${hasLocation ? `- Business address provided: ${businessPackage.location}. Include this in the footer.` : ''}
+${businessPackage.checkoutUrl && businessPackage.checkoutUrl !== '#' ? `- Checkout URL provided: ${businessPackage.checkoutUrl}. Use this exact URL for all "Buy Now" buttons.` : '- No checkout URL provided yet. Use "#" for Buy Now buttons with a note to replace.'}
 
 DESIGN PHILOSOPHY - APPLE-INSPIRED:
 - Minimalist, clean design with generous white space
@@ -118,16 +129,19 @@ PAGES:
    - Brief about section (2-3 sentences)
    - Simple features/benefits (3 items max, no images)
    - Final CTA section
-   - Simple footer
+   - Footer with:
+     * Contact info (email${hasContactPhone ? ', phone' : ''})
+     ${hasLocation ? '* Business address' : ''}
+     ${hasSocialLinks ? '* Social media links' : ''}
 
 2) Shop page (shop.html)
    Keep it simple:
    - Clean top nav
    - Page header "Shop" with optional relevant image
-   - 2-3 product cards with clean design
+   - ${hasProductImages ? `USE THE ${businessPackage.images.length} PROVIDED PRODUCT IMAGES for product cards` : '2-3 product cards with clean design'}
    - "Buy Now" buttons linking to: ${checkoutUrl}
-   - Small note: "To start selling, replace the checkout link with your Shopify/Stripe link."
-   - Simple footer
+   ${checkoutUrl === '#' ? '- Small note: "To start selling, replace the checkout link with your Shopify/Stripe link."' : ''}
+   - Footer (same as home page)
 
 STYLE GUIDELINES:
 - Background: Mostly white or very light gray (gray-50)
