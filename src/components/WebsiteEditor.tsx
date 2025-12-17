@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Edit3, Image as ImageIcon, Loader2, Send, X, Check, Upload } from 'lucide-react';
+import { Edit3, Image as ImageIcon, Loader2, Send, X, Check, Upload, Sparkles, MousePointer2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface WebsiteEditorProps {
   html: string;
@@ -19,6 +20,7 @@ export default function WebsiteEditor({ html, onSave, pageType }: WebsiteEditorP
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -32,25 +34,58 @@ export default function WebsiteEditor({ html, onSave, pageType }: WebsiteEditorP
       style.textContent = `
         .editable-section {
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.3s ease;
           position: relative;
         }
+        .editable-section:hover::before {
+          content: 'Click to edit';
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          background: #2979FF;
+          color: white;
+          padding: 4px 12px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          z-index: 1000;
+          box-shadow: 0 4px 12px rgba(41, 121, 255, 0.4);
+        }
         .editable-section:hover {
-          outline: 2px dashed #2979FF;
+          outline: 2px solid #2979FF;
           outline-offset: 4px;
+          background: rgba(41, 121, 255, 0.03);
         }
         .editable-section.selected {
           outline: 3px solid #2979FF;
           outline-offset: 4px;
+          background: rgba(41, 121, 255, 0.05);
         }
         .editable-image {
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.3s ease;
+          position: relative;
+        }
+        .editable-image:hover::before {
+          content: 'Replace image';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: #06D6A0;
+          color: white;
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          z-index: 1000;
+          box-shadow: 0 4px 12px rgba(6, 214, 160, 0.4);
         }
         .editable-image:hover {
-          outline: 2px dashed #06D6A0;
+          outline: 3px solid #06D6A0;
           outline-offset: 4px;
-          opacity: 0.8;
+          opacity: 0.7;
+          filter: brightness(0.9);
         }
       `;
       doc.head.appendChild(style);
@@ -115,6 +150,9 @@ export default function WebsiteEditor({ html, onSave, pageType }: WebsiteEditorP
       const newHtml = html.replace(selectedSection, editedHtml);
       onSave(newHtml);
 
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+
       setInstruction('');
       setSelectedSection(null);
       setChatOpen(false);
@@ -158,6 +196,9 @@ export default function WebsiteEditor({ html, onSave, pageType }: WebsiteEditorP
 
       onSave(newHtml);
 
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+
       setShowImageUpload(false);
       setSelectedImageSrc(null);
     } catch (err: any) {
@@ -170,7 +211,7 @@ export default function WebsiteEditor({ html, onSave, pageType }: WebsiteEditorP
 
   return (
     <div className="relative">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
         <button
           onClick={() => {
             setIsEditMode(!isEditMode);
@@ -179,125 +220,199 @@ export default function WebsiteEditor({ html, onSave, pageType }: WebsiteEditorP
               setSelectedSection(null);
             }
           }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold transition-all shadow-lg ${
             isEditMode
-              ? 'bg-[#2979FF] text-white'
-              : 'bg-white/10 border border-white/20 text-white hover:bg-white/20'
+              ? 'bg-gradient-to-r from-[#2979FF] to-[#06D6A0] text-white hover:opacity-90'
+              : 'bg-white/10 border-2 border-white/20 text-white hover:bg-white/20 hover:border-[#2979FF]/50'
           }`}
         >
           {isEditMode ? <Check size={18} /> : <Edit3 size={18} />}
-          {isEditMode ? 'Exit Edit Mode' : 'Edit Website'}
+          {isEditMode ? 'Done Editing' : 'Edit Website'}
         </button>
 
-        {isEditMode && (
-          <p className="text-sm text-gray-400">
-            Click any section to edit with AI or click an image to replace it
-          </p>
-        )}
+        <AnimatePresence>
+          {isEditMode && (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="flex items-center gap-3 bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg px-4 py-2"
+            >
+              <MousePointer2 className="text-[#2979FF]" size={18} />
+              <div className="text-sm">
+                <p className="text-white font-medium">Click any section to edit</p>
+                <p className="text-gray-400 text-xs">Text, colors, images - everything is editable</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showSuccess && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -10 }}
+              className="flex items-center gap-2 bg-[#06D6A0]/20 border border-[#06D6A0] rounded-lg px-4 py-2"
+            >
+              <Check className="text-[#06D6A0]" size={18} />
+              <span className="text-[#06D6A0] font-medium">Changes saved!</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="border border-white/10 rounded-lg overflow-hidden bg-white relative">
+        <AnimatePresence>
+          {isEditMode && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#2979FF] to-[#06D6A0] py-2 px-4 z-50 shadow-lg"
+            >
+              <div className="flex items-center justify-center gap-2 text-white">
+                <Sparkles size={16} />
+                <span className="text-sm font-semibold">Edit Mode Active - Click any section below to make changes</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <iframe
           ref={iframeRef}
           srcDoc={html}
-          className="w-full h-[700px]"
+          className={`w-full h-[700px] transition-all ${isEditMode ? 'mt-10' : ''}`}
           title={`${pageType} Preview`}
         />
 
-        {chatOpen && (
-          <div className="absolute bottom-4 right-4 w-96 bg-[#0A192F] border-2 border-[#2979FF] rounded-xl shadow-2xl">
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <Edit3 className="text-[#2979FF]" size={20} />
-                <h3 className="text-white font-semibold">Edit Section</h3>
+        <AnimatePresence>
+          {chatOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              className="absolute bottom-6 right-6 w-96 bg-gradient-to-br from-[#0A192F] to-[#0F2847] border-2 border-[#2979FF] rounded-2xl shadow-2xl overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-[#2979FF] to-[#06D6A0] p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="text-white" size={20} />
+                    <h3 className="text-white font-bold">AI Editor</h3>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setChatOpen(false);
+                      setSelectedSection(null);
+                      setInstruction('');
+                    }}
+                    className="text-white/80 hover:text-white transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => {
-                  setChatOpen(false);
-                  setSelectedSection(null);
-                  setInstruction('');
-                }}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
 
-            <div className="p-4">
-              <textarea
-                value={instruction}
-                onChange={(e) => setInstruction(e.target.value)}
-                placeholder="Tell me what you'd like to change...&#10;&#10;Examples:&#10;- Change the headline to 'Welcome to our store'&#10;- Make the button color green&#10;- Add more spacing between items"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none h-32 text-sm"
-                disabled={isProcessing}
-              />
+              <div className="p-5">
+                <p className="text-gray-400 text-xs mb-3">
+                  Tell me what to change in plain English
+                </p>
+                <textarea
+                  value={instruction}
+                  onChange={(e) => setInstruction(e.target.value)}
+                  placeholder="Examples:&#10;• Change text to 'Welcome'&#10;• Make button green&#10;• Increase spacing"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] focus:ring-2 focus:ring-[#2979FF]/20 resize-none h-28 text-sm"
+                  disabled={isProcessing}
+                  autoFocus
+                />
 
-              <button
-                onClick={handleEditSection}
-                disabled={isProcessing || !instruction.trim()}
-                className="w-full mt-3 py-3 bg-[#2979FF] text-white rounded-lg font-medium hover:bg-[#2979FF]/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="animate-spin" size={18} />
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <Send size={18} />
-                    Update Section
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {showImageUpload && (
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-[#0A192F] border border-white/10 rounded-xl p-6 max-w-md w-full mx-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-white font-semibold flex items-center gap-2">
-                  <ImageIcon className="text-[#06D6A0]" size={20} />
-                  Replace Image
-                </h3>
                 <button
-                  onClick={() => {
-                    setShowImageUpload(false);
-                    setSelectedImageSrc(null);
-                  }}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  onClick={handleEditSection}
+                  disabled={isProcessing || !instruction.trim()}
+                  className="w-full mt-4 py-3 bg-gradient-to-r from-[#2979FF] to-[#06D6A0] text-white rounded-lg font-semibold hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
                 >
-                  <X size={20} />
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      Applying changes...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={18} />
+                      Apply Changes
+                    </>
+                  )}
                 </button>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-              <div className="mb-4">
-                <img
-                  src={selectedImageSrc || ''}
-                  alt="Current"
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-              </div>
-
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-[#06D6A0] transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="text-gray-400 mb-2" size={32} />
-                  <p className="text-sm text-gray-400">
-                    {uploadingImage ? 'Uploading...' : 'Click to upload new image'}
-                  </p>
+        <AnimatePresence>
+          {showImageUpload && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                className="bg-gradient-to-br from-[#0A192F] to-[#0F2847] border-2 border-[#06D6A0] rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl"
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 bg-[#06D6A0]/20 rounded-lg flex items-center justify-center">
+                      <ImageIcon className="text-[#06D6A0]" size={20} />
+                    </div>
+                    <h3 className="text-white font-bold text-lg">Replace Image</h3>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowImageUpload(false);
+                      setSelectedImageSrc(null);
+                    }}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <X size={22} />
+                  </button>
                 </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={uploadingImage}
-                />
-              </label>
-            </div>
-          </div>
-        )}
+
+                <div className="mb-5">
+                  <p className="text-gray-400 text-xs mb-3">Current image:</p>
+                  <img
+                    src={selectedImageSrc || ''}
+                    alt="Current"
+                    className="w-full h-48 object-cover rounded-lg border-2 border-white/10"
+                  />
+                </div>
+
+                <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-[#06D6A0]/40 bg-[#06D6A0]/5 rounded-xl cursor-pointer hover:border-[#06D6A0] hover:bg-[#06D6A0]/10 transition-all group">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <div className="w-12 h-12 bg-[#06D6A0]/20 rounded-full flex items-center justify-center mb-3 group-hover:bg-[#06D6A0]/30 transition-colors">
+                      <Upload className="text-[#06D6A0] group-hover:scale-110 transition-transform" size={24} />
+                    </div>
+                    <p className="text-sm font-medium text-white mb-1">
+                      {uploadingImage ? 'Uploading...' : 'Click to upload new image'}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      JPG, PNG, GIF up to 10MB
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                  />
+                </label>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
