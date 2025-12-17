@@ -21,101 +21,132 @@ export default function WebsiteEditor({ html, onSave, pageType }: WebsiteEditorP
   const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  useEffect(() => {
-    if (isEditMode && iframeRef.current?.contentWindow) {
-      const iframe = iframeRef.current;
-      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+  const setupEditableElements = () => {
+    if (!isEditMode || !iframeRef.current?.contentWindow) return;
 
-      if (!doc) return;
+    const iframe = iframeRef.current;
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
 
-      const style = doc.createElement('style');
-      style.textContent = `
-        .editable-section {
-          cursor: pointer;
-          transition: all 0.3s ease;
-          position: relative;
-        }
-        .editable-section:hover::before {
-          content: 'Click to edit';
-          position: absolute;
-          top: 8px;
-          right: 8px;
-          background: #2979FF;
-          color: white;
-          padding: 4px 12px;
-          border-radius: 6px;
-          font-size: 12px;
-          font-weight: 600;
-          z-index: 1000;
-          box-shadow: 0 4px 12px rgba(41, 121, 255, 0.4);
-        }
-        .editable-section:hover {
-          outline: 2px solid #2979FF;
-          outline-offset: 4px;
-          background: rgba(41, 121, 255, 0.03);
-        }
-        .editable-section.selected {
-          outline: 3px solid #2979FF;
-          outline-offset: 4px;
-          background: rgba(41, 121, 255, 0.05);
-        }
-        .editable-image {
-          cursor: pointer;
-          transition: all 0.3s ease;
-          position: relative;
-        }
-        .editable-image:hover::before {
-          content: 'Replace image';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background: #06D6A0;
-          color: white;
-          padding: 8px 16px;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 600;
-          z-index: 1000;
-          box-shadow: 0 4px 12px rgba(6, 214, 160, 0.4);
-        }
-        .editable-image:hover {
-          outline: 3px solid #06D6A0;
-          outline-offset: 4px;
-          opacity: 0.7;
-          filter: brightness(0.9);
-        }
-      `;
-      doc.head.appendChild(style);
+    if (!doc || !doc.body) return;
 
-      const sections = doc.querySelectorAll('section, header, nav, footer, div.container > div, main > div');
-      sections.forEach((section) => {
-        section.classList.add('editable-section');
-        section.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const element = section as HTMLElement;
-
-          doc.querySelectorAll('.editable-section').forEach(s => s.classList.remove('selected'));
-          element.classList.add('selected');
-
-          setSelectedSection(element.outerHTML);
-          setChatOpen(true);
-        });
-      });
-
-      const images = doc.querySelectorAll('img');
-      images.forEach((img) => {
-        img.classList.add('editable-image');
-        img.addEventListener('click', (e) => {
-          e.stopPropagation();
-          setSelectedImageSrc(img.src);
-          setShowImageUpload(true);
-        });
-      });
+    const existingStyle = doc.getElementById('editor-styles');
+    if (existingStyle) {
+      existingStyle.remove();
     }
-  }, [isEditMode, html]);
+
+    const style = doc.createElement('style');
+    style.id = 'editor-styles';
+    style.textContent = `
+      .editable-section {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+      .editable-section:hover::before {
+        content: 'Click to edit';
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #2979FF;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(41, 121, 255, 0.4);
+      }
+      .editable-section:hover {
+        outline: 2px solid #2979FF;
+        outline-offset: 4px;
+        background: rgba(41, 121, 255, 0.03);
+      }
+      .editable-section.selected {
+        outline: 3px solid #2979FF;
+        outline-offset: 4px;
+        background: rgba(41, 121, 255, 0.05);
+      }
+      .editable-image {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+      .editable-image:hover::before {
+        content: 'Replace image';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #06D6A0;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(6, 214, 160, 0.4);
+      }
+      .editable-image:hover {
+        outline: 3px solid #06D6A0;
+        outline-offset: 4px;
+        opacity: 0.7;
+        filter: brightness(0.9);
+      }
+    `;
+    doc.head.appendChild(style);
+
+    doc.querySelectorAll('.editable-section, .editable-image').forEach(el => {
+      el.classList.remove('editable-section', 'editable-image', 'selected');
+    });
+
+    const sections = doc.querySelectorAll('section, header, nav, footer, div[class*="container"] > div, main > div, div[class*="grid"] > div');
+    sections.forEach((section) => {
+      section.classList.add('editable-section');
+
+      const handleClick = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const element = section as HTMLElement;
+
+        doc.querySelectorAll('.editable-section').forEach(s => s.classList.remove('selected'));
+        element.classList.add('selected');
+
+        setSelectedSection(element.outerHTML);
+        setChatOpen(true);
+      };
+
+      section.removeEventListener('click', handleClick as EventListener);
+      section.addEventListener('click', handleClick as EventListener);
+    });
+
+    const images = doc.querySelectorAll('img');
+    images.forEach((img) => {
+      img.classList.add('editable-image');
+
+      const handleImageClick = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setSelectedImageSrc(img.src);
+        setShowImageUpload(true);
+      };
+
+      img.removeEventListener('click', handleImageClick as EventListener);
+      img.addEventListener('click', handleImageClick as EventListener);
+    });
+  };
+
+  useEffect(() => {
+    if (isEditMode && iframeLoaded) {
+      setupEditableElements();
+    }
+  }, [isEditMode, iframeLoaded]);
+
+  useEffect(() => {
+    setIframeLoaded(false);
+  }, [html]);
 
   const handleEditSection = async () => {
     if (!selectedSection || !instruction.trim()) return;
@@ -284,6 +315,12 @@ export default function WebsiteEditor({ html, onSave, pageType }: WebsiteEditorP
           srcDoc={html}
           className={`w-full h-[700px] transition-all ${isEditMode ? 'mt-10' : ''}`}
           title={`${pageType} Preview`}
+          onLoad={() => {
+            setIframeLoaded(true);
+            if (isEditMode) {
+              setTimeout(() => setupEditableElements(), 100);
+            }
+          }}
         />
 
         <AnimatePresence>
