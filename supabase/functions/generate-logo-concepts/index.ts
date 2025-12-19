@@ -58,13 +58,14 @@ Deno.serve(async (req: Request) => {
     const personalityText = brandPersonality || 'professional, modern, trustworthy';
     const colors = brandColors || { primary: '#000000', secondary: '#666666', accent: '#999999' };
 
+    // CRITICAL: Emphasize exact spelling preservation in all prompts
     const variations = [
-      `A professional logo for ${businessName} with clean typography and minimal icon, using colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Modern, readable text with simple symbol.`,
-      `A modern logo design for ${businessName} featuring the business name in bold typography with an abstract icon, colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Clean and professional.`,
-      `A minimal logo for ${businessName} with elegant text and geometric icon element, incorporating ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Simple, sophisticated design.`,
-      `A bold logo for ${businessName} with strong typography and geometric symbol, using ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Contemporary and impactful.`,
-      `An elegant logo for ${businessName} with refined text and abstract mark, colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Sophisticated and memorable.`,
-      `A creative logo for ${businessName} combining unique typography with visual icon, using ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Distinctive and professional.`
+      `Professional logo with the EXACT text "${businessName}" (spell it EXACTLY as shown) in clean typography with minimal icon. Use colors ${colors.primary}, ${colors.secondary}, ${colors.accent}. Modern, readable, correct spelling.`,
+      `Modern logo featuring the EXACT business name "${businessName}" (preserve exact spelling and spacing) in bold typography with abstract icon. Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Clean and professional.`,
+      `Minimal logo with the text "${businessName}" spelled EXACTLY as shown, elegant typography with geometric icon. Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Simple, sophisticated design with accurate spelling.`,
+      `Bold logo with "${businessName}" in CORRECT spelling (no variations), strong typography with geometric symbol. Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Contemporary and impactful with precise text.`,
+      `Elegant logo with "${businessName}" spelled PRECISELY as written, refined text with abstract mark. Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Sophisticated, memorable, accurate spelling.`,
+      `Creative logo with "${businessName}" using EXACT spelling (maintain all spaces/capitalization), unique typography with visual icon. Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Distinctive, professional, correct text.`
     ];
 
     const concepts: LogoConcept[] = [];
