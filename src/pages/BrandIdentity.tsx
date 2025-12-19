@@ -1446,7 +1446,7 @@ export default function BrandIdentity() {
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-white mb-3">3. Logo Creation</h3>
                 <p className="text-gray-400 text-sm mb-4">
-                  AI generates 6 premium logo designs using your brand colors. Pure icon-only designs (no text) - perfect for app icons, favicons, or add your business name later.
+                  AI generates 6 premium logo designs featuring your business name with minimal text and clean icons using your brand colors.
                 </p>
 
                 <div className="flex gap-3 mb-4">

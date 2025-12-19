@@ -59,12 +59,12 @@ Deno.serve(async (req: Request) => {
     const colors = brandColors || { primary: '#000000', secondary: '#666666', accent: '#999999' };
 
     const variations = [
-      `A clean icon-only logo mark for ${businessName}, minimal geometric design using ${colors.primary}, ${colors.secondary}, and ${colors.accent}. NO TEXT. Pure symbol/icon only. Simple, modern, professional.`,
-      `An abstract symbol logo for ${businessName}, minimalist icon design with ${colors.primary}, ${colors.secondary}, and ${colors.accent}. NO WORDS OR LETTERS. Icon mark only. Clean and memorable.`,
-      `A simple icon-based logo for ${businessName}, geometric shapes in ${colors.primary}, ${colors.secondary}, and ${colors.accent}. ICON ONLY, NO TEXT. Modern minimalist symbol.`,
-      `A bold icon mark for ${businessName}, strong geometric design using ${colors.primary}, ${colors.secondary}, and ${colors.accent}. NO TEXT OR TYPOGRAPHY. Visual symbol only.`,
-      `An elegant icon symbol for ${businessName}, sophisticated minimalist design with ${colors.primary}, ${colors.secondary}, and ${colors.accent}. SYMBOL ONLY, NO LETTERS. Pure iconography.`,
-      `A creative icon logo for ${businessName}, unique visual mark using ${colors.primary}, ${colors.secondary}, and ${colors.accent}. NO TEXT ELEMENTS. Icon-only design, clean and simple.`
+      `A professional logo for ${businessName} with clean typography and minimal icon, using colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Modern, readable text with simple symbol.`,
+      `A modern logo design for ${businessName} featuring the business name in bold typography with an abstract icon, colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Clean and professional.`,
+      `A minimal logo for ${businessName} with elegant text and geometric icon element, incorporating ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Simple, sophisticated design.`,
+      `A bold logo for ${businessName} with strong typography and geometric symbol, using ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Contemporary and impactful.`,
+      `An elegant logo for ${businessName} with refined text and abstract mark, colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Sophisticated and memorable.`,
+      `A creative logo for ${businessName} combining unique typography with visual icon, using ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Distinctive and professional.`
     ];
 
     const concepts: LogoConcept[] = [];
