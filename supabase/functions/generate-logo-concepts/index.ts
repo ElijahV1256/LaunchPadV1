@@ -37,6 +37,7 @@ Deno.serve(async (req: Request) => {
 
     const {
       businessName,
+      industry,
       brandColors,
       businessDescription,
       brandPersonality,
@@ -52,19 +53,27 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    console.log('Starting logo generation for:', businessName);
+    if (!industry) {
+      return new Response(
+        JSON.stringify({ error: "industry is required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
-    const descriptionText = businessDescription || `A business called ${businessName}`;
-    const personalityText = brandPersonality || 'professional, modern, trustworthy';
-    const colors = brandColors || { primary: '#000000', secondary: '#666666', accent: '#999999' };
+    console.log('Starting logo generation for:', businessName, 'in', industry, 'industry');
+
+    const basePrompt = `Create an original, modern logo for a business named '${businessName}' in the '${industry}' industry. Make it stylistically aligned with typical logos in this industry (category design language) while remaining clearly original and not resembling any specific real brand. Provide a clean, professional, scalable logo suitable for web and print. No mockups, no watermarks, no copyrighted/trademarked elements.`;
 
     const variations = [
-      `A professional logo design with text that says "${businessName}" in clean sans-serif typography, paired with a minimal geometric icon. Color palette: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Modern and readable. High quality business logo.`,
-      `A modern logo with bold text that says "${businessName}" combined with an abstract icon symbol. Use colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Clean, professional design. High detail.`,
-      `A minimalist logo featuring elegant text that says "${businessName}" with a simple geometric icon element. Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Sophisticated and simple. Premium quality.`,
-      `A bold logo design with strong text that says "${businessName}" alongside a geometric symbol. Color scheme: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Contemporary and impactful. Professional grade.`,
-      `An elegant logo with refined text that says "${businessName}" paired with an abstract mark. Using colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Sophisticated and memorable. Ultra high quality.`,
-      `A creative logo combining unique text that says "${businessName}" with a distinctive visual icon. Color palette: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Professional and eye-catching. Premium design.`
+      `${basePrompt} Style: Minimal geometric design with clean lines and simple shapes. Icon-only or with minimal text. Perfect for modern tech and professional services.`,
+      `${basePrompt} Style: Friendly modern approach with rounded elements and approachable typography. Warm and welcoming feel suitable for consumer-facing brands.`,
+      `${basePrompt} Style: Premium monoline design with elegant single-stroke linework. Sophisticated and refined, ideal for luxury or upscale positioning.`,
+      `${basePrompt} Style: Bold badge format with strong shapes and confident presence. Impactful design that commands attention.`,
+      `${basePrompt} Style: Abstract mark with conceptual symbolism. Creative interpretation of brand values through modern abstract forms.`,
+      `${basePrompt} Style: Icon-focused lettermark combining typography with symbolic elements. Balanced design merging text and visual identity.`
     ];
 
     const concepts: LogoConcept[] = [];

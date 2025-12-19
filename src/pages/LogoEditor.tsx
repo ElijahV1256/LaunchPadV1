@@ -29,6 +29,7 @@ export default function LogoEditor() {
   const [regenerating, setRegenerating] = useState(false);
 
   const [businessName, setBusinessName] = useState('');
+  const [industry, setIndustry] = useState('general business');
   const [logo, setLogo] = useState<LogoConcept | null>(null);
   const [originalLogo, setOriginalLogo] = useState<LogoConcept | null>(null);
   const [brandColors, setBrandColors] = useState<BrandColors>({ primary: '#000000', secondary: '#666666', accent: '#999999' });
@@ -121,6 +122,7 @@ export default function LogoEditor() {
       const updatedLogo = await regenerateLogoWithChanges(
         logo,
         correctSpelling.trim(),
+        industry,
         brandColors,
         `CRITICAL: Use EXACTLY this text: "${correctSpelling.trim()}". Keep the same icon design and colors. ONLY change the text spelling to exactly match: "${correctSpelling.trim()}". Do not change any other aspect of the logo.`
       );
@@ -173,6 +175,7 @@ export default function LogoEditor() {
       const updatedLogo = await regenerateLogoWithChanges(
         logo,
         businessName,
+        industry,
         brandColors,
         fullPrompt
       );

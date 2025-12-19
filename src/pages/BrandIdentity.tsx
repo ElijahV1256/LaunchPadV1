@@ -650,6 +650,7 @@ export default function BrandIdentity() {
 
       const concepts = await generateLogoConcepts(
         data.selected_name,
+        logoAnswers.industry || 'general business',
         {
           primary: data.brand_colors.primary,
           secondary: data.brand_colors.secondary || data.brand_colors.primary,
@@ -739,6 +740,7 @@ export default function BrandIdentity() {
       const updatedLogoConcept = await regenerateLogoWithChanges(
         data.logo_data.selected,
         data.selected_name!,
+        logoAnswers.industry || 'general business',
         {
           primary: data.brand_colors.primary!,
           secondary: data.brand_colors.secondary || data.brand_colors.primary!,

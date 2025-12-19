@@ -183,12 +183,13 @@ Make each section detailed, specific, and actionable based on the provided infor
 
 export async function generateLogoConcepts(
   businessName: string,
+  industry: string,
   brandColors: { primary: string; secondary: string; accent: string },
   businessDescription?: string,
   brandPersonality?: string,
   onProgress?: (current: number, total: number) => void
 ): Promise<LogoConcept[]> {
-  console.log('Starting logo generation for:', businessName);
+  console.log('Starting logo generation for:', businessName, 'in', industry);
   console.log('Colors:', brandColors);
 
   // Call the Supabase Edge Function instead of OpenAI directly
@@ -219,6 +220,7 @@ export async function generateLogoConcepts(
           },
           body: JSON.stringify({
             businessName,
+            industry,
             brandColors,
             businessDescription,
             brandPersonality,
@@ -269,6 +271,7 @@ export async function generateLogoConcepts(
 export async function regenerateLogoWithChanges(
   originalLogo: LogoConcept,
   businessName: string,
+  industry: string,
   brandColors: { primary: string; secondary: string; accent: string },
   changeRequest: string
 ): Promise<LogoConcept> {
@@ -289,6 +292,7 @@ export async function regenerateLogoWithChanges(
           },
           body: JSON.stringify({
             businessName,
+            industry,
             brandColors,
             businessDescription: `${originalLogo.description}. MODIFICATIONS REQUESTED: ${changeRequest}`,
             brandPersonality: changeRequest,
