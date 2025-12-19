@@ -59,12 +59,12 @@ Deno.serve(async (req: Request) => {
     const colors = brandColors || { primary: '#000000', secondary: '#666666', accent: '#999999' };
 
     const variations = [
-      `A professional logo for ${businessName} using colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}`,
-      `A modern logo design for ${businessName} with ${colors.primary}, ${colors.secondary}, and ${colors.accent} color scheme`,
-      `A clean, minimal logo for ${businessName} incorporating ${colors.primary}, ${colors.secondary}, and ${colors.accent}`,
-      `A bold, geometric logo for ${businessName} featuring ${colors.primary}, ${colors.secondary}, and ${colors.accent}`,
-      `An elegant, sophisticated logo for ${businessName} with ${colors.primary}, ${colors.secondary}, and ${colors.accent} palette`,
-      `A creative, unique logo for ${businessName} using ${colors.primary}, ${colors.secondary}, and ${colors.accent} colors`
+      `A clean icon-only logo mark for ${businessName}, minimal geometric design using ${colors.primary}, ${colors.secondary}, and ${colors.accent}. NO TEXT. Pure symbol/icon only. Simple, modern, professional.`,
+      `An abstract symbol logo for ${businessName}, minimalist icon design with ${colors.primary}, ${colors.secondary}, and ${colors.accent}. NO WORDS OR LETTERS. Icon mark only. Clean and memorable.`,
+      `A simple icon-based logo for ${businessName}, geometric shapes in ${colors.primary}, ${colors.secondary}, and ${colors.accent}. ICON ONLY, NO TEXT. Modern minimalist symbol.`,
+      `A bold icon mark for ${businessName}, strong geometric design using ${colors.primary}, ${colors.secondary}, and ${colors.accent}. NO TEXT OR TYPOGRAPHY. Visual symbol only.`,
+      `An elegant icon symbol for ${businessName}, sophisticated minimalist design with ${colors.primary}, ${colors.secondary}, and ${colors.accent}. SYMBOL ONLY, NO LETTERS. Pure iconography.`,
+      `A creative icon logo for ${businessName}, unique visual mark using ${colors.primary}, ${colors.secondary}, and ${colors.accent}. NO TEXT ELEMENTS. Icon-only design, clean and simple.`
     ];
 
     const concepts: LogoConcept[] = [];
