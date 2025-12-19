@@ -58,14 +58,14 @@ Deno.serve(async (req: Request) => {
     const personalityText = brandPersonality || 'professional, modern, trustworthy';
     const colors = brandColors || { primary: '#000000', secondary: '#666666', accent: '#999999' };
 
-    // CRITICAL: Emphasize exact spelling preservation in all prompts
+    // Use "text that says" pattern for better accuracy with DALL-E 3
     const variations = [
-      `Professional logo with the EXACT text "${businessName}" (spell it EXACTLY as shown) in clean typography with minimal icon. Use colors ${colors.primary}, ${colors.secondary}, ${colors.accent}. Modern, readable, correct spelling.`,
-      `Modern logo featuring the EXACT business name "${businessName}" (preserve exact spelling and spacing) in bold typography with abstract icon. Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Clean and professional.`,
-      `Minimal logo with the text "${businessName}" spelled EXACTLY as shown, elegant typography with geometric icon. Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Simple, sophisticated design with accurate spelling.`,
-      `Bold logo with "${businessName}" in CORRECT spelling (no variations), strong typography with geometric symbol. Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Contemporary and impactful with precise text.`,
-      `Elegant logo with "${businessName}" spelled PRECISELY as written, refined text with abstract mark. Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Sophisticated, memorable, accurate spelling.`,
-      `Creative logo with "${businessName}" using EXACT spelling (maintain all spaces/capitalization), unique typography with visual icon. Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Distinctive, professional, correct text.`
+      `A professional logo design with text that says "${businessName}" in clean sans-serif typography, paired with a minimal geometric icon. Color palette: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Modern and readable.`,
+      `A modern logo with bold text that says "${businessName}" combined with an abstract icon symbol. Use colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Clean, professional design.`,
+      `A minimalist logo featuring elegant text that says "${businessName}" with a simple geometric icon element. Colors: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Sophisticated and simple.`,
+      `A bold logo design with strong text that says "${businessName}" alongside a geometric symbol. Color scheme: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Contemporary and impactful.`,
+      `An elegant logo with refined text that says "${businessName}" paired with an abstract mark. Using colors ${colors.primary}, ${colors.secondary}, and ${colors.accent}. Sophisticated and memorable.`,
+      `A creative logo combining unique text that says "${businessName}" with a distinctive visual icon. Color palette: ${colors.primary}, ${colors.secondary}, ${colors.accent}. Professional and eye-catching.`
     ];
 
     const concepts: LogoConcept[] = [];
