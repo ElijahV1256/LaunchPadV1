@@ -16,8 +16,15 @@ import {
   CheckCircle2,
   AlertCircle,
   Copy,
-  Settings
+  LayoutDashboard,
+  ArrowLeft,
+  CheckSquare,
+  Square,
+  Plus,
+  Trash2,
+  GripVertical,
 } from 'lucide-react';
+import { generateCopyPacket, downloadCopyPacketJSON } from '../utils/copyPacketGenerator';
 
 interface WebsiteData {
   id: string;
@@ -94,13 +101,20 @@ export default function ManageWebsite() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'content' | 'domain' | 'design' | 'payments' | 'export'>('content');
+  const [activeTab, setActiveTab] = useState<'overview' | 'content' | 'payments' | 'domain' | 'export'>('overview');
 
   const [website, setWebsite] = useState<WebsiteData | null>(null);
   const [content, setContent] = useState<WebsiteContent | null>(null);
   const [payments, setPayments] = useState<PaymentData | null>(null);
 
   const [showCopySuccess, setShowCopySuccess] = useState(false);
+  const [checklist, setChecklist] = useState({
+    offer_and_price: false,
+    cta_set: false,
+    contact_info: false,
+    payments_connected: false,
+    traffic_action: false,
+  });
 
   useEffect(() => {
     if (currentUser && websiteId) {
@@ -138,6 +152,7 @@ export default function ManageWebsite() {
 
       if (contentRes.data) {
         setContent(contentRes.data);
+        updateChecklist(contentRes.data, paymentsRes.data);
       } else {
         const { data: newContent } = await supabase
           .from('managed_website_content')
@@ -165,6 +180,25 @@ export default function ManageWebsite() {
     }
   };
 
+  const updateChecklist = (contentData: WebsiteContent, paymentsData: PaymentData | null) => {
+    const hasOffer = contentData.home.features_or_services.items.length > 0 &&
+      contentData.home.features_or_services.items.some(item => item.title && item.desc);
+
+    const hasCTA = contentData.home.hero.cta_text && contentData.home.hero.cta_link;
+
+    const hasContact = contentData.home.contact.email || contentData.home.contact.phone;
+
+    const hasPayments = paymentsData?.status === 'connected';
+
+    setChecklist({
+      offer_and_price: hasOffer,
+      cta_set: Boolean(hasCTA),
+      contact_info: Boolean(hasContact),
+      payments_connected: hasPayments,
+      traffic_action: false,
+    });
+  };
+
   const saveContent = async () => {
     if (!content || !website) return;
 
@@ -183,6 +217,7 @@ export default function ManageWebsite() {
         .update({ updated_at: new Date().toISOString() })
         .eq('id', website.id);
 
+      updateChecklist(content, payments);
       alert('Content saved successfully!');
     } catch (err: any) {
       console.error('Error saving:', err);
@@ -217,6 +252,29 @@ export default function ManageWebsite() {
     }
   };
 
+  const savePayments = async () => {
+    if (!payments) return;
+
+    setSaving(true);
+    try {
+      await supabase
+        .from('website_payments')
+        .update({
+          checkout_mode: payments.checkout_mode,
+          default_price: payments.default_price,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', payments.id);
+
+      alert('Payment settings saved!');
+    } catch (err: any) {
+      console.error('Error saving:', err);
+      alert('Failed to save payment settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const togglePublish = async () => {
     if (!website) return;
 
@@ -239,97 +297,24 @@ export default function ManageWebsite() {
     }
   };
 
-  const generateExportPacket = () => {
+  const handleExportCopyPacket = () => {
+    if (!website || !content) return;
+
+    const packet = generateCopyPacket(website, content);
+    downloadCopyPacketJSON(packet, website.brand_name);
+  };
+
+  const copyPacketPreview = () => {
     if (!website || !content) return '';
 
-    const packet = `
-==============================================
-WEBSITE COPY PACKET
-${website.brand_name}
-Generated: ${new Date().toLocaleDateString()}
-==============================================
-
-HERO SECTION
-Headline: ${content.home.hero.headline}
-Subheadline: ${content.home.hero.subheadline}
-Call-to-Action: ${content.home.hero.cta_text}
-CTA Link: ${content.home.hero.cta_link}
-
-----------------------------------------------
-
-SOCIAL PROOF
-${content.home.social_proof.bullets.map((b, i) => `${i + 1}. ${b}`).join('\n')}
-
-Testimonials:
-${content.home.social_proof.testimonial_snippets.map((t, i) => `${i + 1}. "${t}"`).join('\n')}
-
-----------------------------------------------
-
-${website.business_type === 'service' ? 'SERVICES' : 'PRODUCTS/FEATURES'}
-${content.home.features_or_services.items.map((item, i) => `
-${i + 1}. ${item.title}
-   ${item.desc}
-   ${item.price_optional ? `Price: ${item.price_optional}` : ''}
-`).join('\n')}
-
-----------------------------------------------
-
-FAQ
-${content.home.faq.items.map((item, i) => `
-Q${i + 1}: ${item.q}
-A${i + 1}: ${item.a}
-`).join('\n')}
-
-----------------------------------------------
-
-CONTACT INFORMATION
-Phone: ${content.home.contact.phone}
-Email: ${content.home.contact.email}
-City: ${content.home.contact.city}
-Service Area: ${content.home.contact.service_area}
-
-----------------------------------------------
-
-FOOTER
-${content.home.footer.short_blurb}
-
-Links:
-${content.home.footer.links.map((l, i) => `${i + 1}. ${l}`).join('\n')}
-
-----------------------------------------------
-
-DESIGN
-Primary Color: ${website.primary_color}
-Secondary Color: ${website.secondary_color}
-Heading Font: ${website.font_heading}
-Body Font: ${website.font_body}
-
-==============================================
-END OF PACKET
-==============================================
-`;
-
-    return packet;
+    const packet = generateCopyPacket(website, content);
+    return JSON.stringify(packet, null, 2);
   };
 
-  const copyExportPacket = () => {
-    const packet = generateExportPacket();
-    navigator.clipboard.writeText(packet);
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
     setShowCopySuccess(true);
     setTimeout(() => setShowCopySuccess(false), 3000);
-  };
-
-  const downloadExportPacket = () => {
-    const packet = generateExportPacket();
-    const blob = new Blob([packet], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${website?.brand_name || 'website'}-copy-packet.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -355,11 +340,11 @@ END OF PACKET
           onClick={() => navigate('/dashboard')}
           className="mb-6 flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
         >
-          <Home size={20} />
+          <ArrowLeft size={20} />
           <span>Back to Dashboard</span>
         </button>
 
-        <div className="mb-8 flex items-start justify-between">
+        <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-4xl font-bold text-white mb-2">
               {website.brand_name || 'Manage Website'}
@@ -369,7 +354,7 @@ END OF PACKET
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg">
               {website.publish_status === 'published' ? (
                 <>
@@ -406,12 +391,12 @@ END OF PACKET
           </div>
         </div>
 
-        <div className="flex gap-2 mb-6 overflow-x-auto">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {[
+            { id: 'overview', label: 'Overview', icon: LayoutDashboard },
             { id: 'content', label: 'Content', icon: FileText },
-            { id: 'domain', label: 'Domain', icon: Globe },
-            { id: 'design', label: 'Design', icon: Palette },
             { id: 'payments', label: 'Payments', icon: CreditCard },
+            { id: 'domain', label: 'Domain', icon: Globe },
             { id: 'export', label: 'Export', icon: Download },
           ].map((tab) => (
             <button
@@ -430,6 +415,91 @@ END OF PACKET
         </div>
 
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-white mb-4">Website Overview</h2>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <Globe className="text-[#2979FF]" size={20} />
+                    Live URL
+                  </h3>
+                  <div className="space-y-2">
+                    <code className="text-white font-mono text-sm block bg-black/20 p-3 rounded">
+                      {website.domain_status.subdomain || 'your-subdomain'}.launchpad.com
+                    </code>
+                    <button
+                      onClick={togglePublish}
+                      className={`w-full px-4 py-2 rounded-lg font-semibold transition-colors ${
+                        website.publish_status === 'published'
+                          ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                          : 'bg-[#06D6A0] text-white hover:bg-[#06D6A0]/90'
+                      }`}
+                    >
+                      {website.publish_status === 'published' ? 'Unpublish Site' : 'Publish Site'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">First Dollar Checklist</h3>
+                  <div className="space-y-3">
+                    {[
+                      { key: 'offer_and_price', label: 'Offer & price set', checked: checklist.offer_and_price },
+                      { key: 'cta_set', label: 'CTA set', checked: checklist.cta_set },
+                      { key: 'contact_info', label: 'Contact info set', checked: checklist.contact_info },
+                      { key: 'payments_connected', label: 'Payments connected', checked: checklist.payments_connected },
+                      { key: 'traffic_action', label: 'One traffic action selected', checked: checklist.traffic_action },
+                    ].map((item) => (
+                      <button
+                        key={item.key}
+                        onClick={() => setChecklist({ ...checklist, [item.key]: !item.checked })}
+                        className="w-full flex items-center gap-3 text-left hover:bg-white/5 p-2 rounded transition-colors"
+                      >
+                        {item.checked ? (
+                          <CheckSquare className="text-[#06D6A0] flex-shrink-0" size={20} />
+                        ) : (
+                          <Square className="text-gray-500 flex-shrink-0" size={20} />
+                        )}
+                        <span className={`text-sm ${item.checked ? 'text-white' : 'text-gray-400'}`}>
+                          {item.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[#06D6A0]/10 border border-[#06D6A0]/30 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-white mb-2">Quick Actions</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  Get your website ready to make sales with these essential tasks.
+                </p>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <button
+                    onClick={() => setActiveTab('content')}
+                    className="px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors"
+                  >
+                    Edit Content
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('payments')}
+                    className="px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors"
+                  >
+                    Connect Payments
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('export')}
+                    className="px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors"
+                  >
+                    Export Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'content' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between mb-4">
@@ -550,7 +620,8 @@ END OF PACKET
                     {content.home.features_or_services.items.map((item, idx) => (
                       <div key={idx} className="bg-white/5 p-4 rounded-lg space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-400">
+                          <span className="text-sm text-gray-400 flex items-center gap-2">
+                            <GripVertical size={16} />
                             {website.business_type === 'service' ? 'Service' : 'Item'} {idx + 1}
                           </span>
                           <button
@@ -566,8 +637,9 @@ END OF PACKET
                                 },
                               });
                             }}
-                            className="text-red-400 hover:text-red-300 text-sm"
+                            className="text-red-400 hover:text-red-300 flex items-center gap-1"
                           >
+                            <Trash2 size={16} />
                             Remove
                           </button>
                         </div>
@@ -638,9 +710,92 @@ END OF PACKET
                           },
                         });
                       }}
-                      className="w-full px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-colors"
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
                     >
-                      + Add {website.business_type === 'service' ? 'Service' : 'Item'}
+                      <Plus size={16} />
+                      Add {website.business_type === 'service' ? 'Service' : 'Item'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="border-b border-white/10 pb-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">FAQ</h3>
+                  <div className="space-y-4">
+                    {content.home.faq.items.map((item, idx) => (
+                      <div key={idx} className="bg-white/5 p-4 rounded-lg space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-400">Question {idx + 1}</span>
+                          <button
+                            onClick={() => {
+                              const newItems = content.home.faq.items.filter((_, i) => i !== idx);
+                              setContent({
+                                ...content,
+                                home: {
+                                  ...content.home,
+                                  faq: { items: newItems },
+                                },
+                              });
+                            }}
+                            className="text-red-400 hover:text-red-300 flex items-center gap-1"
+                          >
+                            <Trash2 size={16} />
+                            Remove
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          value={item.q}
+                          onChange={(e) => {
+                            const newItems = [...content.home.faq.items];
+                            newItems[idx] = { ...newItems[idx], q: e.target.value };
+                            setContent({
+                              ...content,
+                              home: {
+                                ...content.home,
+                                faq: { items: newItems },
+                              },
+                            });
+                          }}
+                          className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
+                          placeholder="Question"
+                        />
+                        <textarea
+                          value={item.a}
+                          onChange={(e) => {
+                            const newItems = [...content.home.faq.items];
+                            newItems[idx] = { ...newItems[idx], a: e.target.value };
+                            setContent({
+                              ...content,
+                              home: {
+                                ...content.home,
+                                faq: { items: newItems },
+                              },
+                            });
+                          }}
+                          rows={2}
+                          className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
+                          placeholder="Answer"
+                        />
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => {
+                        const newItems = [
+                          ...content.home.faq.items,
+                          { q: '', a: '' },
+                        ];
+                        setContent({
+                          ...content,
+                          home: {
+                            ...content.home,
+                            faq: { items: newItems },
+                          },
+                        });
+                      }}
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Plus size={16} />
+                      Add FAQ
                     </button>
                   </div>
                 </div>
@@ -710,48 +865,35 @@ END OF PACKET
                     />
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
 
-          {activeTab === 'domain' && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-white mb-4">Domain Settings</h2>
-
-              <div className="bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Current Domain</h3>
-                <div className="flex items-center gap-3 mb-4">
-                  <Globe className="text-[#2979FF]" size={20} />
-                  <code className="text-white font-mono">
-                    {website.domain_status.subdomain || 'your-subdomain'}.launchpad.com
-                  </code>
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4">Footer</h3>
+                  <textarea
+                    value={content.home.footer.short_blurb}
+                    onChange={(e) =>
+                      setContent({
+                        ...content,
+                        home: {
+                          ...content.home,
+                          footer: { ...content.home.footer, short_blurb: e.target.value },
+                        },
+                      })
+                    }
+                    rows={3}
+                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
+                    placeholder="Short description or tagline for your footer"
+                  />
                 </div>
-                <p className="text-sm text-gray-400 mb-4">
-                  Your website is hosted on a LaunchPad subdomain. Upgrade to Pro to connect a custom domain.
-                </p>
-              </div>
-
-              <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Custom Domain (Pro)</h3>
-                <p className="text-gray-400 mb-4">
-                  Connect your own domain name (e.g., yourbusiness.com) with a Pro subscription.
-                </p>
-                <button
-                  onClick={() => navigate('/pricing')}
-                  className="px-6 py-2 bg-gradient-to-r from-[#2979FF] to-[#06D6A0] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity"
-                >
-                  Upgrade to Pro
-                </button>
               </div>
             </div>
           )}
 
-          {activeTab === 'design' && (
+          {activeTab === 'payments' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-white">Design Settings</h2>
+                <h2 className="text-2xl font-bold text-white">Payment Settings</h2>
                 <button
-                  onClick={saveDesign}
+                  onClick={savePayments}
                   disabled={saving}
                   className="px-4 py-2 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
@@ -768,106 +910,6 @@ END OF PACKET
                   )}
                 </button>
               </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">Brand Colors</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Primary Color
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="color"
-                          value={website.primary_color}
-                          onChange={(e) =>
-                            setWebsite({ ...website, primary_color: e.target.value })
-                          }
-                          className="w-16 h-10 rounded cursor-pointer"
-                        />
-                        <input
-                          type="text"
-                          value={website.primary_color}
-                          onChange={(e) =>
-                            setWebsite({ ...website, primary_color: e.target.value })
-                          }
-                          className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white font-mono focus:outline-none focus:border-[#2979FF]"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Secondary Color
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="color"
-                          value={website.secondary_color}
-                          onChange={(e) =>
-                            setWebsite({ ...website, secondary_color: e.target.value })
-                          }
-                          className="w-16 h-10 rounded cursor-pointer"
-                        />
-                        <input
-                          type="text"
-                          value={website.secondary_color}
-                          onChange={(e) =>
-                            setWebsite({ ...website, secondary_color: e.target.value })
-                          }
-                          className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white font-mono focus:outline-none focus:border-[#2979FF]"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">Typography</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Heading Font
-                      </label>
-                      <select
-                        value={website.font_heading}
-                        onChange={(e) =>
-                          setWebsite({ ...website, font_heading: e.target.value })
-                        }
-                        className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#2979FF]"
-                      >
-                        <option value="Inter">Inter</option>
-                        <option value="Montserrat">Montserrat</option>
-                        <option value="Poppins">Poppins</option>
-                        <option value="Raleway">Raleway</option>
-                        <option value="Roboto">Roboto</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Body Font
-                      </label>
-                      <select
-                        value={website.font_body}
-                        onChange={(e) => setWebsite({ ...website, font_body: e.target.value })}
-                        className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#2979FF]"
-                      >
-                        <option value="Inter">Inter</option>
-                        <option value="Montserrat">Montserrat</option>
-                        <option value="Open Sans">Open Sans</option>
-                        <option value="Lato">Lato</option>
-                        <option value="Roboto">Roboto</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'payments' && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-white mb-4">Payment Settings</h2>
 
               {payments && (
                 <div className="space-y-4">
@@ -901,46 +943,120 @@ END OF PACKET
                     </div>
                   )}
 
-                  {website.business_type === 'ecommerce' && (
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                      <h4 className="text-white font-semibold mb-3">Checkout Mode</h4>
-                      <select
-                        value={payments.checkout_mode}
-                        onChange={(e) =>
-                          setPayments({
-                            ...payments,
-                            checkout_mode: e.target.value as any,
-                          })
-                        }
-                        className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#2979FF]"
-                      >
-                        <option value="cart">Shopping Cart</option>
-                        <option value="pay_link">Pay Links</option>
-                      </select>
-                    </div>
-                  )}
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                    <h4 className="text-white font-semibold mb-3">Checkout Mode</h4>
+                    <select
+                      value={payments.checkout_mode}
+                      onChange={(e) =>
+                        setPayments({
+                          ...payments,
+                          checkout_mode: e.target.value as any,
+                        })
+                      }
+                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#2979FF]"
+                    >
+                      {website.business_type === 'ecommerce' ? (
+                        <>
+                          <option value="cart">Shopping Cart</option>
+                          <option value="pay_link">Payment Links</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="deposit">Deposit/Retainer</option>
+                          <option value="invoice">Send Invoices</option>
+                          <option value="pay_link">Payment Links</option>
+                        </>
+                      )}
+                    </select>
+                    <p className="text-sm text-gray-400 mt-2">
+                      {website.business_type === 'ecommerce'
+                        ? 'Choose how customers will pay for products'
+                        : 'Choose how clients will pay for services'}
+                    </p>
+                  </div>
 
-                  {website.business_type === 'service' && (
+                  {website.business_type === 'service' && payments.checkout_mode === 'deposit' && (
                     <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                      <h4 className="text-white font-semibold mb-3">Payment Options</h4>
-                      <select
-                        value={payments.checkout_mode}
-                        onChange={(e) =>
-                          setPayments({
-                            ...payments,
-                            checkout_mode: e.target.value as any,
-                          })
-                        }
-                        className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#2979FF]"
-                      >
-                        <option value="deposit">Deposit/Retainer</option>
-                        <option value="invoice">Send Invoices</option>
-                        <option value="pay_link">Payment Links</option>
-                      </select>
+                      <label className="block text-white font-semibold mb-2">
+                        Default Deposit Amount
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-300">$</span>
+                        <input
+                          type="number"
+                          value={payments.default_price || ''}
+                          onChange={(e) =>
+                            setPayments({
+                              ...payments,
+                              default_price: parseFloat(e.target.value) || null,
+                            })
+                          }
+                          className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#2979FF]"
+                          placeholder="100"
+                        />
+                      </div>
+                      <p className="text-sm text-gray-400 mt-2">
+                        Amount customers pay upfront to book your service
+                      </p>
                     </div>
                   )}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'domain' && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-white mb-4">Domain Settings</h2>
+
+              <div className="bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Current Domain</h3>
+                <div className="flex items-center gap-3 mb-4">
+                  <Globe className="text-[#2979FF]" size={20} />
+                  <code className="text-white font-mono">
+                    {website.domain_status.subdomain || 'your-subdomain'}.launchpad.com
+                  </code>
+                </div>
+                <p className="text-sm text-gray-400 mb-4">
+                  Your website is hosted on a LaunchPad subdomain. This is perfect for getting started quickly.
+                </p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Change Subdomain
+                  </label>
+                  <input
+                    type="text"
+                    value={website.domain_status.subdomain}
+                    onChange={(e) =>
+                      setWebsite({
+                        ...website,
+                        domain_status: {
+                          ...website.domain_status,
+                          subdomain: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+                        },
+                      })
+                    }
+                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
+                    placeholder="your-business"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Only lowercase letters, numbers, and hyphens allowed
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Custom Domain (Pro)</h3>
+                <p className="text-gray-400 mb-4">
+                  Connect your own domain name (e.g., yourbusiness.com) with a Pro subscription.
+                </p>
+                <button
+                  onClick={() => navigate('/pricing')}
+                  className="px-6 py-2 bg-gradient-to-r from-[#2979FF] to-[#06D6A0] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                >
+                  Upgrade to Pro
+                </button>
+              </div>
             </div>
           )}
 
@@ -949,31 +1065,29 @@ END OF PACKET
               <h2 className="text-2xl font-bold text-white mb-4">Export Website Copy</h2>
 
               <div className="bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-2">Website Copy Packet</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  {website.business_type === 'ecommerce' ? 'Shopify' : 'Service'} Copy Packet
+                </h3>
                 <p className="text-gray-300 mb-4">
-                  Export all your website content in a structured format. Perfect for:
+                  {website.business_type === 'ecommerce'
+                    ? 'Export your website content in Shopify-ready format. Includes homepage copy, product descriptions, policies, and SEO metadata.'
+                    : 'Export your website content optimized for service-based platforms. Includes homepage copy, services, process, and local SEO.'}
                 </p>
-                <ul className="list-disc list-inside text-gray-300 space-y-1 mb-6">
-                  <li>Pasting into Shopify product/page descriptions</li>
-                  <li>Importing into WordPress, Wix, or Squarespace</li>
-                  <li>Sharing with designers and developers</li>
-                  <li>Keeping a backup of your content</li>
-                </ul>
 
                 <div className="flex gap-3">
                   <button
-                    onClick={copyExportPacket}
+                    onClick={handleExportCopyPacket}
                     className="flex-1 px-6 py-3 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Download size={18} />
+                    Download JSON
+                  </button>
+                  <button
+                    onClick={() => copyToClipboard(copyPacketPreview())}
+                    className="flex-1 px-6 py-3 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors flex items-center justify-center gap-2"
                   >
                     <Copy size={18} />
                     Copy to Clipboard
-                  </button>
-                  <button
-                    onClick={downloadExportPacket}
-                    className="flex-1 px-6 py-3 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Download size={18} />
-                    Download as File
                   </button>
                 </div>
 
@@ -981,7 +1095,7 @@ END OF PACKET
                   <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg flex items-center gap-2">
                     <CheckCircle2 className="text-green-400" size={16} />
                     <span className="text-green-300 text-sm">
-                      Copied to clipboard! Ready to paste into Shopify or any website builder.
+                      Copied to clipboard! Ready to paste into your platform.
                     </span>
                   </div>
                 )}
@@ -990,8 +1104,23 @@ END OF PACKET
               <div className="bg-white/5 border border-white/10 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-3">Preview</h3>
                 <pre className="bg-black/30 p-4 rounded-lg text-xs text-gray-300 overflow-auto max-h-96 whitespace-pre-wrap font-mono">
-                  {generateExportPacket()}
+                  {copyPacketPreview()}
                 </pre>
+              </div>
+
+              <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-white mb-3">How to Use</h3>
+                <ol className="space-y-2 text-gray-300 text-sm list-decimal list-inside">
+                  <li>Download the JSON file or copy to clipboard</li>
+                  <li>
+                    {website.business_type === 'ecommerce'
+                      ? 'Import into Shopify or paste sections into your e-commerce platform'
+                      : 'Paste sections into WordPress, Wix, Squarespace, or any website builder'}
+                  </li>
+                  <li>Customize styling to match your brand colors</li>
+                  <li>Replace placeholder content as needed</li>
+                  <li>Publish and start attracting customers!</li>
+                </ol>
               </div>
             </div>
           )}
