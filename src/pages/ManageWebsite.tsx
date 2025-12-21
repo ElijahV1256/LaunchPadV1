@@ -932,16 +932,65 @@ export default function ManageWebsite() {
                     </div>
                   </div>
 
-                  {payments.status === 'not_connected' && (
-                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-                      <p className="text-sm text-yellow-200 mb-3">
-                        Connect your Stripe account to accept payments on your website.
+                  <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
+                    <div>
+                      <label className="block text-white font-semibold mb-2">
+                        Stripe Checkout URL or Payment Link
+                      </label>
+                      <input
+                        type="url"
+                        value={payments.stripe_account_id || ''}
+                        onChange={(e) =>
+                          setPayments({
+                            ...payments,
+                            stripe_account_id: e.target.value,
+                            status: e.target.value ? 'connected' : 'not_connected',
+                          })
+                        }
+                        className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
+                        placeholder="https://buy.stripe.com/..."
+                      />
+                      <p className="text-sm text-gray-400 mt-2">
+                        Create a payment link in your Stripe dashboard and paste it here. This will be used as your checkout URL.
                       </p>
-                      <button className="px-4 py-2 bg-[#635BFF] text-white rounded-lg font-semibold hover:bg-[#635BFF]/90 transition-colors">
-                        Connect Stripe
-                      </button>
                     </div>
-                  )}
+
+                    {!payments.stripe_account_id && (
+                      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                        <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
+                          <AlertCircle size={18} className="text-blue-400" />
+                          How to get your Stripe payment link:
+                        </h4>
+                        <ol className="text-sm text-gray-300 space-y-1 ml-6 list-decimal">
+                          <li>Go to your Stripe Dashboard</li>
+                          <li>Click "Payment Links" in the sidebar</li>
+                          <li>Create a new payment link or copy an existing one</li>
+                          <li>Paste the link above</li>
+                        </ol>
+                        <a
+                          href="https://dashboard.stripe.com/payment-links"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-[#635BFF] text-white rounded-lg font-semibold hover:bg-[#635BFF]/90 transition-colors text-sm"
+                        >
+                          Open Stripe Dashboard
+                          <ExternalLink size={14} />
+                        </a>
+                      </div>
+                    )}
+
+                    {payments.stripe_account_id && (
+                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                        <div className="flex items-center gap-2 text-green-400 mb-2">
+                          <CheckCircle2 size={18} />
+                          <span className="font-semibold">Payment Connected</span>
+                        </div>
+                        <p className="text-sm text-gray-300">
+                          Your Stripe payment link is configured. Customers will be directed to this link when they click "Buy Now" or checkout buttons.
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="bg-white/5 border border-white/10 rounded-lg p-4">
                     <h4 className="text-white font-semibold mb-3">Checkout Mode</h4>
