@@ -378,7 +378,7 @@ export default function ManageWebsite() {
 
             {website.publish_status === 'published' && (
               <a
-                href={`https://${website.domain_status.subdomain || 'your-site'}.launchpad.com`}
+                href={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/serve-website?id=${website.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-white/5 border border-white/20 text-white rounded-lg font-semibold hover:bg-white/10 transition-colors flex items-center gap-2"
@@ -426,9 +426,21 @@ export default function ManageWebsite() {
                     Live URL
                   </h3>
                   <div className="space-y-2">
-                    <code className="text-white font-mono text-sm block bg-black/20 p-3 rounded">
-                      {website.domain_status.subdomain || 'your-subdomain'}.launchpad.com
-                    </code>
+                    <div className="relative">
+                      <code className="text-white font-mono text-xs block bg-black/20 p-3 rounded break-all">
+                        {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/serve-website?id=${website.id}`}
+                      </code>
+                      {website.publish_status === 'published' && (
+                        <a
+                          href={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/serve-website?id=${website.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-2 text-sm text-[#2979FF] hover:underline"
+                        >
+                          Open in new tab <ExternalLink size={14} />
+                        </a>
+                      )}
+                    </div>
                     <button
                       onClick={togglePublish}
                       className={`w-full px-4 py-2 rounded-lg font-semibold transition-colors ${
@@ -1059,15 +1071,29 @@ export default function ManageWebsite() {
               <h2 className="text-2xl font-bold text-white mb-4">Domain Settings</h2>
 
               <div className="bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Current Domain</h3>
-                <div className="flex items-center gap-3 mb-4">
-                  <Globe className="text-[#2979FF]" size={20} />
-                  <code className="text-white font-mono">
-                    {website.domain_status.subdomain || 'your-subdomain'}.launchpad.com
-                  </code>
+                <h3 className="text-lg font-semibold text-white mb-4">Current URL</h3>
+                <div className="mb-4">
+                  <div className="flex items-start gap-3">
+                    <Globe className="text-[#2979FF] mt-1" size={20} />
+                    <div className="flex-1">
+                      <code className="text-white font-mono text-sm block bg-black/20 p-3 rounded break-all">
+                        {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/serve-website?id=${website.id}`}
+                      </code>
+                      {website.publish_status === 'published' && (
+                        <a
+                          href={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/serve-website?id=${website.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-2 text-sm text-[#2979FF] hover:underline"
+                        >
+                          Open in new tab <ExternalLink size={14} />
+                        </a>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 <p className="text-sm text-gray-400 mb-4">
-                  Your website is hosted on a LaunchPad subdomain. This is perfect for getting started quickly.
+                  Your website is hosted on Supabase Edge Functions. This is perfect for getting started quickly.
                 </p>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
