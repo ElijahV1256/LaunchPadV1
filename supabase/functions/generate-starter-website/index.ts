@@ -55,10 +55,13 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!anthropicApiKey) {
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY') ||
+                         Deno.env.get('OPENAI_KEY') ||
+                         Deno.env.get('openai_api_key');
+
+    if (!openaiApiKey) {
       return new Response(
-        JSON.stringify({ error: "Anthropic API key not configured" }),
+        JSON.stringify({ error: "OpenAI API key not configured" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -163,15 +166,14 @@ Return ONLY the two files in this exact format, no backticks, no markdown:
 ...FULL HTML FOR SHOP PAGE...
 <!-- LAUNCHPAD_END:shop.html -->`;
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": anthropicApiKey,
-        "anthropic-version": "2023-06-01",
+        "Authorization": `Bearer ${openaiApiKey}`,
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "gpt-4o",
         max_tokens: 16000,
         messages: [
           {
@@ -184,7 +186,7 @@ Return ONLY the two files in this exact format, no backticks, no markdown:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Anthropic API error:", errorText);
+      console.error("OpenAI API error:", errorText);
       return new Response(
         JSON.stringify({ error: "Failed to generate website", details: errorText }),
         {
@@ -195,7 +197,7 @@ Return ONLY the two files in this exact format, no backticks, no markdown:
     }
 
     const data = await response.json();
-    const content = data.content?.[0]?.text || "";
+    const content = data.choices?.[0]?.message?.content || "";
 
     const homeMatch = content.match(/<!-- LAUNCHPAD_START:index\.html -->([\s\S]*?)<!-- LAUNCHPAD_END:index\.html -->/);
     const shopMatch = content.match(/<!-- LAUNCHPAD_START:shop\.html -->([\s\S]*?)<!-- LAUNCHPAD_END:shop\.html -->/);
