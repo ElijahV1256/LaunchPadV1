@@ -28,6 +28,7 @@ import NanoGenerator from './pages/NanoGenerator';
 import StoryBrandWizard from './pages/StoryBrandWizard';
 import Website from './pages/Website';
 import ManageWebsite from './pages/ManageWebsite';
+import MarketingStrategy from './pages/MarketingStrategy';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
@@ -239,6 +240,14 @@ function App() {
             element={
               <PrivateRoute>
                 <ManageWebsite />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/marketing-strategy"
+            element={
+              <PrivateRoute>
+                <MarketingStrategy />
               </PrivateRoute>
             }
           />

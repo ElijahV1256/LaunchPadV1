@@ -488,7 +488,7 @@ export default function ManageWebsite() {
                 <p className="text-gray-300 text-sm mb-4">
                   Get your website ready to make sales with these essential tasks.
                 </p>
-                <div className="grid sm:grid-cols-3 gap-3">
+                <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
                   <button
                     onClick={() => setActiveTab('content')}
                     className="px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors"
@@ -500,6 +500,12 @@ export default function ManageWebsite() {
                     className="px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors"
                   >
                     Connect Payments
+                  </button>
+                  <button
+                    onClick={() => navigate(`/marketing-strategy?website=${website.id}`)}
+                    className="px-4 py-2 bg-[#2979FF]/20 border border-[#2979FF] text-white rounded-lg hover:bg-[#2979FF]/30 transition-colors"
+                  >
+                    Marketing Strategy
                   </button>
                   <button
                     onClick={() => setActiveTab('export')}
