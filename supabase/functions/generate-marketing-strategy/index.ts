@@ -57,25 +57,64 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { data: website, error: websiteError } = await supabaseClient
-      .from("managed_websites")
-      .select(`
-        *,
-        website_content(*),
-        website_payments(*)
-      `)
+    let website: any = null;
+    let businessName = '';
+    let businessType = 'Service-based';
+    let businessInfo = {};
+
+    const { data: starterWebsite } = await supabaseClient
+      .from("starter_websites")
+      .select("*")
       .eq("id", websiteId)
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (websiteError || !website) {
-      return new Response(
-        JSON.stringify({ error: "Website not found" }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    if (starterWebsite) {
+      website = starterWebsite;
+      const pkg = starterWebsite.business_package;
+      businessName = pkg?.businessName || 'Your Business';
+      businessType = 'Service-based';
+      businessInfo = {
+        headline: pkg?.businessName || '',
+        value_proposition: pkg?.offer || pkg?.businessIdea || '',
+        target_audience: pkg?.targetCustomer || 'General consumers',
+        pricing: 'Contact for pricing',
+        cta: 'Get Started'
+      };
+    } else {
+      const { data: managedWebsite, error: managedError } = await supabaseClient
+        .from("managed_websites")
+        .select(`
+          *,
+          website_content(*),
+          website_payments(*)
+        `)
+        .eq("id", websiteId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (managedError || !managedWebsite) {
+        return new Response(
+          JSON.stringify({ error: "Website not found" }),
+          {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      website = managedWebsite;
+      businessName = managedWebsite.brand_name;
+      businessType = managedWebsite.business_type === 'ecommerce' ? 'E-commerce' : 'Service-based';
+      const content = managedWebsite.website_content?.[0];
+      const payments = managedWebsite.website_payments?.[0];
+      businessInfo = {
+        headline: content?.home?.hero?.headline || 'Not set',
+        value_proposition: content?.home?.hero?.subheadline || 'Not set',
+        target_audience: content?.home?.social_proof?.bullets?.[0] || 'General consumers',
+        pricing: payments?.default_price || 'Not set',
+        cta: content?.home?.hero?.cta_text || 'Get Started'
+      };
     }
 
     const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY");
@@ -89,20 +128,16 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const businessType = website.business_type === 'ecommerce' ? 'E-commerce' : 'Service-based';
-    const content = website.website_content?.[0];
-    const payments = website.website_payments?.[0];
-
     const prompt = `You are a marketing strategy expert. Create a comprehensive, actionable marketing strategy guide for this business.
 
 BUSINESS INFORMATION:
-- Business Name: ${website.brand_name}
+- Business Name: ${businessName}
 - Business Type: ${businessType}
-- Hero Headline: ${content?.home?.hero?.headline || 'Not set'}
-- Value Proposition: ${content?.home?.hero?.subheadline || 'Not set'}
-- Target Audience: ${content?.home?.social_proof?.bullets?.[0] || 'General consumers'}
-- Pricing: ${payments?.default_price || 'Not set'}
-- CTA: ${content?.home?.hero?.cta_text || 'Get Started'}
+- Hero Headline: ${businessInfo.headline}
+- Value Proposition: ${businessInfo.value_proposition}
+- Target Audience: ${businessInfo.target_audience}
+- Pricing: ${businessInfo.pricing}
+- CTA: ${businessInfo.cta}
 
 Create a detailed marketing strategy in JSON format with these sections:
 
@@ -266,7 +301,7 @@ Return ONLY the JSON object, no markdown formatting or code blocks.`;
       const { data, error } = await supabaseClient
         .from("marketing_strategies")
         .update({
-          business_name: website.brand_name,
+          business_name: businessName,
           overview: strategy.overview,
           target_audience: strategy.target_audience,
           unique_selling_points: strategy.unique_selling_points,
@@ -289,7 +324,7 @@ Return ONLY the JSON object, no markdown formatting or code blocks.`;
         .insert({
           user_id: user.id,
           website_id: websiteId,
-          business_name: website.brand_name,
+          business_name: businessName,
           overview: strategy.overview,
           target_audience: strategy.target_audience,
           unique_selling_points: strategy.unique_selling_points,
