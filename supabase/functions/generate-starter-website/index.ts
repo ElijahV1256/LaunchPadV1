@@ -75,9 +75,9 @@ Deno.serve(async (req: Request) => {
     const hasContactPhone = businessPackage.contact?.phone && businessPackage.contact.phone.trim() !== '';
     const hasLocation = businessPackage.location && businessPackage.location.trim() !== '';
 
-    const prompt = `You are an elite web designer specializing in Apple-inspired minimalist design.
+    const prompt = `You are an elite web designer specializing in modern, stunning web design that converts visitors into customers.
 
-Create a CLEAN, SIMPLE, MOBILE-RESPONSIVE 2-page starter website for the business described below.
+Create a BEAUTIFUL, PROFESSIONAL, MOBILE-RESPONSIVE 2-page starter website for the business described below.
 
 BUSINESS PACKAGE (JSON):
 ${JSON.stringify(businessPackage, null, 2)}
@@ -87,73 +87,140 @@ ${hasProductImages ? `- The customer provided ${businessPackage.images.length} p
 ${hasSocialLinks ? `- Social media links provided: ${Object.keys(businessPackage.socialLinks).join(', ')}. Include these in the footer.` : '- No social media links provided.'}
 ${hasContactPhone ? `- Phone number provided: ${businessPackage.contact.phone}. Display this prominently in the footer or contact section.` : ''}
 ${hasLocation ? `- Business address provided: ${businessPackage.location}. Include this in the footer.` : ''}
-${businessPackage.checkoutUrl && businessPackage.checkoutUrl !== '#' ? `- Checkout URL provided: ${businessPackage.checkoutUrl}. Use this exact URL for all "Buy Now" buttons.` : '- No checkout URL provided yet. Use "#" for Buy Now buttons with a note to replace.'}
+${businessPackage.checkoutUrl && businessPackage.checkoutUrl !== '#' ? `- Checkout URL provided: ${businessPackage.checkoutUrl}. Use this exact URL for all \"Buy Now\" buttons.` : '- No checkout URL provided yet. Use \"#\" for Buy Now buttons with a note to replace.'}
 
-DESIGN PHILOSOPHY - APPLE-INSPIRED:
-- Minimalist, clean design with generous white space
-- Large, high-quality 4K imagery (minimum 1920x1080 resolution)
-- Simple, elegant typography using system fonts (-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto)
-- Premium feel with meticulous attention to spacing and hierarchy
-- Limited color palette focused on neutrals with strategic use of brand colors
-- Large hero sections with full-bleed images
-- Crisp, professional aesthetic
-- KEEP IT SIMPLE - fewer sections, more focus
+DESIGN PHILOSOPHY - MODERN & STUNNING:
+- Create a visually striking design that immediately captures attention
+- Use smooth gradient backgrounds incorporating the brand colors
+- Implement subtle animations and transitions (CSS only, no JavaScript)
+- Modern glassmorphism effects where appropriate (backdrop-blur, semi-transparent cards)
+- Bold, contemporary typography with excellent hierarchy
+- Strategic use of shadows and depth for visual interest
+- Professional color theory - use the brand colors in sophisticated gradients and overlays
+- Engaging hover effects and interactive elements
+- Balance between minimalism and visual richness
+- Make every section feel premium and polished
 
 TECH REQUIREMENTS:
-- Output ONLY HTML for two pages using Tailwind via CDN.
-- Each page must include: <script src="https://cdn.tailwindcss.com"></script> in <head>.
-- Do NOT use <style> blocks.
-- Do NOT use any external JS frameworks.
+- Output ONLY HTML for two pages using Tailwind via CDN
+- Each page must include: <script src=\"https://cdn.tailwindcss.com\"></script> in <head>
+- DO NOT use <style> blocks or external CSS files
+- DO NOT use any external JS frameworks
+- Use ONLY Tailwind classes for all styling
+- DO NOT include any logo images - use the business name as text-based branding
 - CRITICAL IMAGE REQUIREMENTS:
-  * Include ONLY 2-3 high-quality 4K Pexels photos total
+  * Include 2-4 high-quality 4K Pexels photos strategically placed
   * ONLY use images if they are DIRECTLY relevant to the specific business type
   * For example:
     - Cleaning business: Use cleaning products, clean spaces, professional cleaners
     - Bakery: Use fresh baked goods, bakery interior, pastries
     - Consulting: Use professional office settings, meetings, business people
     - Pet grooming: Use groomed pets, grooming tools, happy pet owners
-  * If you are NOT 100% confident the image matches the business, DO NOT include it
   * Link directly to Pexels images (e.g., https://images.pexels.com/photos/.../pexels-photo-....jpeg?auto=compress&cs=tinysrgb&w=1920)
   * Images must feel authentic and specific to the business type
-  * Use the provided logoUrl for the brand logo
-- Use large font sizes: text-5xl to text-7xl for headlines
-- Generous padding and margins (py-20, py-32, etc.)
-- System font stack for clean typography
+- Use large, bold font sizes: text-6xl to text-8xl for main headlines
+- System font stack: font-sans (Tailwind default)
 
-PAGES:
-1) Home page (index.html)
-   Keep it simple with these sections:
-   - Clean top nav (logo + links: Home, Shop)
-   - Hero section:
-     * Large, bold headline (text-6xl or text-7xl)
-     * Short subheadline
-     * Single CTA button linking to shop.html
-     * Optional: ONE business-relevant hero image IF you're confident it matches
-   - Brief about section (2-3 sentences)
-   - Simple features/benefits (3 items max, no images)
-   - Final CTA section
-   - Footer with:
-     * Contact info (email${hasContactPhone ? ', phone' : ''})
-     ${hasLocation ? '* Business address' : ''}
-     ${hasSocialLinks ? '* Social media links' : ''}
+PAGES STRUCTURE:
 
-2) Shop page (shop.html)
-   Keep it simple:
-   - Clean top nav
-   - Page header "Shop" with optional relevant image
-   - ${hasProductImages ? `USE THE ${businessPackage.images.length} PROVIDED PRODUCT IMAGES for product cards` : '2-3 product cards with clean design'}
-   - "Buy Now" buttons linking to: ${checkoutUrl}
-   ${checkoutUrl === '#' ? '- Small note: "To start selling, replace the checkout link with your Shopify/Stripe link."' : ''}
-   - Footer (same as home page)
+1) HOME PAGE (index.html)
 
-STYLE GUIDELINES:
-- Background: Mostly white or very light gray (gray-50)
-- Text: Dark gray (gray-900) for headlines, gray-600/700 for body
-- Buttons: Large (px-8 py-4), rounded-full or rounded-xl, use brand primary color
-- Spacing: Generous (py-20, py-24, py-32 between sections)
-- Images: Large, high quality, but ONLY if business-relevant
-- Typography: Large headlines (text-5xl+), readable body text (text-lg)
-- Keep it minimal and clean
+   NAVIGATION:
+   - Fixed/sticky top nav with backdrop-blur effect
+   - Business name in large, bold text (text-2xl font-bold) using brand primary color
+   - Nav links: Home, Shop (text-sm, clean spacing)
+   - Add subtle shadow on scroll effect
+
+   HERO SECTION:
+   - Full-screen height (min-h-screen) with stunning gradient background using brand colors
+   - Massive, eye-catching headline (text-6xl to text-8xl font-bold)
+   - Compelling subheadline (text-xl to text-2xl)
+   - Large, prominent CTA button with gradient, shadow, and hover effect
+   - Optional: Overlay a relevant hero image with gradient overlay for depth
+
+   ABOUT SECTION:
+   - Clean layout with gradient or colored background (light)
+   - 2-3 sentences about the business
+   - Include the tagline prominently
+   - Modern card design with subtle shadow
+
+   FEATURES/BENEFITS SECTION:
+   - 3 feature cards in a grid
+   - Each card has: icon (use Unicode symbols or simple shapes), title, description
+   - Glassmorphism effect: backdrop-blur, semi-transparent background
+   - Hover effects with scale and shadow transitions
+   - Use brand accent colors for accents
+
+   CALL-TO-ACTION SECTION:
+   - Eye-catching gradient background
+   - Bold headline
+   - Prominent CTA button linking to shop.html
+   - Make this section visually distinct and compelling
+
+   FOOTER:
+   - Modern, clean design with dark background (gray-900)
+   - Contact info in organized columns
+   - Social links with hover effects
+   - Copyright notice
+
+2) SHOP PAGE (shop.html)
+
+   NAVIGATION:
+   - Same as home page
+
+   HEADER SECTION:
+   - Page title \"Shop\" with gradient text effect
+   - Optional: Background image with overlay
+   - Breadcrumb or back to home link
+
+   PRODUCTS GRID:
+   - ${hasProductImages ? `USE THE ${businessPackage.images.length} PROVIDED PRODUCT IMAGES for product cards` : '3-4 product cards showcasing offerings'}
+   - Modern card design with:
+     * Product image (rounded corners, good aspect ratio)
+     * Product name (bold, clear)
+     * Brief description
+     * Price (prominent, using brand colors)
+     * \"Buy Now\" button with gradient and hover effect linking to: ${checkoutUrl}
+   - Grid layout: responsive (1 column mobile, 2-3 columns desktop)
+   - Cards have hover effects (lift, shadow increase)
+   ${checkoutUrl === '#' ? '- Small note below products: \"To start selling, replace the checkout link with your Shopify/Stripe link.\"' : ''}
+
+   FOOTER:
+   - Same as home page
+
+CRITICAL STYLING REQUIREMENTS:
+
+COLORS & GRADIENTS:
+- Use the brand primary color (${businessPackage.brandColors.primary}) extensively in gradients
+- Use the brand secondary color (${businessPackage.brandColors.secondary}) for accents
+- Use the brand accent color (${businessPackage.brandColors.accent}) for highlights
+- Create beautiful gradients: \"bg-gradient-to-r from-[${businessPackage.brandColors.primary}] to-[${businessPackage.brandColors.secondary}]\"
+- Use color overlays on images for cohesive look
+
+MODERN EFFECTS:
+- backdrop-blur-lg for glassmorphism
+- shadow-xl and shadow-2xl for depth
+- rounded-2xl and rounded-3xl for modern feel
+- transition-all duration-300 for smooth interactions
+- hover:scale-105 for card hover effects
+- hover:shadow-2xl for interactive elements
+
+TYPOGRAPHY:
+- Headlines: text-6xl to text-8xl, font-bold or font-extrabold
+- Subheadlines: text-2xl to text-3xl, font-semibold
+- Body: text-lg, leading-relaxed
+- Use gradient text where impactful: \"bg-gradient-to-r from-[color] to-[color] bg-clip-text text-transparent\"
+
+SPACING:
+- Generous padding: py-20, py-24, py-32
+- Good section spacing: space-y-16, space-y-20
+- Proper container widths: max-w-7xl mx-auto px-4
+
+RESPONSIVE DESIGN:
+- Mobile-first approach
+- Use sm:, md:, lg:, xl: breakpoints effectively
+- Ensure text scales appropriately
+- Grid layouts that adapt (grid-cols-1 md:grid-cols-2 lg:grid-cols-3)
 
 OUTPUT FORMAT:
 Return ONLY the two files in this exact format, no backticks, no markdown:
