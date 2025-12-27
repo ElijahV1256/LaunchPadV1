@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User } from '@supabase/supabase-js';
+import { User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../config/supabase';
 
 interface AuthContextType {
@@ -20,41 +20,110 @@ export const useAuth = () => {
   return context;
 };
 
+function getAuthErrorMessage(error: AuthError): string {
+  switch (error.message) {
+    case 'Invalid login credentials':
+      return 'Invalid email or password. Please try again.';
+    case 'Email not confirmed':
+      return 'Please confirm your email address before logging in.';
+    case 'User already registered':
+      return 'An account with this email already exists.';
+    case 'Password should be at least 6 characters':
+      return 'Password must be at least 6 characters long.';
+    case 'Signups not allowed for this instance':
+      return 'New signups are currently disabled.';
+    default:
+      if (error.message.includes('network')) {
+        return 'Network error. Please check your internet connection and try again.';
+      }
+      if (error.message.includes('timeout')) {
+        return 'Request timed out. Please try again.';
+      }
+      return error.message || 'An error occurred. Please try again.';
+  }
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   const signup = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (error) {
+        throw new Error(getAuthErrorMessage(error));
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to sign up. Please try again.');
+    }
   };
 
   const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        throw new Error(getAuthErrorMessage(error));
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to log in. Please try again.');
+    }
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw new Error('Failed to log out. Please try again.');
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to log out. Please try again.');
+    }
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error);
+      }
       setCurrentUser(session?.user ?? null);
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Failed to get session:', error);
+      setCurrentUser(null);
       setLoading(false);
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       (async () => {
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed successfully');
+        }
+        if (event === 'SIGNED_OUT') {
+          setCurrentUser(null);
+        }
+        if (event === 'SIGNED_IN') {
+          setCurrentUser(session?.user ?? null);
+        }
+        if (event === 'USER_UPDATED') {
+          setCurrentUser(session?.user ?? null);
+        }
         setCurrentUser(session?.user ?? null);
       })();
     });

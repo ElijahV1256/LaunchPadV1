@@ -347,30 +347,36 @@ export async function generateSlogan(
   targetAudience?: string,
   brandPersonality?: string
 ): Promise<string> {
-  const audienceText = targetAudience ? `Target audience: ${targetAudience}.` : '';
-  const personalityText = brandPersonality ? `Brand personality: ${brandPersonality}.` : '';
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-slogan`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName,
+          businessDescription,
+          targetAudience,
+          brandPersonality,
+        }),
+      }
+    );
 
-  const prompt = `Create a short, memorable slogan (5-7 words max) for a business called "${businessName}".
-${businessDescription}
-${audienceText}
-${personalityText}
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Edge function error response:', errorText);
+      throw new Error(`Failed to generate slogan (${response.status})`);
+    }
 
-The slogan should be:
-- Catchy and easy to remember
-- Reflect what the business offers
-- Professional yet creative
-- No more than 7 words
-
-Return ONLY the slogan text, nothing else.`;
-
-  const response = await getOpenAIClient().chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: prompt }],
-    temperature: 0.9,
-    max_tokens: 50,
-  });
-
-  return response.choices[0].message.content?.trim() || 'Your Business, Your Way';
+    const result = await response.json();
+    return result.slogan || 'Your Business, Your Way';
+  } catch (error: any) {
+    console.error('Error calling generate-slogan edge function:', error);
+    return 'Your Business, Your Way';
+  }
 }
 
 export async function generateCompleteBrandFoundation(
@@ -390,45 +396,35 @@ export async function generateCompleteBrandFoundation(
   messagingDos: string[];
   messagingDonts: string[];
 }> {
-  const audienceText = targetAudience ? `Target audience: ${targetAudience}.` : '';
-  const personalityText = brandPersonality ? `Brand personality: ${brandPersonality}.` : '';
-  const industryText = industry ? `Industry: ${industry}.` : '';
-
-  const prompt = `You are an expert brand strategist. Create comprehensive brand foundation content for "${businessName}".
-
-Business: ${businessDescription}
-${audienceText}
-${personalityText}
-${industryText}
-
-Generate the following in JSON format:
-{
-  "mission": "A clear mission statement (1-2 sentences about what the business does and why)",
-  "vision": "An inspiring vision statement (1-2 sentences about future goals)",
-  "coreValues": ["Value 1", "Value 2", "Value 3", "Value 4", "Value 5"] (5 core values),
-  "uvp": "A unique value proposition (1 sentence explaining what makes this business different)",
-  "voiceDescription": "Brand voice description (professional, friendly, etc. - 1 sentence)",
-  "voiceExamples": ["Example 1", "Example 2"] (2 sample sentences in the brand voice),
-  "elevatorPitch": "A compelling elevator pitch (2-3 sentences)",
-  "messagingDos": ["Do 1", "Do 2", "Do 3"] (3 messaging do's),
-  "messagingDonts": ["Don't 1", "Don't 2", "Don't 3"] (3 messaging don'ts)
-}
-
-Return ONLY valid JSON, no markdown formatting.`;
-
-  const response = await getOpenAIClient().chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: prompt }],
-    temperature: 0.7,
-    max_tokens: 800,
-  });
-
-  const content = response.choices[0].message.content?.trim() || '{}';
-
   try {
-    return JSON.parse(content);
-  } catch (e) {
-    console.error('Failed to parse brand foundation JSON:', e);
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-brand-foundation`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName,
+          businessDescription,
+          targetAudience,
+          brandPersonality,
+          industry,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Edge function error response:', errorText);
+      throw new Error(`Failed to generate brand foundation (${response.status})`);
+    }
+
+    const result = await response.json();
+    return result.brandFoundation;
+  } catch (error: any) {
+    console.error('Error calling generate-brand-foundation edge function:', error);
     return {
       mission: `To provide exceptional ${businessDescription}`,
       vision: `To become a leading provider in our industry`,

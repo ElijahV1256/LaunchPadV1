@@ -1,34 +1,49 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useRouteGuard } from './hooks/useRouteGuard';
-import Homepage from './pages/Homepage';
-import AuthPage from './pages/AuthPage';
-import Onboarding from './pages/Onboarding';
-import Ideas from './pages/Ideas';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import FirstRevenue from './pages/FirstRevenue';
-import LocalOpportunities from './pages/LocalOpportunities';
-import LocalResults from './pages/LocalResults';
-import Pricing from './pages/Pricing';
-import ProSuccess from './pages/ProSuccess';
-import Roadmap from './pages/Roadmap';
-import StoryBrandRoadmap from './pages/StoryBrandRoadmap';
-import MasterSheet from './pages/MasterSheet';
-import Resources from './pages/Resources';
-import BrandIdentity from './pages/BrandIdentity';
-import LogoEditor from './pages/LogoEditor';
-import MarketingAssets from './pages/MarketingAssets';
-import WebsiteBuilder from './pages/WebsiteBuilder';
-import Operations from './pages/Operations';
-import ScaleOptimize from './pages/ScaleOptimize';
-import SavedIdeas from './pages/SavedIdeas';
-import SavedNames from './pages/SavedNames';
-import NanoGenerator from './pages/NanoGenerator';
-import StoryBrandWizard from './pages/StoryBrandWizard';
-import Website from './pages/Website';
-import ManageWebsite from './pages/ManageWebsite';
-import MarketingStrategy from './pages/MarketingStrategy';
+
+const Homepage = lazy(() => import('./pages/Homepage'));
+const AuthPage = lazy(() => import('./pages/AuthPage'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
+const Ideas = lazy(() => import('./pages/Ideas'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Profile = lazy(() => import('./pages/Profile'));
+const FirstRevenue = lazy(() => import('./pages/FirstRevenue'));
+const LocalOpportunities = lazy(() => import('./pages/LocalOpportunities'));
+const LocalResults = lazy(() => import('./pages/LocalResults'));
+const Pricing = lazy(() => import('./pages/Pricing'));
+const ProSuccess = lazy(() => import('./pages/ProSuccess'));
+const Roadmap = lazy(() => import('./pages/Roadmap'));
+const StoryBrandRoadmap = lazy(() => import('./pages/StoryBrandRoadmap'));
+const MasterSheet = lazy(() => import('./pages/MasterSheet'));
+const Resources = lazy(() => import('./pages/Resources'));
+const BrandIdentity = lazy(() => import('./pages/BrandIdentity'));
+const LogoEditor = lazy(() => import('./pages/LogoEditor'));
+const MarketingAssets = lazy(() => import('./pages/MarketingAssets'));
+const WebsiteBuilder = lazy(() => import('./pages/WebsiteBuilder'));
+const Operations = lazy(() => import('./pages/Operations'));
+const ScaleOptimize = lazy(() => import('./pages/ScaleOptimize'));
+const SavedIdeas = lazy(() => import('./pages/SavedIdeas'));
+const SavedNames = lazy(() => import('./pages/SavedNames'));
+const NanoGenerator = lazy(() => import('./pages/NanoGenerator'));
+const StoryBrandWizard = lazy(() => import('./pages/StoryBrandWizard'));
+const Website = lazy(() => import('./pages/Website'));
+const ManageWebsite = lazy(() => import('./pages/ManageWebsite'));
+const MarketingStrategy = lazy(() => import('./pages/MarketingStrategy'));
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent" role="status">
+          <span className="sr-only">Loading...</span>
+        </div>
+        <p className="mt-4 text-gray-600">Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
@@ -40,7 +55,8 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <Routes>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
           <Route path="/" element={<Homepage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route
@@ -251,7 +267,8 @@ function App() {
               </PrivateRoute>
             }
           />
-        </Routes>
+          </Routes>
+        </Suspense>
       </AuthProvider>
     </Router>
   );
