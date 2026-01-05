@@ -7,6 +7,17 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  };
+  return text.replace(/[&<>"']/g, (char) => map[char] || char);
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -117,7 +128,7 @@ Deno.serve(async (req: Request) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${website.brand_name || 'Website'}</title>
+  <title>${escapeHtml(website.brand_name || 'Website')}</title>
   <style>
     body {
       font-family: system-ui, -apple-system, sans-serif;
@@ -142,7 +153,7 @@ Deno.serve(async (req: Request) => {
 </head>
 <body>
   <div class="container">
-    <h1>${website.brand_name || 'Coming Soon'}</h1>
+    <h1>${escapeHtml(website.brand_name || 'Coming Soon')}</h1>
     <p>This website is still being set up. Please check back soon!</p>
   </div>
 </body>

@@ -8,10 +8,20 @@ const corsHeaders = {
 
 const cache = new Map();
 const CACHE_TTL = 48 * 60 * 60 * 1000;
+const MAX_CACHE_SIZE = 100;
 
 interface CachedResult {
   data: any;
   timestamp: number;
+}
+
+function cleanExpiredCache(): void {
+  const now = Date.now();
+  for (const [key, value] of cache.entries()) {
+    if (now - (value as CachedResult).timestamp > CACHE_TTL) {
+      cache.delete(key);
+    }
+  }
 }
 
 function getCacheKey(zip: string | undefined, lat: number | undefined, lng: number | undefined, radius: number): string {
@@ -30,6 +40,13 @@ function getCached(key: string): any | null {
 }
 
 function setCache(key: string, data: any): void {
+  if (cache.size >= MAX_CACHE_SIZE) {
+    cleanExpiredCache();
+    if (cache.size >= MAX_CACHE_SIZE) {
+      const firstKey = cache.keys().next().value;
+      cache.delete(firstKey);
+    }
+  }
   cache.set(key, { data, timestamp: Date.now() });
 }
 

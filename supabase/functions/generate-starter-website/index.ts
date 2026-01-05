@@ -279,23 +279,43 @@ Return ONLY the two files in this exact format, no backticks, no markdown:
 ...FULL HTML FOR SHOP PAGE...
 <!-- LAUNCHPAD_END:shop.html -->`;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${openaiApiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        max_tokens: 16000,
-        messages: [
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
+
+    let response;
+    try {
+      response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${openaiApiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          max_tokens: 8000,
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        return new Response(
+          JSON.stringify({ error: "Request timeout after 120 seconds" }),
           {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      }),
-    });
+            status: 504,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      throw error;
+    }
 
     if (!response.ok) {
       const errorText = await response.text();

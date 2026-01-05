@@ -35,21 +35,25 @@ Deno.serve(async (req: Request) => {
 
     const body = await req.text();
     const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
-    
+
+    if (!webhookSecret) {
+      console.error('STRIPE_WEBHOOK_SECRET not configured');
+      return new Response(
+        JSON.stringify({ error: 'Webhook secret not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     let event: Stripe.Event;
-    
-    if (webhookSecret) {
-      try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      } catch (err: any) {
-        console.error('Webhook signature verification failed:', err.message);
-        return new Response(
-          JSON.stringify({ error: 'Webhook signature verification failed' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    } else {
-      event = JSON.parse(body);
+
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    } catch (err: any) {
+      console.error('Webhook signature verification failed:', err.message);
+      return new Response(
+        JSON.stringify({ error: 'Webhook signature verification failed' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const supabase = createClient(
