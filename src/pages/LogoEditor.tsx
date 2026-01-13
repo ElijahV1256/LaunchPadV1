@@ -35,13 +35,11 @@ export default function LogoEditor() {
   const [brandColors, setBrandColors] = useState<BrandColors>({ primary: '#000000', secondary: '#666666', accent: '#999999' });
 
   const [editPrompt, setEditPrompt] = useState('');
-  const [correctSpelling, setCorrectSpelling] = useState('');
   const [styleAdjustments, setStyleAdjustments] = useState({
     makeMoreMinimal: false,
     makeMoreDetailed: false,
     changeIconStyle: '',
     adjustColors: '',
-    modifyText: '',
   });
 
   useEffect(() => {
@@ -104,40 +102,6 @@ export default function LogoEditor() {
     }
   };
 
-  const handleFixSpelling = async () => {
-    if (!correctSpelling.trim()) {
-      alert('Please enter the corrected text for your logo');
-      return;
-    }
-
-    if (!logo) return;
-
-    setRegenerating(true);
-    try {
-      // Import the logo composer
-      const { composeLogoWithText } = await import('../utils/logoComposer');
-
-      // Extract the icon from the current logo (we'll regenerate with new text)
-      // For now, since we can't extract the icon easily, we'll need to regenerate with specific instructions
-      const updatedLogo = await regenerateLogoWithChanges(
-        logo,
-        correctSpelling.trim(),
-        industry,
-        brandColors,
-        `CRITICAL: Use EXACTLY this text: "${correctSpelling.trim()}". Keep the same icon design and colors. ONLY change the text spelling to exactly match: "${correctSpelling.trim()}". Do not change any other aspect of the logo.`
-      );
-
-      setLogo(updatedLogo);
-      setCorrectSpelling('');
-      alert('Logo text updated! If the text is still not correct, you may need to generate a new logo concept from the Brand Identity page.');
-    } catch (error) {
-      console.error('Error fixing spelling:', error);
-      alert('Failed to update text. Please try again or generate a new logo from Brand Identity page.');
-    } finally {
-      setRegenerating(false);
-    }
-  };
-
   const handleRegenerateLogo = async () => {
     if (!logo || !businessName) return;
 
@@ -155,9 +119,6 @@ export default function LogoEditor() {
     }
     if (styleAdjustments.adjustColors) {
       promptParts.push(`Color adjustment: ${styleAdjustments.adjustColors}`);
-    }
-    if (styleAdjustments.modifyText) {
-      promptParts.push(`Text modification: ${styleAdjustments.modifyText}`);
     }
     if (editPrompt.trim()) {
       promptParts.push(editPrompt);
@@ -248,7 +209,6 @@ export default function LogoEditor() {
         makeMoreDetailed: false,
         changeIconStyle: '',
         adjustColors: '',
-        modifyText: '',
       });
     }
   };
@@ -398,7 +358,7 @@ export default function LogoEditor() {
                     type="text"
                     value={styleAdjustments.adjustColors}
                     onChange={(e) => setStyleAdjustments({ ...styleAdjustments, adjustColors: e.target.value })}
-                    placeholder='e.g., "change the blue to #FF5733" or "make the text darker"'
+                    placeholder='e.g., "change the blue to #FF5733" or "make the icon darker"'
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] text-sm"
                   />
                   <div className="mt-3 flex items-center gap-2">
@@ -423,7 +383,7 @@ export default function LogoEditor() {
                   <textarea
                     value={editPrompt}
                     onChange={(e) => setEditPrompt(e.target.value)}
-                    placeholder='e.g., "remove the circle around the icon" or "make the tagline smaller"'
+                    placeholder='e.g., "remove the circle around the icon" or "add more detail to the shape"'
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] resize-none text-sm"
                     rows={3}
                   />

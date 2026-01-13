@@ -65,15 +65,15 @@ Deno.serve(async (req: Request) => {
 
     console.log('Starting logo generation for:', businessName, 'in', industry, 'industry');
 
-    const basePrompt = `Create an original, modern logo for a business named '${businessName}' in the '${industry}' industry. Make it stylistically aligned with typical logos in this industry (category design language) while remaining clearly original and not resembling any specific real brand. Provide a clean, professional, scalable logo suitable for web and print. No mockups, no watermarks, no copyrighted/trademarked elements.`;
+    const basePrompt = `Create an original, modern ICON-ONLY logo mark (NO TEXT, NO LETTERS, NO WORDS) for a business in the '${industry}' industry. The business is called '${businessName}' - use this context for the design concept but DO NOT include any text or letters in the image. Create only a symbol/icon/graphic mark. Make it stylistically aligned with typical logos in this industry while remaining clearly original. Clean, professional, scalable design suitable for web and print. Solid white or transparent background. No mockups, no watermarks, no copyrighted elements.`;
 
     const variations = [
-      `${basePrompt} Style: Minimal geometric design with clean lines and simple shapes. Icon-only or with minimal text. Perfect for modern tech and professional services.`,
-      `${basePrompt} Style: Friendly modern approach with rounded elements and approachable typography. Warm and welcoming feel suitable for consumer-facing brands.`,
-      `${basePrompt} Style: Premium monoline design with elegant single-stroke linework. Sophisticated and refined, ideal for luxury or upscale positioning.`,
-      `${basePrompt} Style: Bold badge format with strong shapes and confident presence. Impactful design that commands attention.`,
-      `${basePrompt} Style: Abstract mark with conceptual symbolism. Creative interpretation of brand values through modern abstract forms.`,
-      `${basePrompt} Style: Icon-focused lettermark combining typography with symbolic elements. Balanced design merging text and visual identity.`
+      `${basePrompt} Style: Minimal geometric icon with clean lines and simple shapes. Single-color design. Think Apple or Nike logomark simplicity.`,
+      `${basePrompt} Style: Friendly modern icon with rounded elements and soft curves. Approachable and warm. Like Airbnb or Slack icon style.`,
+      `${basePrompt} Style: Premium monoline icon with elegant single-stroke linework. Sophisticated and refined continuous line design.`,
+      `${basePrompt} Style: Bold badge-style icon with strong geometric shapes. Confident, impactful silhouette that works at any size.`,
+      `${basePrompt} Style: Abstract symbolic mark representing the brand concept. Creative interpretation through modern abstract forms.`,
+      `${basePrompt} Style: Negative space icon design that cleverly uses empty space to create meaning. Smart, memorable visual concept.`
     ];
 
     const concepts: LogoConcept[] = [];
