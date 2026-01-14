@@ -41,6 +41,19 @@ const getIndustryKeywords = (industry: string): string => {
   return 'professionalism, quality, trust, innovation, excellence';
 };
 
+const svgToDataUrl = (svg: string): string => {
+  const encoded = btoa(unescape(encodeURIComponent(svg)));
+  return `data:image/svg+xml;base64,${encoded}`;
+};
+
+const extractSvg = (content: string): string | null => {
+  const svgMatch = content.match(/<svg[\s\S]*?<\/svg>/i);
+  if (svgMatch) {
+    return svgMatch[0];
+  }
+  return null;
+};
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -54,7 +67,7 @@ Deno.serve(async (req: Request) => {
     if (!openaiApiKey) {
       return new Response(
         JSON.stringify({
-          error: "OpenAI API key not configured in Supabase. Please set OPENAI_API_KEY in Project Settings > Edge Functions > Secrets"
+          error: "OpenAI API key not configured"
         }),
         {
           status: 500,
@@ -63,75 +76,68 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const {
-      businessName,
-      industry,
-      brandColors,
-    } = await req.json();
+    const { businessName, industry, brandColors } = await req.json();
 
     if (!businessName) {
       return new Response(
         JSON.stringify({ error: "businessName is required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     if (!industry) {
       return new Response(
         JSON.stringify({ error: "industry is required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log('Starting logo generation for:', businessName, 'in', industry, 'industry');
+    console.log('Starting SVG logo generation for:', businessName, 'in', industry);
     
     const industryKeywords = getIndustryKeywords(industry);
-    const colorInstruction = brandColors?.primary 
-      ? `Use a color palette inspired by ${brandColors.primary} as the dominant color.` 
-      : 'Use sophisticated, professional colors.';
+    const primaryColor = brandColors?.primary || '#2563eb';
+    const secondaryColor = brandColors?.secondary || '#1e40af';
+    const accentColor = brandColors?.accent || '#3b82f6';
 
-    const coreRequirements = `CRITICAL REQUIREMENTS:
-- Create ONLY a symbol/icon/logomark - absolutely NO text, letters, words, or typography
-- Pure white background (#FFFFFF), completely clean with no textures or gradients
-- The icon must be centered and well-balanced
-- Design must work at any size from favicon to billboard
-- No mockups, no watermarks, no 3D effects, no drop shadows
-- Clean vector-style appearance with crisp edges
-- Single cohesive design, not multiple elements scattered
-${colorInstruction}`;
+    const systemPrompt = `You are an expert logo designer who creates beautiful, professional SVG logos. You output ONLY valid SVG code - no explanations, no markdown, no code blocks, just the raw SVG.
 
-    const contextPrompt = `Business context: '${businessName}' in the ${industry} industry. Brand values: ${industryKeywords}.`;
+Rules for your SVG logos:
+- ViewBox must be "0 0 100 100"
+- Create ICON-ONLY logos - NO text, letters, or words
+- Use clean, geometric shapes
+- Logos must be centered and balanced
+- Use the provided brand colors
+- Keep designs simple but distinctive
+- Ensure the design works at any size
+- Use modern, professional aesthetics
+- No gradients with more than 2 stops
+- No complex filters or effects
+- Maximum 10-15 path elements for simplicity`;
 
     const variations = [
       {
         name: 'Minimal Geometric',
-        prompt: `${coreRequirements}\n\n${contextPrompt}\n\nDesign a minimal geometric logomark using simple, bold shapes. Think Apple logo, Nike swoosh, or Mastercard circles - iconic through simplicity. Use clean geometry: circles, squares, triangles, or elegant curves. The design should feel timeless and instantly recognizable. Flat design with no gradients. Maximum 2-3 colors.`
+        style: `Create a minimal geometric logo using simple bold shapes like circles, squares, or triangles. Think Apple or Nike simplicity. Use solid fills, maximum 2 colors. The shape should be iconic and instantly recognizable.`
       },
       {
         name: 'Modern Abstract',
-        prompt: `${coreRequirements}\n\n${contextPrompt}\n\nCreate a modern abstract logomark that cleverly represents the brand concept without being literal. Think Airbnb's belonging symbol or the Twitter bird - abstract yet meaningful. Smooth curves, flowing forms, and contemporary aesthetics. The shape should suggest movement, growth, or connection. Flat design with subtle color gradients allowed.`
+        style: `Create an abstract modern logo with flowing curves and contemporary aesthetics. Think Airbnb or Spotify. The design should suggest movement or connection through abstract forms.`
       },
       {
-        name: 'Elegant Monoline',
-        prompt: `${coreRequirements}\n\n${contextPrompt}\n\nDesign a sophisticated monoline logomark using continuous single-weight linework. Think of premium brands like luxury car emblems or high-end fashion marks. Elegant, refined, and detailed enough to feel premium but simple enough to be memorable. Single color only - pure black or the brand's primary color on white.`
+        name: 'Elegant Linework',
+        style: `Create an elegant logo using refined linework and strokes. Think luxury brand aesthetics. Use consistent stroke widths, create something sophisticated and premium-feeling.`
       },
       {
         name: 'Bold Symbol',
-        prompt: `${coreRequirements}\n\n${contextPrompt}\n\nCreate a bold, confident symbol that commands attention. Think FedEx arrow, Amazon smile, or Target bullseye - simple but powerful. Strong silhouette that's instantly recognizable even at small sizes. High contrast, solid fills, no fine details. The icon should feel established and trustworthy.`
+        style: `Create a bold, confident symbol that commands attention. Think Target or FedEx. Strong silhouette, high contrast, solid shapes that work at any size.`
       },
       {
-        name: 'Smart Negative Space',
-        prompt: `${coreRequirements}\n\n${contextPrompt}\n\nDesign a clever logomark that uses negative space to create a hidden meaning or secondary symbol. Think FedEx hidden arrow or NBC peacock. The design should reward closer inspection while remaining clean and professional at first glance. Intelligent use of space creates depth and memorability.`
+        name: 'Layered Shapes',
+        style: `Create a logo using overlapping or layered geometric shapes with transparency. Think Mastercard or Olympics. Use 2-3 shapes that interact to create visual interest.`
       },
       {
         name: 'Dynamic Mark',
-        prompt: `${coreRequirements}\n\n${contextPrompt}\n\nCreate a dynamic logomark with a sense of motion, energy, or transformation. Think Pepsi globe, Sprint pin drop, or Spotify waves. The design should feel alive and forward-moving while maintaining professional polish. Curved elements suggest movement without being chaotic. May use gradients for depth.`
+        style: `Create a dynamic logo with a sense of motion or energy. Think Pepsi or Sprint. Curved elements suggest movement while maintaining professional polish.`
       }
     ];
 
@@ -139,54 +145,61 @@ ${colorInstruction}`;
 
     for (let i = 0; i < variations.length; i++) {
       const variation = variations[i];
-
       console.log(`Generating logo ${i + 1}/${variations.length}: ${variation.name}`);
 
+      const userPrompt = `Create an SVG logo for "${businessName}" in the ${industry} industry.
+
+Brand values: ${industryKeywords}
+
+Colors to use:
+- Primary: ${primaryColor}
+- Secondary: ${secondaryColor}
+- Accent: ${accentColor}
+
+Style: ${variation.style}
+
+Output ONLY the SVG code, nothing else.`;
+
       try {
-        const response = await fetch('https://api.openai.com/v1/images/generations', {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${openaiApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-image-1',
-            prompt: variation.prompt,
-            n: 1,
-            size: '1024x1024',
-            quality: 'high',
+            model: 'gpt-4.1',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.9,
+            max_tokens: 2000,
           }),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
           console.error(`OpenAI API error for logo ${i + 1}:`, errorText);
-
-          let errorMessage = 'Failed to generate image';
-          try {
-            const errorJson = JSON.parse(errorText);
-            errorMessage = errorJson.error?.message || errorMessage;
-          } catch {
-            errorMessage = errorText || errorMessage;
-          }
-
-          throw new Error(errorMessage);
+          throw new Error('API request failed');
         }
 
         const data = await response.json();
-        const base64Image = data.data?.[0]?.b64_json;
-        const imageUrl = base64Image
-          ? `data:image/png;base64,${base64Image}`
-          : data.data?.[0]?.url;
-
-        if (imageUrl) {
+        const content = data.choices?.[0]?.message?.content || '';
+        
+        const svg = extractSvg(content);
+        
+        if (svg) {
+          const imageUrl = svgToDataUrl(svg);
           concepts.push({
-            name: `${variation.name}`,
+            name: variation.name,
             description: `${variation.name} style logo for ${businessName}`,
             imageUrl: imageUrl,
-            prompt: variation.prompt,
+            prompt: variation.style,
           });
           console.log(`Logo ${i + 1} (${variation.name}) generated successfully`);
+        } else {
+          console.error(`No valid SVG found in response for logo ${i + 1}`);
         }
       } catch (error) {
         console.error(`Error generating logo ${i + 1}:`, error);
@@ -197,39 +210,20 @@ ${colorInstruction}`;
 
     if (concepts.length === 0) {
       return new Response(
-        JSON.stringify({
-          error: "Failed to generate any logos. GPT Image models require API Organization Verification. Please verify your organization at https://platform.openai.com/settings/organization/general"
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "Failed to generate logos. Please try again." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     return new Response(
       JSON.stringify({ concepts }),
-      {
-        status: 200,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-      }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error in generate-logo-concepts:', error);
     return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : 'Failed to generate logo concepts'
-      }),
-      {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-      }
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to generate logo concepts' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
