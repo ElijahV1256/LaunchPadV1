@@ -13,6 +13,46 @@ interface LogoConcept {
   prompt: string;
 }
 
+async function generateImageWithGPT4o(openaiApiKey: string, prompt: string): Promise<string | null> {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openaiApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        }
+      ],
+      modalities: ['text', 'image'],
+      max_tokens: 4096,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    console.error('GPT-4o API error:', JSON.stringify(error));
+    throw new Error(error.error?.message || 'Failed to generate image');
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+
+  if (Array.isArray(content)) {
+    for (const item of content) {
+      if (item.type === 'image_url' && item.image_url?.url) {
+        return item.image_url.url;
+      }
+    }
+  }
+
+  return null;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -65,7 +105,7 @@ Deno.serve(async (req: Request) => {
 
     console.log('Starting logo generation for:', businessName, 'in', industry, 'industry');
 
-    const basePrompt = `Create an original, modern ICON-ONLY logo mark (NO TEXT, NO LETTERS, NO WORDS) for a business in the '${industry}' industry. The business is called '${businessName}' - use this context for the design concept but DO NOT include any text or letters in the image. Create only a symbol/icon/graphic mark. Make it stylistically aligned with typical logos in this industry while remaining clearly original. Clean, professional, scalable design suitable for web and print. Solid white or transparent background. No mockups, no watermarks, no copyrighted elements.`;
+    const basePrompt = `Generate an image of an original, modern ICON-ONLY logo mark (NO TEXT, NO LETTERS, NO WORDS) for a business in the '${industry}' industry. The business is called '${businessName}' - use this context for the design concept but DO NOT include any text or letters in the image. Create only a symbol/icon/graphic mark. Make it stylistically aligned with typical logos in this industry while remaining clearly original. Clean, professional, scalable design suitable for web and print. Solid white or transparent background. No mockups, no watermarks, no copyrighted elements.`;
 
     const variations = [
       `${basePrompt} Style: Minimal geometric icon with clean lines and simple shapes. Single-color design. Think Apple or Nike logomark simplicity.`,
@@ -81,33 +121,10 @@ Deno.serve(async (req: Request) => {
     for (let i = 0; i < variations.length; i++) {
       const fullPrompt = variations[i];
 
-      console.log(`Generating logo ${i + 1}/${variations.length}:`, fullPrompt);
+      console.log(`Generating logo ${i + 1}/${variations.length}`);
 
       try {
-        const response = await fetch('https://api.openai.com/v1/images/generations', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openaiApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-image-1',
-            prompt: fullPrompt,
-            n: 1,
-            size: '1024x1024',
-            quality: 'high',
-          }),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          console.error(`OpenAI API error for logo ${i + 1}:`, error);
-          continue;
-        }
-
-        const data = await response.json();
-        const base64Image = data.data[0]?.b64_json;
-        const imageUrl = base64Image ? `data:image/png;base64,${base64Image}` : null;
+        const imageUrl = await generateImageWithGPT4o(openaiApiKey, fullPrompt);
 
         if (imageUrl) {
           concepts.push({
@@ -124,6 +141,18 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log(`Generated ${concepts.length} logo concepts total`);
+
+    if (concepts.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error: "Failed to generate any logos. GPT-4o image generation may require specific API access. Please check your OpenAI API key permissions and billing."
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     return new Response(
       JSON.stringify({ concepts }),
