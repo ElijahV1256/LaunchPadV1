@@ -13,6 +13,34 @@ interface LogoConcept {
   prompt: string;
 }
 
+const getIndustryKeywords = (industry: string): string => {
+  const industryMap: Record<string, string> = {
+    'technology': 'innovation, digital, connectivity, precision, forward-thinking',
+    'healthcare': 'trust, care, wellness, protection, vitality',
+    'finance': 'stability, growth, security, prosperity, precision',
+    'food': 'freshness, warmth, nourishment, craftsmanship, delight',
+    'fitness': 'strength, energy, movement, transformation, vitality',
+    'education': 'growth, knowledge, enlightenment, potential, discovery',
+    'real estate': 'stability, home, foundation, aspiration, shelter',
+    'beauty': 'elegance, refinement, transformation, radiance, luxury',
+    'consulting': 'expertise, guidance, insight, partnership, strategy',
+    'retail': 'quality, value, discovery, experience, accessibility',
+    'construction': 'strength, reliability, craftsmanship, foundation, building',
+    'legal': 'justice, trust, authority, precision, advocacy',
+    'creative': 'imagination, expression, innovation, artistry, vision',
+    'automotive': 'performance, precision, reliability, speed, engineering',
+    'hospitality': 'warmth, welcome, comfort, experience, service',
+  };
+  
+  const lowerIndustry = industry.toLowerCase();
+  for (const [key, value] of Object.entries(industryMap)) {
+    if (lowerIndustry.includes(key)) {
+      return value;
+    }
+  }
+  return 'professionalism, quality, trust, innovation, excellence';
+};
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -39,8 +67,6 @@ Deno.serve(async (req: Request) => {
       businessName,
       industry,
       brandColors,
-      businessDescription,
-      brandPersonality,
     } = await req.json();
 
     if (!businessName) {
@@ -64,24 +90,57 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log('Starting logo generation for:', businessName, 'in', industry, 'industry');
+    
+    const industryKeywords = getIndustryKeywords(industry);
+    const colorInstruction = brandColors?.primary 
+      ? `Use a color palette inspired by ${brandColors.primary} as the dominant color.` 
+      : 'Use sophisticated, professional colors.';
 
-    const basePrompt = `Create an original, modern ICON-ONLY logo mark (NO TEXT, NO LETTERS, NO WORDS) for a business in the '${industry}' industry. The business is called '${businessName}' - use this context for the design concept but DO NOT include any text or letters in the image. Create only a symbol/icon/graphic mark. Make it stylistically aligned with typical logos in this industry while remaining clearly original. Clean, professional, scalable design suitable for web and print. Solid white or transparent background. No mockups, no watermarks, no copyrighted elements.`;
+    const coreRequirements = `CRITICAL REQUIREMENTS:
+- Create ONLY a symbol/icon/logomark - absolutely NO text, letters, words, or typography
+- Pure white background (#FFFFFF), completely clean with no textures or gradients
+- The icon must be centered and well-balanced
+- Design must work at any size from favicon to billboard
+- No mockups, no watermarks, no 3D effects, no drop shadows
+- Clean vector-style appearance with crisp edges
+- Single cohesive design, not multiple elements scattered
+${colorInstruction}`;
+
+    const contextPrompt = `Business context: '${businessName}' in the ${industry} industry. Brand values: ${industryKeywords}.`;
 
     const variations = [
-      `${basePrompt} Style: Minimal geometric icon with clean lines and simple shapes. Single-color design. Think Apple or Nike logomark simplicity.`,
-      `${basePrompt} Style: Friendly modern icon with rounded elements and soft curves. Approachable and warm. Like Airbnb or Slack icon style.`,
-      `${basePrompt} Style: Premium monoline icon with elegant single-stroke linework. Sophisticated and refined continuous line design.`,
-      `${basePrompt} Style: Bold badge-style icon with strong geometric shapes. Confident, impactful silhouette that works at any size.`,
-      `${basePrompt} Style: Abstract symbolic mark representing the brand concept. Creative interpretation through modern abstract forms.`,
-      `${basePrompt} Style: Negative space icon design that cleverly uses empty space to create meaning. Smart, memorable visual concept.`
+      {
+        name: 'Minimal Geometric',
+        prompt: `${coreRequirements}\n\n${contextPrompt}\n\nDesign a minimal geometric logomark using simple, bold shapes. Think Apple logo, Nike swoosh, or Mastercard circles - iconic through simplicity. Use clean geometry: circles, squares, triangles, or elegant curves. The design should feel timeless and instantly recognizable. Flat design with no gradients. Maximum 2-3 colors.`
+      },
+      {
+        name: 'Modern Abstract',
+        prompt: `${coreRequirements}\n\n${contextPrompt}\n\nCreate a modern abstract logomark that cleverly represents the brand concept without being literal. Think Airbnb's belonging symbol or the Twitter bird - abstract yet meaningful. Smooth curves, flowing forms, and contemporary aesthetics. The shape should suggest movement, growth, or connection. Flat design with subtle color gradients allowed.`
+      },
+      {
+        name: 'Elegant Monoline',
+        prompt: `${coreRequirements}\n\n${contextPrompt}\n\nDesign a sophisticated monoline logomark using continuous single-weight linework. Think of premium brands like luxury car emblems or high-end fashion marks. Elegant, refined, and detailed enough to feel premium but simple enough to be memorable. Single color only - pure black or the brand's primary color on white.`
+      },
+      {
+        name: 'Bold Symbol',
+        prompt: `${coreRequirements}\n\n${contextPrompt}\n\nCreate a bold, confident symbol that commands attention. Think FedEx arrow, Amazon smile, or Target bullseye - simple but powerful. Strong silhouette that's instantly recognizable even at small sizes. High contrast, solid fills, no fine details. The icon should feel established and trustworthy.`
+      },
+      {
+        name: 'Smart Negative Space',
+        prompt: `${coreRequirements}\n\n${contextPrompt}\n\nDesign a clever logomark that uses negative space to create a hidden meaning or secondary symbol. Think FedEx hidden arrow or NBC peacock. The design should reward closer inspection while remaining clean and professional at first glance. Intelligent use of space creates depth and memorability.`
+      },
+      {
+        name: 'Dynamic Mark',
+        prompt: `${coreRequirements}\n\n${contextPrompt}\n\nCreate a dynamic logomark with a sense of motion, energy, or transformation. Think Pepsi globe, Sprint pin drop, or Spotify waves. The design should feel alive and forward-moving while maintaining professional polish. Curved elements suggest movement without being chaotic. May use gradients for depth.`
+      }
     ];
 
     const concepts: LogoConcept[] = [];
 
     for (let i = 0; i < variations.length; i++) {
-      const fullPrompt = variations[i];
+      const variation = variations[i];
 
-      console.log(`Generating logo ${i + 1}/${variations.length}`);
+      console.log(`Generating logo ${i + 1}/${variations.length}: ${variation.name}`);
 
       try {
         const response = await fetch('https://api.openai.com/v1/images/generations', {
@@ -92,9 +151,10 @@ Deno.serve(async (req: Request) => {
           },
           body: JSON.stringify({
             model: 'gpt-image-1',
-            prompt: fullPrompt,
+            prompt: variation.prompt,
             n: 1,
             size: '1024x1024',
+            quality: 'high',
           }),
         });
 
@@ -121,12 +181,12 @@ Deno.serve(async (req: Request) => {
 
         if (imageUrl) {
           concepts.push({
-            name: `${businessName} Logo ${i + 1}`,
-            description: fullPrompt,
+            name: `${variation.name}`,
+            description: `${variation.name} style logo for ${businessName}`,
             imageUrl: imageUrl,
-            prompt: fullPrompt,
+            prompt: variation.prompt,
           });
-          console.log(`Logo ${i + 1} generated successfully`);
+          console.log(`Logo ${i + 1} (${variation.name}) generated successfully`);
         }
       } catch (error) {
         console.error(`Error generating logo ${i + 1}:`, error);
