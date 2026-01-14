@@ -91,12 +91,11 @@ Deno.serve(async (req: Request) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'dall-e-3',
+            model: 'gpt-image-1',
             prompt: fullPrompt,
             n: 1,
             size: '1024x1024',
-            quality: 'hd',
-            response_format: 'url',
+            quality: 'high',
           }),
         });
 
@@ -107,7 +106,8 @@ Deno.serve(async (req: Request) => {
         }
 
         const data = await response.json();
-        const imageUrl = data.data[0]?.url;
+        const base64Image = data.data[0]?.b64_json;
+        const imageUrl = base64Image ? `data:image/png;base64,${base64Image}` : null;
 
         if (imageUrl) {
           concepts.push({
