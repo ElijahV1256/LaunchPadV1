@@ -1663,7 +1663,7 @@ export default function BrandIdentity() {
                             <div className="flex-1">
                               <p className="text-white font-medium mb-1">{data.logo_data.selected.name}</p>
                               <p className="text-gray-400 text-xs mb-2">{data.logo_data.selected.description}</p>
-                              <p className="text-gray-500 text-xs mb-3">AI-generated using GPT-4o</p>
+                              <p className="text-gray-500 text-xs mb-3">AI-generated using GPT Image</p>
                             </div>
                           </div>
                         </div>
