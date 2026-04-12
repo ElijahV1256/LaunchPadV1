@@ -14,5 +14,16 @@ export async function generateNanoDesign(prompt, type) {
     }
   );
 
+  if (!res.ok) {
+    let errorMsg = `Server returned ${res.status}`;
+    try {
+      const data = await res.json();
+      errorMsg = data.error || data.message || errorMsg;
+    } catch {
+      // response wasn't JSON
+    }
+    throw new Error(errorMsg);
+  }
+
   return await res.json();
 }

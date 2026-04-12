@@ -1,11 +1,5 @@
 export async function generatePlacidFlyer(templateId, fields) {
-  const supabaseUrl = "https://pkravblnlyqtftjeezmr.supabase.co";
-
-  console.log("Calling generatePlacidFlyer with:", {
-    url: `${supabaseUrl}/functions/v1/generatePlacidFlyer`,
-    templateId,
-    fields
-  });
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
   try {
     const res = await fetch(
@@ -13,25 +7,26 @@ export async function generatePlacidFlyer(templateId, fields) {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
         },
         body: JSON.stringify({ templateId, fields })
       }
     );
 
-    console.log("Response status:", res.status);
-    console.log("Response headers:", Object.fromEntries(res.headers.entries()));
-
-    const data = await res.json();
-    console.log("Placid flyer result:", data);
-
     if (!res.ok) {
-      throw new Error(data.error || data.message || `Server returned ${res.status}`);
+      let errorMsg = `Server returned ${res.status}`;
+      try {
+        const data = await res.json();
+        errorMsg = data.error || data.message || errorMsg;
+      } catch {
+        // response wasn't JSON
+      }
+      throw new Error(errorMsg);
     }
 
-    return data;
+    return await res.json();
   } catch (error) {
-    console.error("Fetch error in generatePlacidFlyer:", error);
     throw new Error(`Failed to call Supabase function: ${error.message}`);
   }
 }

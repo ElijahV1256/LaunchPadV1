@@ -69,9 +69,9 @@ export default function WebsiteBuilder() {
         .select('*')
         .eq('user_id', currentUser!.id)
         .eq('idea_key', ideaKey)
-        .single();
+        .maybeSingle();
 
-      if (brandError) throw new Error('Please complete Brand Identity first');
+      if (brandError || !brand) throw new Error('Please complete Brand Identity first');
       setBrandData(brand);
 
       // Load or create website data

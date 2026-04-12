@@ -68,7 +68,11 @@ Make the roadmap practical and sequential, taking someone from idea to launch.`;
 
   const content = response.choices[0].message.content || '[]';
   const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  return JSON.parse(cleanContent);
+  try {
+    return JSON.parse(cleanContent);
+  } catch {
+    throw new Error('Failed to parse roadmap response from AI');
+  }
 }
 
 export async function generateStepPathway(
@@ -104,7 +108,11 @@ Format your response as a JSON array of strings. Each string should be one compl
 
   const content = response.choices[0].message.content || '[]';
   const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  return JSON.parse(cleanContent);
+  try {
+    return JSON.parse(cleanContent);
+  } catch {
+    throw new Error('Failed to parse pathway response from AI');
+  }
 }
 
 export interface BusinessPlanData {
@@ -174,7 +182,11 @@ Make each section detailed, specific, and actionable based on the provided infor
 
   const content = response.choices[0].message.content || '{}';
   const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  return JSON.parse(cleanContent);
+  try {
+    return JSON.parse(cleanContent);
+  } catch {
+    throw new Error('Failed to parse business plan response from AI');
+  }
 }
 
 // DEPRECATED: This function is no longer used. Logos are now generated as icon-only

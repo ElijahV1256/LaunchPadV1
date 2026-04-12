@@ -14,9 +14,18 @@ export default function NanoGenerator() {
   const [searchParams] = useSearchParams();
   const ideaKey = searchParams.get("ideaKey");
 
-  // Pull StoryBrand + Brand Guide from localStorage
-  const story = JSON.parse(localStorage.getItem("storyBrandFlyerData") || "{}");
-  const brand = JSON.parse(localStorage.getItem("brandGuide") || "{}");
+  let story = {};
+  let brand = {};
+  try {
+    story = JSON.parse(localStorage.getItem("storyBrandFlyerData") || "{}");
+  } catch {
+    story = {};
+  }
+  try {
+    brand = JSON.parse(localStorage.getItem("brandGuide") || "{}");
+  } catch {
+    brand = {};
+  }
 
   useEffect(() => {
     if (ideaKey) {
