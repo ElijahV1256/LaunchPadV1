@@ -553,7 +553,7 @@ export default function Dashboard() {
                       size={32}
                     />
                     <h3 className="text-lg font-bold text-white mb-2">Website</h3>
-                    <p className="text-gray-300 text-sm">Create AI or professional website</p>
+                    <p className="text-gray-300 text-sm">Book a discovery call for your website</p>
                   </button>
                   <button
                     onClick={() => navigate(`/operations?ideaKey=${roadmapData.idea.id}`)}

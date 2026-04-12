@@ -14,10 +14,6 @@ import {
   Mail,
   MessageCircle,
   Sparkles,
-  Download,
-  RefreshCw,
-  Eye,
-  Code
 } from 'lucide-react';
 import { generateMarketingContent } from '../services/openai';
 
@@ -26,12 +22,6 @@ interface MarketingAssetsData {
   social_posts: any[];
   message_templates: any[];
   ad_strategy: any;
-  completed_steps: string[];
-}
-
-interface WebsiteData {
-  id: string;
-  html_code: string | null;
   completed_steps: string[];
 }
 
@@ -60,17 +50,14 @@ export default function MarketingAssets() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<MarketingAssetsData | null>(null);
-  const [websiteData, setWebsiteData] = useState<WebsiteData | null>(null);
   const [brandData, setBrandData] = useState<BrandData | null>(null);
   const [storyBrandData, setStoryBrandData] = useState<any>(null);
-  const [generatingWebsite, setGeneratingWebsite] = useState(false);
   const [generatingSocial, setGeneratingSocial] = useState(false);
   const [generatingMessages, setGeneratingMessages] = useState(false);
   const [generatingAds, setGeneratingAds] = useState(false);
   const [generatingStep, setGeneratingStep] = useState('');
   const [progress, setProgress] = useState(0);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
 
   const websiteRef = useRef<HTMLDivElement>(null);
   const socialRef = useRef<HTMLDivElement>(null);
@@ -162,150 +149,10 @@ export default function MarketingAssets() {
       }
 
       setData(marketingData);
-
-      // Load or create website data
-      let { data: website, error: websiteError } = await supabase
-        .from('websites')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('idea_key', ideaKey!)
-        .maybeSingle();
-
-      if (!website) {
-        const { data: newWebsite, error: createError } = await supabase
-          .from('websites')
-          .insert({
-            user_id: user.id,
-            idea_key: ideaKey!,
-            completed_steps: [],
-          })
-          .select()
-          .single();
-
-        if (createError) {
-          if (createError.code === '23505') {
-            const { data: existingWebsite } = await supabase
-              .from('websites')
-              .select('*')
-              .eq('user_id', user.id)
-              .eq('idea_key', ideaKey!)
-              .maybeSingle();
-            website = existingWebsite;
-          } else {
-            throw createError;
-          }
-        } else {
-          website = newWebsite;
-        }
-      }
-
-      setWebsiteData(website);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const generateWebsite = async () => {
-    if (!brandData || !websiteData) return;
-
-    setGeneratingWebsite(true);
-    setProgress(0);
-    setGeneratingStep('Analyzing your brand identity...');
-
-    try {
-      setProgress(10);
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No active session');
-
-      setProgress(30);
-      setGeneratingStep('Building your website with AI...');
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-website`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            businessName: brandData.selected_name,
-            tagline: brandData.selected_tagline,
-            brandColors: brandData.brand_colors,
-            logoUrl: brandData.logo_url,
-            description: brandData.offer_description,
-            targetAudience: brandData.target_audience,
-            businessType: brandData.business_type,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate website');
-      }
-
-      setProgress(80);
-      setGeneratingStep('Finalizing your website...');
-
-      const result = await response.json();
-
-      const newCompletedSteps = [...websiteData.completed_steps];
-      if (!newCompletedSteps.includes('generated')) {
-        newCompletedSteps.push('generated');
-      }
-
-      await supabase
-        .from('websites')
-        .update({
-          html_code: result.html,
-          completed_steps: newCompletedSteps,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', websiteData.id);
-
-      setProgress(100);
-      setGeneratingStep('Complete!');
-      setWebsiteData({ ...websiteData, html_code: result.html, completed_steps: newCompletedSteps });
-      setShowPreview(true);
-    } catch (err: any) {
-      console.error('Error generating website:', err);
-      alert(`Failed to generate website: ${err.message || 'Unknown error'}`);
-    } finally {
-      setTimeout(() => {
-        setGeneratingWebsite(false);
-        setProgress(0);
-        setGeneratingStep('');
-      }, 1000);
-    }
-  };
-
-  const downloadHTML = () => {
-    if (!websiteData?.html_code || !brandData) return;
-
-    const blob = new Blob([websiteData.html_code], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${brandData.selected_name.toLowerCase().replace(/\s+/g, '-')}-website.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const copyHTML = async () => {
-    if (!websiteData?.html_code) return;
-
-    try {
-      await navigator.clipboard.writeText(websiteData.html_code);
-      alert('HTML code copied to clipboard!');
-    } catch (err) {
-      console.error('Failed to copy:', err);
-      alert('Failed to copy to clipboard');
     }
   };
 
@@ -508,15 +355,14 @@ export default function MarketingAssets() {
   }
 
   const sections = [
-    { name: 'Website Builder', ref: websiteRef, step: 'website', icon: <Globe size={20} /> },
+    { name: 'Website', ref: websiteRef, step: 'website', icon: <Globe size={20} /> },
     { name: 'Instagram Posts', ref: socialRef, step: 'social_posts', icon: <Instagram size={20} /> },
     { name: 'Message Pack', ref: messagesRef, step: 'message_templates', icon: <MessageSquare size={20} /> },
     { name: 'Ad Strategy', ref: adStrategyRef, step: 'ad_strategy', icon: <Target size={20} /> },
   ];
 
-  const websiteCompleted = websiteData?.completed_steps?.includes('generated') || false;
   const completedCount = sections.filter(s => {
-    if (s.step === 'website') return websiteCompleted;
+    if (s.step === 'website') return false;
     return data?.completed_steps?.includes(s.step);
   }).length;
   const progressPct = Math.round((completedCount / sections.length) * 100);
@@ -549,7 +395,7 @@ export default function MarketingAssets() {
           <div className="space-y-2">
             {sections.map((section) => {
               const isCompleted = section.step === 'website'
-                ? websiteCompleted
+                ? false
                 : data?.completed_steps?.includes(section.step);
 
               return (
@@ -584,156 +430,23 @@ export default function MarketingAssets() {
               <div ref={websiteRef} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
                 <div className="flex items-start gap-4">
                   <div className="mt-1">
-                    {websiteCompleted ? (
-                      <CheckCircle2 className="text-[#06D6A0]" size={24} />
-                    ) : (
-                      <Circle className="text-gray-500" size={24} />
-                    )}
+                    <Globe className="text-[#2979FF]" size={24} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-white mb-3">1. Website Builder</h3>
+                    <h3 className="text-xl font-bold text-white mb-3">1. Website</h3>
                     <p className="text-gray-400 text-sm mb-4">
-                      Generate a professional website for {brandData.selected_name} with your brand colors and content.
+                      Book a free discovery call and we'll build a custom website for {brandData.selected_name}.
                     </p>
-
-                    {!websiteData?.html_code ? (
-                      <div className="space-y-3">
-                        <button
-                          onClick={generateWebsite}
-                          disabled={generatingWebsite}
-                          className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        >
-                          {generatingWebsite ? (
-                            <>
-                              <Loader2 size={18} className="animate-spin" />
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles size={18} />
-                              Generate Website
-                            </>
-                          )}
-                        </button>
-
-                        {generatingWebsite && (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-gray-300">{generatingStep}</span>
-                              <span className="text-[#2979FF] font-semibold">{progress}%</span>
-                            </div>
-                            <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                              <div
-                                className="bg-gradient-to-r from-[#2979FF] to-[#06D6A0] h-full transition-all duration-300"
-                                style={{ width: `${progress}%` }}
-                              ></div>
-                            </div>
-                            <p className="text-gray-400 text-xs">This usually takes 30-60 seconds.</p>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-4">
-                            <div>
-                              <h4 className="text-white font-semibold text-lg mb-1">Your Website</h4>
-                              <p className="text-gray-400 text-sm">Professional website ready to deploy</p>
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => setShowPreview(!showPreview)}
-                                className="px-4 py-2 bg-[#2979FF] text-white rounded-lg text-sm font-semibold hover:bg-[#2979FF]/90 transition-colors flex items-center gap-2"
-                              >
-                                <Eye size={16} />
-                                {showPreview ? 'Hide' : 'Preview'}
-                              </button>
-                            </div>
-                          </div>
-
-                          {showPreview && websiteData.html_code && (
-                            <div className="mb-4 rounded-lg overflow-hidden border-2 border-white/20">
-                              <iframe
-                                srcDoc={websiteData.html_code}
-                                className="w-full h-96 bg-white"
-                                title="Website Preview"
-                              />
-                            </div>
-                          )}
-
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              onClick={downloadHTML}
-                              className="px-4 py-2 bg-[#06D6A0] text-white rounded-lg text-sm font-semibold hover:bg-[#06D6A0]/90 transition-colors flex items-center gap-2"
-                            >
-                              <Download size={16} />
-                              Download HTML
-                            </button>
-                            <button
-                              onClick={copyHTML}
-                              className="px-4 py-2 bg-white/10 text-white rounded-lg text-sm font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
-                            >
-                              <Code size={16} />
-                              Copy Code
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm('Generate a new website? This will replace your current website.')) {
-                                  generateWebsite();
-                                }
-                              }}
-                              disabled={generatingWebsite}
-                              className="px-4 py-2 bg-white/10 text-white rounded-lg text-sm font-semibold hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                            >
-                              <RefreshCw size={16} />
-                              Regenerate
-                            </button>
-                          </div>
-                        </div>
-
-                        {generatingWebsite && (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-gray-300">{generatingStep}</span>
-                              <span className="text-[#2979FF] font-semibold">{progress}%</span>
-                            </div>
-                            <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                              <div
-                                className="bg-gradient-to-r from-[#2979FF] to-[#06D6A0] h-full transition-all duration-300"
-                                style={{ width: `${progress}%` }}
-                              ></div>
-                            </div>
-                            <p className="text-gray-400 text-xs">This usually takes 30-60 seconds.</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <button
+                      onClick={() => navigate(`/website?ideaKey=${ideaKey}`)}
+                      className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors flex items-center gap-2"
+                    >
+                      <Globe size={18} />
+                      Book a Discovery Call
+                    </button>
                   </div>
                 </div>
               </div>
-
-              {showPreview && websiteData?.html_code && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-8" onClick={() => setShowPreview(false)}>
-                  <div className="bg-[#0A192F] border border-white/20 rounded-2xl w-full max-w-6xl h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-between p-4 border-b border-white/10">
-                      <h3 className="text-white font-bold text-lg">Website Preview</h3>
-                      <button
-                        onClick={() => setShowPreview(false)}
-                        className="text-gray-400 hover:text-white transition-colors"
-                      >
-                        <X size={24} />
-                      </button>
-                    </div>
-                    <div className="flex-1 overflow-hidden">
-                      <iframe
-                        srcDoc={websiteData.html_code}
-                        className="w-full h-full bg-white"
-                        title="Website Preview"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
 
               <div ref={socialRef} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
                 <div className="flex items-start gap-4">
