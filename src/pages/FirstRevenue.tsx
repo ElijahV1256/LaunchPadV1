@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -137,19 +137,25 @@ export default function FirstRevenue() {
   const saveProgress = useCallback(async (fields: Partial<ProgressData>) => {
     if (!progress) return;
     try {
-      const { data: updated, error: updateErr } = await supabase
+      const { error: updateErr } = await supabase
         .from('first_dollar_progress')
         .update({ ...fields, updated_at: new Date().toISOString() })
-        .eq('id', progress.id)
-        .select()
-        .single();
+        .eq('id', progress.id);
 
       if (updateErr) throw updateErr;
-      if (updated) setProgress(updated);
     } catch (err) {
       console.error('Failed to save progress:', err);
     }
   }, [progress]);
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const debouncedSave = useCallback((fields: Partial<ProgressData>) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      saveProgress(fields);
+    }, 500);
+  }, [saveProgress]);
 
   const updateLocal = useCallback((fields: Partial<ProgressData>) => {
     setProgress(prev => prev ? { ...prev, ...fields } : prev);
@@ -198,18 +204,19 @@ export default function FirstRevenue() {
 
   const handleStep1Update = useCallback((fields: Partial<ProgressData>) => {
     updateLocal(fields);
-    saveProgress(fields);
-  }, [updateLocal, saveProgress]);
+    debouncedSave(fields);
+  }, [updateLocal, debouncedSave]);
 
   const handleStep1Next = useCallback(async () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     await saveProgress({ offer: progress?.offer, price: progress?.price, offer_sentence: progress?.offer_sentence, current_step: 2 });
     setCurrentStep(2);
   }, [progress, saveProgress]);
 
   const handleStep2Update = useCallback((fields: Partial<ProgressData>) => {
     updateLocal(fields);
-    saveProgress(fields);
-  }, [updateLocal, saveProgress]);
+    debouncedSave(fields);
+  }, [updateLocal, debouncedSave]);
 
   const handleStep2Next = useCallback(async () => {
     await saveProgress({ first_customer_name: progress?.first_customer_name, current_step: 3 });
@@ -218,8 +225,8 @@ export default function FirstRevenue() {
 
   const handleStep3Update = useCallback((fields: Partial<ProgressData>) => {
     updateLocal(fields);
-    saveProgress(fields);
-  }, [updateLocal, saveProgress]);
+    debouncedSave(fields);
+  }, [updateLocal, debouncedSave]);
 
   const handleStep3Next = useCallback(async () => {
     await saveProgress({ credibility_type: progress?.credibility_type, credibility_statement: progress?.credibility_statement, current_step: 4 });
@@ -228,8 +235,8 @@ export default function FirstRevenue() {
 
   const handleStep4Update = useCallback((fields: Partial<ProgressData>) => {
     updateLocal(fields);
-    saveProgress(fields);
-  }, [updateLocal, saveProgress]);
+    debouncedSave(fields);
+  }, [updateLocal, debouncedSave]);
 
   const handleStep4Next = useCallback(async () => {
     await saveProgress({ pitch: progress?.pitch, current_step: 5 });
