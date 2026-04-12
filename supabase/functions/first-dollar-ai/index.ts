@@ -77,6 +77,31 @@ Deno.serve(async (req: Request) => {
     const bizContext = `Business: ${businessName || 'New business'}\nDescription: ${businessDescription || 'A new venture'}`;
 
     switch (action) {
+      case 'offer_suggest': {
+        const result = await callOpenAI(
+          openaiApiKey,
+          'You are a direct, no-fluff business coach. Return ONLY valid JSON, no markdown.',
+          `${bizContext}\n\nSuggest 3 specific, actionable offers this person could sell right now based on their business idea. Each should be a clear service or product with a specific deliverable. Keep each under 15 words.\n\nReturn JSON: {"suggestions":["offer 1","offer 2","offer 3"]}`,
+          200
+        );
+        try {
+          return jsonResponse(JSON.parse(result));
+        } catch {
+          const cleaned = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          try {
+            return jsonResponse(JSON.parse(cleaned));
+          } catch {
+            return jsonResponse({
+              suggestions: [
+                `${businessName} consultation session`,
+                `${businessName} starter package`,
+                `${businessName} quick-start service`,
+              ]
+            });
+          }
+        }
+      }
+
       case 'pricing': {
         const result = await callOpenAI(
           openaiApiKey,

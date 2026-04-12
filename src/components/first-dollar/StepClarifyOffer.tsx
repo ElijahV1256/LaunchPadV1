@@ -29,10 +29,26 @@ interface Props {
 
 export default function StepClarifyOffer({ data, onUpdate, onNext, onBack, callAI, businessName }: Props) {
   const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState('Crafting your offer...');
   const [selectedPrice, setSelectedPrice] = useState<string>(data.price || '');
+  const [offerSuggestions, setOfferSuggestions] = useState<string[]>([]);
+
+  const handleOfferHelp = async () => {
+    setLoadingMsg('Brainstorming offers for you...');
+    setLoading(true);
+    try {
+      const result = await callAI('offer_suggest') as { suggestions: string[] };
+      setOfferSuggestions(result.suggestions || []);
+    } catch (err) {
+      console.error('Failed to get offer suggestions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePriceHelp = async () => {
     if (!data.offer.trim()) return;
+    setLoadingMsg('Crafting your pricing...');
     setLoading(true);
     try {
       const result = await callAI('pricing', { offer: data.offer }) as {
@@ -65,7 +81,7 @@ export default function StepClarifyOffer({ data, onUpdate, onNext, onBack, callA
   return (
     <>
       <AnimatePresence>
-        {loading && <LoadingOverlay message="Crafting your offer..." />}
+        {loading && <LoadingOverlay message={loadingMsg} />}
       </AnimatePresence>
 
       <StepShell
@@ -77,7 +93,17 @@ export default function StepClarifyOffer({ data, onUpdate, onNext, onBack, callA
       >
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">What I'm offering</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-semibold text-gray-300">What I'm offering</label>
+              <button
+                onClick={handleOfferHelp}
+                disabled={loading}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-[#2979FF]/15 border border-[#2979FF]/30 text-[#2979FF] rounded-lg hover:bg-[#2979FF]/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                <Sparkles size={13} />
+                Suggest Offers
+              </button>
+            </div>
             <input
               type="text"
               placeholder="e.g., Logo design for small businesses, 30-min coaching call..."
@@ -85,6 +111,33 @@ export default function StepClarifyOffer({ data, onUpdate, onNext, onBack, callA
               onChange={(e) => onUpdate({ offer: e.target.value })}
               className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] focus:ring-2 focus:ring-[#2979FF]/20 transition-all text-base"
             />
+            <AnimatePresence>
+              {offerSuggestions.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="mt-2.5 space-y-2"
+                >
+                  {offerSuggestions.map((suggestion, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        onUpdate({ offer: suggestion });
+                        setOfferSuggestions([]);
+                      }}
+                      className={`w-full text-left px-4 py-3 rounded-xl border transition-all text-sm ${
+                        data.offer === suggestion
+                          ? 'border-[#2979FF] bg-[#2979FF]/10 text-white'
+                          : 'border-white/10 bg-white/[0.03] text-gray-300 hover:border-white/20 hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div>
