@@ -75,51 +75,30 @@ Deno.serve(async (req: Request) => {
 
     console.log('Generating logos for:', businessName, 'in', industry || 'general');
 
-    const primary = brandColors?.primary || '#2563eb';
-    const secondary = brandColors?.secondary || '#1e40af';
-    const accent = brandColors?.accent || primary;
-    const iconHint = getIndustryIcon(industry || 'business');
+    const primaryColor = brandColors?.primary || '#2563eb';
 
-    const contextLine = businessDescription
-      ? `The business: ${businessDescription.slice(0, 120)}.`
-      : '';
-    const personalityLine = brandPersonality
-      ? `Brand feel: ${brandPersonality.slice(0, 100)}.`
-      : '';
-
-    const coreRules = `STRICT RULES: Absolutely NO text, NO letters, NO words, NO typography anywhere in the image. Icon only. Pure white background (#FFFFFF). Single centered mark. Flat 2D vector style. No gradients. No shadows. No 3D effects. No photorealism. No textures. Think SVG-quality simplicity.`;
+    const logoPrompt = `Professional business logo for "${businessName}".
+Style: Clean, minimal, modern. The kind of logo a real company would actually use.
+Requirements:
+- Simple flat design, 1 to 2 colors maximum
+- Transparent or solid white background
+- Either a simple icon/symbol combined with the business name as clean text, OR a bold stylized lettermark using the first letter of "${businessName}"
+- NO gradients, NO drop shadows, NO glow effects, NO 3D effects, NO clip art
+- NO busy patterns, NO decorative flourishes
+- Inspired by logos like Stripe, Linear, Notion, Vercel, Figma — minimal and confident
+- The icon should be geometric, sharp, and scalable
+- If including the business name as text, use a clean sans-serif style
+- Primary color: ${primaryColor}
+- White or very light background so it works on any surface
+The logo must look like it was designed by a professional graphic designer, not AI generated. Simple. Trustworthy. Memorable.`;
 
     const variations = [
-      {
-        name: 'Clean Geometric',
-        desc: 'A single bold geometric shape — ultra minimal',
-        prompt: `A single minimal geometric ${iconHint} logo mark in ${primary}. One simple bold shape, maximum 2-3 elements total. Inspired by the simplicity of Apple, Nike, or Target logos. ${contextLine} ${personalityLine} ${coreRules}`,
-      },
-      {
-        name: 'Abstract Mark',
-        desc: 'Flowing abstract symbol with elegant curves',
-        prompt: `An abstract flowing logo mark — a ${iconHint} rendered as smooth curves and rounded forms in ${primary} and ${secondary}. Elegant and organic, like Airbnb or Spotify branding. Maximum 2-3 visual elements. ${contextLine} ${personalityLine} ${coreRules}`,
-      },
-      {
-        name: 'Letterform Icon',
-        desc: 'The first letter stylized as a distinctive mark',
-        prompt: `A single stylized letter "${businessName.charAt(0).toUpperCase()}" transformed into a unique ${iconHint} logo mark using ${primary} and ${accent}. The letter should be abstracted into a creative icon shape, not just a plain letter. Think how Beats by Dre uses "b" or how Uber stylizes "U". Minimal, modern, distinctive. ${contextLine} ${personalityLine} STRICT RULES: Only this ONE stylized letter-icon, no other text. Pure white background (#FFFFFF). Flat 2D vector style. No gradients. No shadows. No 3D. No photorealism. SVG-quality simplicity.`,
-      },
-      {
-        name: 'Negative Space',
-        desc: 'Clever use of negative space within a simple shape',
-        prompt: `A clever negative-space logo mark: a simple ${iconHint} created by the negative space inside a solid geometric shape in ${primary}. Think FedEx arrow or WWF panda style. One shape, one hidden form. Ultra minimal. ${contextLine} ${personalityLine} ${coreRules}`,
-      },
-      {
-        name: 'Line Art',
-        desc: 'Single continuous line forming a recognizable symbol',
-        prompt: `A continuous single-line ${iconHint} logo drawn with one clean stroke in ${primary}. Minimal line art, like a wire sculpture. Thin consistent line weight. Elegant and modern. Maximum simplicity. ${contextLine} ${personalityLine} ${coreRules}`,
-      },
-      {
-        name: 'Bold Symbol',
-        desc: 'Strong iconic silhouette that works at any size',
-        prompt: `A bold solid silhouette ${iconHint} logo in ${primary}. Strong recognizable shape that reads clearly at 16px and 1600px. High contrast, thick forms, confident and modern. Like the Twitter bird or the Apple apple. ${contextLine} ${personalityLine} ${coreRules}`,
-      },
+      { name: 'Concept A', desc: 'Clean professional logo' },
+      { name: 'Concept B', desc: 'Clean professional logo' },
+      { name: 'Concept C', desc: 'Clean professional logo' },
+      { name: 'Concept D', desc: 'Clean professional logo' },
+      { name: 'Concept E', desc: 'Clean professional logo' },
+      { name: 'Concept F', desc: 'Clean professional logo' },
     ];
 
     const concepts: LogoConcept[] = [];
@@ -136,10 +115,10 @@ Deno.serve(async (req: Request) => {
           },
           body: JSON.stringify({
             model: 'dall-e-3',
-            prompt: variation.prompt,
+            prompt: logoPrompt,
             n: 1,
             size: '1024x1024',
-            quality: 'hd',
+            quality: 'standard',
             style: 'natural',
             response_format: 'url',
           }),
@@ -159,7 +138,7 @@ Deno.serve(async (req: Request) => {
             name: variation.name,
             description: variation.desc,
             imageUrl,
-            prompt: variation.prompt,
+            prompt: logoPrompt,
           });
           console.log(`${variation.name} generated successfully`);
         }
