@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Home, Loader2, CheckCircle2, Circle, ChevronDown, ChevronUp, Sparkles, Rocket, Edit3 } from 'lucide-react';
+import { Home, Loader2, CheckCircle2, Circle, ChevronDown, ChevronUp, Sparkles, Rocket, CreditCard as Edit3 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface Stage {
@@ -599,10 +599,10 @@ export default function StoryBrandRoadmap() {
               Every hero needs a guide — and you're following yours. Keep telling your story!
             </p>
             <button
-              onClick={() => navigate(`/first-revenue?ideaKey=${ideaKey}&ideaName=Your Business`)}
+              onClick={() => navigate(`/first-revenue?ideaKey=${ideaKey}`)}
               className="px-8 py-4 bg-[#2979FF] text-[#0A192F] rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all duration-300"
             >
-              Keep Telling Your Story →
+              Continue to First Dollar →
             </button>
           </div>
         )}

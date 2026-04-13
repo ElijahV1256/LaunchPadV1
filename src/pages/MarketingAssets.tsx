@@ -730,9 +730,15 @@ export default function MarketingAssets() {
                     Marketing Assets Complete!
                   </h2>
                   <p className="text-gray-300 mb-6 text-center">
-                    Your marketing materials are ready. Next step: Build your website to go live!
+                    Your marketing materials are ready. Next step: Book your website discovery call!
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button
+                      onClick={() => navigate(`/website?ideaKey=${ideaKey}`)}
+                      className="px-8 py-3 bg-[#2979FF] text-white rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all duration-300"
+                    >
+                      Book Discovery Call →
+                    </button>
                     <button
                       onClick={() => navigate('/dashboard')}
                       className="px-8 py-3 bg-[#06D6A0] text-white rounded-lg font-bold text-lg hover:bg-[#06D6A0]/90 transition-all duration-300"

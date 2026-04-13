@@ -1720,10 +1720,10 @@ export default function BrandIdentity() {
                   )}
                 </button>
                 <button
-                  onClick={() => navigate(`/website?ideaKey=${ideaKey}`)}
+                  onClick={() => navigate(`/storybrand-roadmap?ideaKey=${ideaKey}`)}
                   className="px-8 py-3 bg-[#2979FF] text-white rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all duration-300"
                 >
-                  Book Your Website Call →
+                  Continue to StoryBrand Roadmap →
                 </button>
               </div>
             </div>

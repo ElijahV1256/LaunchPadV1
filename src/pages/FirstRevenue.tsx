@@ -435,7 +435,7 @@ export default function FirstRevenue() {
                 next_action: progress.next_action,
               }}
               onBack={() => goToStep(5)}
-              onContinue={() => navigate(`/brand-identity?ideaKey=${ideaKey}`)}
+              onContinue={() => navigate(`/storybrand-wizard?ideaKey=${ideaKey}`)}
               callAI={callAI}
               onUpdateCelebration={handleCelebrationUpdate}
             />

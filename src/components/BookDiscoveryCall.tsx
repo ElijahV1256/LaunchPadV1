@@ -14,9 +14,10 @@ import {
 
 interface BookDiscoveryCallProps {
   businessName?: string;
+  ideaKey?: string;
 }
 
-export default function BookDiscoveryCall({ businessName }: BookDiscoveryCallProps) {
+export default function BookDiscoveryCall({ businessName, ideaKey }: BookDiscoveryCallProps) {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [booked, setBooked] = useState(false);
@@ -148,12 +149,22 @@ export default function BookDiscoveryCall({ businessName }: BookDiscoveryCallPro
             Check your email for your confirmation. Your custom website will be
             live within 24 hours of your call.
           </p>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="px-8 py-3 bg-[#2979FF] text-white rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all"
-          >
-            Go to Dashboard
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            {ideaKey && (
+              <button
+                onClick={() => navigate(`/roadmap/${ideaKey}`)}
+                className="px-8 py-3 bg-[#2979FF] text-white rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all"
+              >
+                Continue to Personal Roadmap →
+              </button>
+            )}
+            <button
+              onClick={() => navigate('/dashboard')}
+              className={`px-8 py-3 ${ideaKey ? 'bg-white/10 border border-white/20' : 'bg-[#2979FF]'} text-white rounded-lg font-bold text-lg hover:bg-white/20 transition-all`}
+            >
+              Go to Dashboard
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -201,12 +201,13 @@ export default function Ideas() {
       const latestIdea = ideas[0];
       const ideaKey = latestIdea.idea_id;
 
-      const [firstRevenueData, brandData, marketingData, websiteData, operationsData] = await Promise.all([
-        supabase.from('first_dollar').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
+      const [brandData, storyBrandData, firstRevenueData, marketingData, websiteData, roadmapData] = await Promise.all([
         supabase.from('brand_identity').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
+        supabase.from('storybrand_roadmap').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
+        supabase.from('first_dollar').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
         supabase.from('marketing_assets').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
         supabase.from('websites').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
-        supabase.from('profit_loss_entries').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).limit(1),
+        supabase.from('roadmaps').select('*').eq('user_id', currentUser.id).eq('idea_id', ideaKey).maybeSingle(),
       ]);
 
       let currentStage = null;
@@ -214,42 +215,45 @@ export default function Ideas() {
       let link = '';
       let isComplete = false;
 
-      const firstRevenueComplete = firstRevenueData.data && firstRevenueData.data.completed && firstRevenueData.data.completed.length >= 5;
       const brandComplete = brandData.data && brandData.data.selected_name && brandData.data.brand_colors && brandData.data.logo_data?.selected;
+      const storyBrandComplete = storyBrandData.data && storyBrandData.data.completed && storyBrandData.data.stages &&
+        storyBrandData.data.completed.length === storyBrandData.data.stages.reduce((acc: number, s: { steps: string[] }) => acc + s.steps.length, 0) &&
+        storyBrandData.data.completed.length > 0;
+      const firstRevenueComplete = firstRevenueData.data && firstRevenueData.data.completed && firstRevenueData.data.completed.length >= 5;
       const marketingComplete = marketingData.data && marketingData.data.completed_steps && marketingData.data.completed_steps.length >= 4;
       const websiteComplete = websiteData.data && websiteData.data.completed_steps && websiteData.data.completed_steps.length >= 5;
-      const operationsStarted = operationsData.data && operationsData.data.length > 0;
+      const roadmapComplete = roadmapData.data && roadmapData.data.stages && roadmapData.data.stages.length > 0;
 
-      const hasAnyProgress = firstRevenueData.data || brandData.data || marketingData.data || websiteData.data || operationsStarted;
+      const hasAnyProgress = brandData.data || storyBrandData.data || firstRevenueData.data || marketingData.data || websiteData.data || roadmapComplete;
 
       if (!hasAnyProgress) {
         return;
       }
 
-      if (!firstRevenueComplete) {
-        currentStage = 'First Revenue';
-        stageName = 'Get Your First Dollar';
-        link = `/first-revenue?ideaKey=${ideaKey}`;
-      } else if (!brandComplete) {
+      if (!brandComplete) {
         currentStage = 'Brand Identity';
         stageName = 'Brand Identity';
         link = `/brand-identity?ideaKey=${ideaKey}`;
+      } else if (!storyBrandComplete) {
+        currentStage = 'StoryBrand Roadmap';
+        stageName = 'StoryBrand Roadmap';
+        link = `/storybrand-roadmap?ideaKey=${ideaKey}`;
+      } else if (!firstRevenueComplete) {
+        currentStage = 'First Dollar';
+        stageName = 'Get Your First Dollar';
+        link = `/first-revenue?ideaKey=${ideaKey}`;
       } else if (!marketingComplete) {
         currentStage = 'Marketing Assets';
         stageName = 'Marketing Assets';
         link = `/storybrand-wizard?ideaKey=${ideaKey}`;
       } else if (!websiteComplete) {
-        currentStage = 'Website';
-        stageName = 'Website';
+        currentStage = 'Book Discovery Call';
+        stageName = 'Book Discovery Call';
         link = `/website?ideaKey=${ideaKey}`;
-      } else if (!operationsStarted) {
-        currentStage = 'Scale & Optimize';
-        stageName = 'Scale & Optimize';
-        link = `/scale-optimize?ideaKey=${ideaKey}`;
       } else {
         currentStage = 'Completed';
         stageName = 'All stages complete!';
-        link = `/scale-optimize?ideaKey=${ideaKey}`;
+        link = `/roadmap/${ideaKey}`;
         isComplete = true;
       }
 

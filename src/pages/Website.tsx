@@ -100,7 +100,7 @@ export default function Website() {
             <p className="text-gray-400">Get a custom website for {brandName}</p>
           </div>
 
-          <BookDiscoveryCall businessName={brandName} />
+          <BookDiscoveryCall businessName={brandName} ideaKey={ideaKey || undefined} />
         </div>
       </div>
     </div>
