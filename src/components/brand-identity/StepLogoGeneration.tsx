@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ArrowRight, ArrowLeft, Loader2, RefreshCw, Upload, X } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { ArrowRight, ArrowLeft, Loader2, RefreshCw, Upload, X, Quote } from 'lucide-react';
 
 interface LogoConcept {
   name: string;
@@ -22,11 +22,30 @@ interface StepLogoGenerationProps {
   onBack: () => void;
 }
 
+const ENTREPRENEUR_QUOTES = [
+  { text: "Your brand is what other people say about you when you're not in the room.", author: "Jeff Bezos" },
+  { text: "The best investment you can make is in yourself.", author: "Warren Buffett" },
+  { text: "Don't find customers for your products, find products for your customers.", author: "Seth Godin" },
+  { text: "If people like you, they'll listen to you. But if they trust you, they'll do business with you.", author: "Zig Ziglar" },
+  { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+  { text: "Your personal brand is a promise to your clients. A promise of quality, consistency, competency, and reliability.", author: "Jason Hartman" },
+  { text: "You don't need more time. You need more focus.", author: "Alex Hormozi" },
+  { text: "The bottleneck is never resources, it's resourcefulness.", author: "Alex Hormozi" },
+  { text: "Price is what you pay. Value is what you get.", author: "Warren Buffett" },
+  { text: "Someone's sitting in the shade today because someone planted a tree a long time ago.", author: "Warren Buffett" },
+  { text: "The biggest risk is not taking any risk.", author: "Mark Zuckerberg" },
+  { text: "Make something people want.", author: "Paul Graham" },
+  { text: "If you're not embarrassed by the first version of your product, you've launched too late.", author: "Reid Hoffman" },
+  { text: "Sell the problem you solve, not the product you make.", author: "Alex Hormozi" },
+  { text: "Risk comes from not knowing what you're doing.", author: "Warren Buffett" },
+];
+
 const LOADING_MESSAGES = [
-  'Studying your industry...',
-  'Applying your brand personality...',
-  'Crafting your concepts...',
-  'Putting on the finishing touches...',
+  'Studying your brand DNA...',
+  'Blending colors and personality...',
+  'Sketching concepts...',
+  'Refining the details...',
+  'Almost there...',
 ];
 
 export default function StepLogoGeneration({
@@ -43,15 +62,50 @@ export default function StepLogoGeneration({
   onBack,
 }: StepLogoGenerationProps) {
   const [loadingMessageIdx, setLoadingMessageIdx] = useState(0);
+  const [quoteIdx, setQuoteIdx] = useState(0);
+  const [quoteFading, setQuoteFading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [revealedCount, setRevealedCount] = useState(0);
+
+  const shuffledQuotes = useMemo(() => {
+    const arr = [...ENTREPRENEUR_QUOTES];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, []);
+
+  useEffect(() => {
+    if (!generating) {
+      setProgress(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setProgress((prev) => Math.min(prev + Math.random() * 8 + 2, 92));
+    }, 800);
+    return () => clearInterval(interval);
+  }, [generating]);
 
   useEffect(() => {
     if (!generating) return;
     const interval = setInterval(() => {
       setLoadingMessageIdx((prev) => (prev + 1) % LOADING_MESSAGES.length);
-    }, 2500);
+    }, 3000);
     return () => clearInterval(interval);
   }, [generating]);
+
+  useEffect(() => {
+    if (!generating) return;
+    const interval = setInterval(() => {
+      setQuoteFading(true);
+      setTimeout(() => {
+        setQuoteIdx((prev) => (prev + 1) % shuffledQuotes.length);
+        setQuoteFading(false);
+      }, 500);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [generating, shuffledQuotes]);
 
   useEffect(() => {
     if (concepts.length > 0 && !generating) {
@@ -83,24 +137,49 @@ export default function StepLogoGeneration({
       </div>
 
       {generating && (
-        <div className="space-y-4 mb-8">
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="aspect-square rounded-xl bg-white/5 border border-white/10 animate-pulse"
-              >
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-2xl bg-white/10 animate-pulse" />
+        <div className="mb-8">
+          <div className="relative rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute -top-24 -left-24 w-64 h-64 bg-[#2979FF]/5 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-[#06D6A0]/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+            </div>
+
+            <div className="relative px-8 py-12 flex flex-col items-center text-center space-y-8">
+              <div className="relative">
+                <div className="w-20 h-20 rounded-full border-2 border-white/10 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full border-2 border-t-[#2979FF] border-r-[#2979FF]/40 border-b-transparent border-l-transparent animate-spin" />
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 size={20} className="text-[#2979FF] animate-spin" style={{ animationDirection: 'reverse', animationDuration: '3s' }} />
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="text-center space-y-2">
-            <Loader2 size={28} className="animate-spin text-[#2979FF] mx-auto" />
-            <p className="text-white font-medium text-lg transition-all duration-500">
-              {LOADING_MESSAGES[loadingMessageIdx]}
-            </p>
+
+              <div className="space-y-2">
+                <p className="text-white font-semibold text-lg tracking-wide">
+                  {LOADING_MESSAGES[loadingMessageIdx]}
+                </p>
+                <div className="w-64 mx-auto">
+                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#2979FF] to-[#06D6A0] rounded-full transition-all duration-700 ease-out"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-full max-w-md pt-4 border-t border-white/5">
+                <div className={`transition-all duration-500 ${quoteFading ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
+                  <Quote size={20} className="text-[#2979FF]/40 mx-auto mb-3" />
+                  <blockquote className="text-gray-300 text-base leading-relaxed italic mb-3">
+                    "{shuffledQuotes[quoteIdx]?.text}"
+                  </blockquote>
+                  <p className="text-sm font-semibold text-[#2979FF]/80">
+                    -- {shuffledQuotes[quoteIdx]?.author}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
