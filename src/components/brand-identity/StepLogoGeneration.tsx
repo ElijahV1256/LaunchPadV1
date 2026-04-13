@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ArrowRight, ArrowLeft, Loader2, RefreshCw, Upload, X, Quote } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Loader2, RefreshCw, Upload, X, Quote, Wand2 } from 'lucide-react';
 
 interface LogoConcept {
   name: string;
@@ -15,7 +15,7 @@ interface StepLogoGenerationProps {
   uploadedLogoUrl: string | null;
   uploadingLogo: boolean;
   onSelectLogo: (logo: LogoConcept) => void;
-  onRegenerate: () => void;
+  onRegenerate: (customDirection?: string) => void;
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveUpload: () => void;
   onNext: () => void;
@@ -66,6 +66,8 @@ export default function StepLogoGeneration({
   const [quoteFading, setQuoteFading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [revealedCount, setRevealedCount] = useState(0);
+  const [customDirection, setCustomDirection] = useState('');
+  const [showDirectionInput, setShowDirectionInput] = useState(false);
 
   const shuffledQuotes = useMemo(() => {
     const arr = [...ENTREPRENEUR_QUOTES];
@@ -186,14 +188,51 @@ export default function StepLogoGeneration({
 
       {!generating && concepts.length > 0 && (
         <>
-          <div className="flex items-center justify-end mb-4">
+          <div className="mb-5 p-4 rounded-xl bg-white/[0.03] border border-white/10">
             <button
-              onClick={onRegenerate}
-              className="text-sm text-[#2979FF] hover:text-[#2979FF]/80 flex items-center gap-1.5 font-medium transition-colors"
+              onClick={() => setShowDirectionInput(!showDirectionInput)}
+              className="w-full flex items-center justify-between text-sm font-medium text-gray-300 hover:text-white transition-colors"
             >
-              <RefreshCw size={14} />
-              Try Different Styles
+              <span className="flex items-center gap-2">
+                <Wand2 size={15} className="text-[#2979FF]" />
+                Want something specific? Tell us your vision
+              </span>
+              <span className="text-xs text-gray-500">{showDirectionInput ? 'Hide' : 'Expand'}</span>
             </button>
+
+            {showDirectionInput && (
+              <div className="mt-3 space-y-3">
+                <input
+                  type="text"
+                  value={customDirection}
+                  onChange={(e) => setCustomDirection(e.target.value)}
+                  placeholder='e.g. "Use a lion", "Make it more playful", "Include mountains"'
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#2979FF] transition-all"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && customDirection.trim()) {
+                      onRegenerate(customDirection.trim());
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => onRegenerate(customDirection.trim() || undefined)}
+                  className="w-full py-2.5 bg-[#2979FF]/15 border border-[#2979FF]/30 text-[#2979FF] rounded-lg text-sm font-semibold hover:bg-[#2979FF]/25 transition-all flex items-center justify-center gap-2"
+                >
+                  <RefreshCw size={14} />
+                  {customDirection.trim() ? 'Regenerate with Your Direction' : 'Try Different Styles'}
+                </button>
+              </div>
+            )}
+
+            {!showDirectionInput && (
+              <button
+                onClick={() => onRegenerate()}
+                className="mt-2 text-xs text-[#2979FF] hover:text-[#2979FF]/80 flex items-center gap-1.5 font-medium transition-colors"
+              >
+                <RefreshCw size={12} />
+                Or just try different styles
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">

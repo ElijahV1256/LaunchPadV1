@@ -199,7 +199,8 @@ export async function generateLogoConcepts(
   brandColors: { primary: string; secondary: string; accent: string },
   businessDescription?: string,
   brandPersonality?: string,
-  onProgress?: (current: number, total: number) => void
+  onProgress?: (current: number, total: number) => void,
+  customDirection?: string,
 ): Promise<LogoConcept[]> {
   console.log('Starting logo generation for:', businessName, 'in', industry);
   console.log('Colors:', brandColors);
@@ -236,6 +237,7 @@ export async function generateLogoConcepts(
             brandColors,
             businessDescription,
             brandPersonality,
+            customDirection,
           }),
           signal: controller.signal,
         }

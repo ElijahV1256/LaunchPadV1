@@ -23,13 +23,14 @@ const LOGO_STYLES = [
   { name: "Stacked Layout", desc: "Vertically stacked icon over text", style: "a vertically stacked logo with a small geometric icon or symbol on top and the business name below in clean uppercase or lowercase letters. Balanced and centered." },
 ];
 
-function buildPrompt(businessName: string, industry: string, primaryColor: string, styleDirective: string, businessDescription?: string, brandPersonality?: string): string {
+function buildPrompt(businessName: string, industry: string, primaryColor: string, styleDirective: string, businessDescription?: string, brandPersonality?: string, customDirection?: string): string {
   const parts = [
     `Create ${styleDirective}`,
     `Business name: "${businessName}".`,
     `Industry: ${industry}.`,
     businessDescription ? `About: ${businessDescription}.` : "",
     brandPersonality ? `Brand personality: ${brandPersonality}.` : "",
+    customDirection ? `Creative direction from the user: ${customDirection}.` : "",
     `Primary brand color: ${primaryColor}.`,
     "Requirements:",
     "- Pure white background, no textures or patterns",
@@ -39,6 +40,7 @@ function buildPrompt(businessName: string, industry: string, primaryColor: strin
     "- Inspired by brands like Stripe, Linear, Notion, Vercel — confident and minimal",
     "- No clip art, no stock imagery, no decorative flourishes",
     "- The result should look like a real logo designed by a top agency",
+    customDirection ? `- IMPORTANT: Incorporate the user's creative direction into the design` : "",
   ];
   return parts.filter(Boolean).join("\n");
 }
@@ -120,7 +122,7 @@ Deno.serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { businessName, industry, brandColors, businessDescription, brandPersonality, regenerate } = await req.json();
+    const { businessName, industry, brandColors, businessDescription, brandPersonality, regenerate, customDirection } = await req.json();
 
     if (!businessName) {
       return new Response(
@@ -150,6 +152,7 @@ Deno.serve(async (req: Request) => {
         style.style,
         businessDescription,
         brandPersonality,
+        customDirection,
       );
 
       try {
