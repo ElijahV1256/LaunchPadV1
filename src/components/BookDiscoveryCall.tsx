@@ -42,7 +42,7 @@ export default function BookDiscoveryCall({ businessName, ideaKey, nextPath, nex
     const container = document.getElementById('calendly-inline-widget');
     if (container && (window as any).Calendly) {
       (window as any).Calendly.initInlineWidget({
-        url: 'https://calendly.com/launchpadbuilder/30min',
+        url: 'https://calendly.com/launchpadai/website-discovery',
         parentElement: container,
       });
     }

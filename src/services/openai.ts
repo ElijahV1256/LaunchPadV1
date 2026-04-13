@@ -9,7 +9,7 @@ function getOpenAIClient(): OpenAI {
   if (!_openaiClient) {
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error('OpenAI API key not configured. This function requires direct OpenAI access.');
+      throw new Error('OpenAI API key not configured for direct browser calls. All AI features use Supabase edge functions instead.');
     }
     _openaiClient = new OpenAI({
       apiKey,
@@ -257,7 +257,8 @@ export async function generateLogoConcepts(
         throw new Error(errorData.error || 'Failed to generate logo concepts');
       }
 
-      const { concepts } = await response.json();
+      const data = await response.json();
+      const concepts = data.logos ?? data.concepts ?? [];
 
       onProgress?.(6, 6);
 
@@ -329,7 +330,8 @@ export async function regenerateLogoWithChanges(
         throw new Error(errorData.error || 'Failed to regenerate logo');
       }
 
-      const { concepts } = await response.json();
+      const data = await response.json();
+      const concepts = data.logos ?? data.concepts ?? [];
 
       if (!concepts || concepts.length === 0) {
         throw new Error('No logo generated. Please try again.');
@@ -339,7 +341,7 @@ export async function regenerateLogoWithChanges(
       return {
         name: originalLogo.name,
         description: `${originalLogo.description} (Modified: ${changeRequest})`,
-        imageUrl: concepts[0].imageUrl,
+        imageUrl: concepts[0]?.imageUrl ?? concepts[0]?.image ?? '',
         prompt: concepts[0].prompt,
       };
     } catch (error: any) {
