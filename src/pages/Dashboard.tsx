@@ -541,8 +541,8 @@ export default function Dashboard() {
                       className="text-pink-400 mb-3 group-hover:scale-110 transition-transform"
                       size={32}
                     />
-                    <h3 className="text-lg font-bold text-white mb-2">Marketing Assets</h3>
-                    <p className="text-gray-300 text-sm">Generate flyers, social posts & more</p>
+                    <h3 className="text-lg font-bold text-white mb-2">Marketing Playbook</h3>
+                    <p className="text-gray-300 text-sm">Get strategies & content for any platform</p>
                   </button>
                   <button
                     onClick={() => navigate(`/website?ideaKey=${roadmapData.idea.id}`)}
