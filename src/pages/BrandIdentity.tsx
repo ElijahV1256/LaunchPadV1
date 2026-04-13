@@ -592,6 +592,7 @@ export default function BrandIdentity() {
               selectedName={brand.selectedName}
               customName={customName}
               generating={generatingNames}
+              businessIdeaContext={businessIdea ? `Business Idea: ${businessIdea.name} - ${businessIdea.description}` : undefined}
               onDescriptionChange={(desc) => setBrand({ ...brand, businessDescription: desc })}
               onGenerate={handleGenerateNames}
               onSelectName={handleSelectName}

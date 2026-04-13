@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2, Sparkles, RefreshCw, ArrowRight } from 'lucide-react';
+import { Loader2, Sparkles, RefreshCw, ArrowRight, Wand2 } from 'lucide-react';
 
 interface NameOption {
   name: string;
@@ -13,6 +13,7 @@ interface StepBusinessNameProps {
   selectedName: string | null;
   customName: string;
   generating: boolean;
+  businessIdeaContext?: string;
   onDescriptionChange: (desc: string) => void;
   onGenerate: () => void;
   onSelectName: (name: string) => void;
@@ -35,6 +36,7 @@ export default function StepBusinessName({
   selectedName,
   customName,
   generating,
+  businessIdeaContext,
   onDescriptionChange,
   onGenerate,
   onSelectName,
@@ -43,6 +45,34 @@ export default function StepBusinessName({
   onNext,
 }: StepBusinessNameProps) {
   const [showCustom, setShowCustom] = useState(false);
+  const [generatingAI, setGeneratingAI] = useState(false);
+
+  const handleAISuggest = async () => {
+    setGeneratingAI(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-suggestions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          context: businessIdeaContext || undefined,
+          prompt: businessIdeaContext
+            ? 'Based on this business idea, write a single compelling sentence describing what this business does and who it serves. Be specific and concise.'
+            : 'Generate a single compelling sentence describing a unique small business idea. Include what the business does and who it serves. Be specific and creative.',
+        }),
+      });
+      const result = await response.json();
+      if (result.suggestion) {
+        onDescriptionChange(result.suggestion);
+      }
+    } catch (err) {
+      console.error('Error generating AI suggestion:', err);
+    } finally {
+      setGeneratingAI(false);
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -56,14 +86,29 @@ export default function StepBusinessName({
       </div>
 
       <div className="space-y-6">
-        <div>
+        <div className="relative">
           <textarea
             value={businessDescription}
             onChange={(e) => onDescriptionChange(e.target.value)}
             placeholder="Describe your business in one sentence..."
             rows={3}
-            className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] focus:ring-1 focus:ring-[#2979FF]/50 text-lg resize-none transition-all"
+            className="w-full px-5 py-4 pr-14 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF] focus:ring-1 focus:ring-[#2979FF]/50 text-lg resize-none transition-all"
           />
+          <button
+            onClick={handleAISuggest}
+            disabled={generatingAI}
+            className="absolute right-3 top-3 p-2.5 rounded-lg bg-[#2979FF]/15 border border-[#2979FF]/30 text-[#2979FF] hover:bg-[#2979FF]/25 hover:border-[#2979FF]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+            title="Let AI write this for you"
+          >
+            {generatingAI ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <Wand2 size={18} className="group-hover:rotate-12 transition-transform" />
+            )}
+          </button>
+          <p className="text-xs text-gray-500 mt-1.5 ml-1">
+            Not sure what to write? Click the wand to let AI help.
+          </p>
         </div>
 
         <button
