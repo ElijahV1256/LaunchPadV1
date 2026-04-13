@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PartyPopper, Clock, X, Copy, Check, ArrowRight } from 'lucide-react';
+import { PartyPopper, Clock, X, Copy, Check, ArrowRight, DollarSign } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import StepShell from './StepShell';
 import LoadingOverlay from './LoadingOverlay';
@@ -25,6 +25,8 @@ export default function StepDeliverLearn({ data, customerName, onUpdate, onNext,
   const [reframeData, setReframeData] = useState<{ reframe: string; nextPerson: string } | null>(null);
   const [revenueInput, setRevenueInput] = useState(data.revenue ? String(data.revenue) : '');
   const [copiedFollowup, setCopiedFollowup] = useState(false);
+  const [showSkipRevenue, setShowSkipRevenue] = useState(false);
+  const [skipRevenueInput, setSkipRevenueInput] = useState('');
 
   const handleYes = () => {
     onUpdate({ outcome: 'yes' });
@@ -69,7 +71,12 @@ export default function StepDeliverLearn({ data, customerName, onUpdate, onNext,
   };
 
   const handleContinueLaunching = () => {
-    onUpdate({ revenue: 0, outcome: 'skipped' });
+    setShowSkipRevenue(true);
+  };
+
+  const handleSkipSubmit = () => {
+    const amount = parseFloat(skipRevenueInput) || 0;
+    onUpdate({ revenue: amount, outcome: amount > 0 ? 'yes' : 'skipped' });
     onNext();
   };
 
@@ -86,7 +93,47 @@ export default function StepDeliverLearn({ data, customerName, onUpdate, onNext,
         onBack={onBack}
       >
         <div className="space-y-5">
-          {!data.outcome && (
+          {showSkipRevenue && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              <div className="bg-white/[0.04] border border-white/10 rounded-xl p-5 text-center">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-3">
+                  <DollarSign size={22} className="text-emerald-400" />
+                </div>
+                <p className="text-white font-semibold text-lg mb-1">Made any money so far?</p>
+                <p className="text-gray-400 text-sm">If you earned anything, enter the amount below. Otherwise just skip ahead.</p>
+              </div>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={skipRevenueInput}
+                  onChange={(e) => setSkipRevenueInput(e.target.value)}
+                  className="w-full pl-8 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-2xl font-bold text-center focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowSkipRevenue(false); }}
+                  className="flex-1 py-3 bg-white/5 border border-white/10 text-gray-300 rounded-xl font-semibold hover:bg-white/10 transition-all text-sm"
+                >
+                  Go Back
+                </button>
+                <button
+                  onClick={handleSkipSubmit}
+                  className="flex-1 py-3 bg-emerald-500 text-white rounded-xl font-semibold hover:bg-emerald-600 transition-all text-sm"
+                >
+                  {skipRevenueInput && parseFloat(skipRevenueInput) > 0 ? 'Log Earnings & Continue' : 'Skip & Continue'}
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {!data.outcome && !showSkipRevenue && (
             <div className="grid grid-cols-1 gap-3">
               <button
                 onClick={handleYes}
@@ -144,7 +191,7 @@ export default function StepDeliverLearn({ data, customerName, onUpdate, onNext,
           )}
 
           <AnimatePresence>
-            {data.outcome === 'yes' && (
+            {!showSkipRevenue && data.outcome === 'yes' && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -174,7 +221,7 @@ export default function StepDeliverLearn({ data, customerName, onUpdate, onNext,
               </motion.div>
             )}
 
-            {data.outcome === 'waiting' && followupMsg && (
+            {!showSkipRevenue && data.outcome === 'waiting' && followupMsg && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -214,7 +261,7 @@ export default function StepDeliverLearn({ data, customerName, onUpdate, onNext,
               </motion.div>
             )}
 
-            {data.outcome === 'no' && reframeData && (
+            {!showSkipRevenue && data.outcome === 'no' && reframeData && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
