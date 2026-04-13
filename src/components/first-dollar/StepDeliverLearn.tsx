@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PartyPopper, Clock, X, Copy, Check } from 'lucide-react';
+import { PartyPopper, Clock, X, Copy, Check, ArrowRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import StepShell from './StepShell';
 import LoadingOverlay from './LoadingOverlay';
@@ -68,6 +68,11 @@ export default function StepDeliverLearn({ data, customerName, onUpdate, onNext,
     onNext();
   };
 
+  const handleContinueLaunching = () => {
+    onUpdate({ revenue: 0, outcome: 'skipped' });
+    onNext();
+  };
+
   return (
     <>
       <AnimatePresence>
@@ -126,6 +131,14 @@ export default function StepDeliverLearn({ data, customerName, onUpdate, onNext,
                     <p className="text-xs text-gray-400">No worries, we have a plan</p>
                   </div>
                 </div>
+              </button>
+
+              <button
+                onClick={handleContinueLaunching}
+                className="w-full mt-2 py-3 flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                Continue launching without answering
+                <ArrowRight size={14} />
               </button>
             </div>
           )}
@@ -191,6 +204,13 @@ export default function StepDeliverLearn({ data, customerName, onUpdate, onNext,
                     They Said Yes!
                   </button>
                 </div>
+                <button
+                  onClick={handleContinueLaunching}
+                  className="w-full py-3 flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors"
+                >
+                  Continue launching without answering
+                  <ArrowRight size={14} />
+                </button>
               </motion.div>
             )}
 
@@ -212,6 +232,13 @@ export default function StepDeliverLearn({ data, customerName, onUpdate, onNext,
                   className="w-full py-3 bg-[#2979FF]/15 border border-[#2979FF]/30 text-[#2979FF] rounded-xl font-semibold hover:bg-[#2979FF]/25 transition-all text-sm"
                 >
                   Try Again With Someone New
+                </button>
+                <button
+                  onClick={handleContinueLaunching}
+                  className="w-full py-3 flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors"
+                >
+                  Continue launching without answering
+                  <ArrowRight size={14} />
                 </button>
               </motion.div>
             )}
