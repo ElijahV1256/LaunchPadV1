@@ -120,7 +120,7 @@ export default function BookDiscoveryCall({ businessName, ideaKey, nextPath, nex
                 </div>
               )}
               <iframe
-                src="https://calendly.com/CALENDLY_PLACEHOLDER/website-discovery"
+                src="https://calendly.com/launchpadbuilder/30min"
                 width="100%"
                 height="630"
                 style={{ border: 'none', borderRadius: '12px' }}
