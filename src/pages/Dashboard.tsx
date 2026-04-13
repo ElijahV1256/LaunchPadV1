@@ -174,7 +174,7 @@ export default function Dashboard() {
           return {
             stage: stage.stage,
             task: step,
-            link: `/first-revenue?ideaKey=${roadmapData.idea.id}`,
+            link: `/brand-identity?ideaKey=${roadmapData.idea.id}`,
           };
         }
       }
@@ -325,7 +325,7 @@ export default function Dashboard() {
                   <h3 className="text-xl font-bold text-white mb-2">{roadmapData.idea.name}</h3>
                   <p className="text-gray-300 mb-4">{roadmapData.idea.description}</p>
                   <button
-                    onClick={() => navigate(`/first-revenue?ideaKey=${roadmapData.idea.id}`)}
+                    onClick={() => navigate(`/brand-identity?ideaKey=${roadmapData.idea.id}`)}
                     className="w-full py-3 bg-[#2979FF] text-white rounded-lg font-bold hover:bg-[#2979FF]/90 transition-all duration-300"
                   >
                     Continue Journey
@@ -416,7 +416,7 @@ export default function Dashboard() {
                   </div>
 
                   <button
-                    onClick={() => navigate(`/first-revenue?ideaKey=${roadmapData.idea.id}`)}
+                    onClick={() => navigate(`/brand-identity?ideaKey=${roadmapData.idea.id}`)}
                     className="w-full py-3 bg-[#2979FF] text-[#0A192F] rounded-lg font-bold hover:bg-[#2979FF]/90 transition-all duration-300"
                   >
                     Continue Journey
@@ -534,7 +534,7 @@ export default function Dashboard() {
                 </h2>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <button
-                    onClick={() => navigate(`/storybrand-wizard?ideaKey=${roadmapData.idea.id}`)}
+                    onClick={() => navigate(`/marketing-assets?ideaKey=${roadmapData.idea.id}`)}
                     className="p-6 bg-gradient-to-br from-pink-500/20 to-rose-500/20 border border-pink-400/30 rounded-lg hover:from-pink-500/30 hover:to-rose-500/30 transition-all text-left group"
                   >
                     <FileText

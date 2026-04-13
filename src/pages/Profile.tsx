@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { generateBusinessPlan, BusinessPlanData } from '../services/openai';
-import { User, FileText, Loader2, Sparkles, Home, LogOut, Edit2, Lightbulb, DollarSign, Clock, Rocket, CheckCircle2, Circle, ArrowRight, Target } from 'lucide-react';
+import { User, FileText, Loader2, Sparkles, Home, LogOut, CreditCard as Edit2, Lightbulb, DollarSign, Clock, Rocket, CheckCircle2, Circle, ArrowRight, Target } from 'lucide-react';
 
 export default function Profile() {
   const [businessPlans, setBusinessPlans] = useState<any[]>([]);
@@ -219,11 +219,17 @@ export default function Profile() {
       const latestIdea = ideas[0];
       const ideaKey = latestIdea.idea_id;
 
-      const [brandData, marketingData, firstDollarData] = await Promise.all([
+      const [brandData, storyBrandData, firstDollarData, marketingData, websiteData] = await Promise.all([
         supabase.from('brand_identity').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
-        supabase.from('marketing_assets').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
+        supabase.from('storybrand_roadmap').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
         supabase.from('first_dollar').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
+        supabase.from('marketing_assets').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
+        supabase.from('websites').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
       ]);
+
+      const storyBrandComplete = storyBrandData.data && storyBrandData.data.completed && storyBrandData.data.stages &&
+        storyBrandData.data.completed.length === storyBrandData.data.stages.reduce((acc: number, s: { steps: string[] }) => acc + s.steps.length, 0) &&
+        storyBrandData.data.completed.length > 0;
 
       const stages = [
         {
@@ -241,17 +247,38 @@ export default function Profile() {
           current: false,
         },
         {
-          name: 'Marketing Assets',
-          description: 'Generate flyers, social posts, and templates',
-          completed: marketingData.data && marketingData.data.completed_steps?.length === 4,
-          link: `/storybrand-wizard?ideaKey=${ideaKey}`,
+          name: 'StoryBrand Roadmap',
+          description: 'Craft your brand messaging',
+          completed: storyBrandComplete,
+          link: `/storybrand-roadmap?ideaKey=${ideaKey}`,
           current: false,
         },
         {
-          name: 'First Dollar Plan',
+          name: 'First Dollar',
           description: 'Plan your path to your first customer',
           completed: firstDollarData.data && firstDollarData.data.completed && firstDollarData.data.completed.length > 0,
           link: `/first-revenue?ideaKey=${ideaKey}`,
+          current: false,
+        },
+        {
+          name: 'Marketing Assets',
+          description: 'Generate flyers, social posts, and templates',
+          completed: marketingData.data && marketingData.data.completed_steps?.length === 4,
+          link: `/marketing-assets?ideaKey=${ideaKey}`,
+          current: false,
+        },
+        {
+          name: 'Book Discovery Call',
+          description: 'Get your website built',
+          completed: websiteData.data && websiteData.data.completed_steps?.length >= 5,
+          link: `/website?ideaKey=${ideaKey}`,
+          current: false,
+        },
+        {
+          name: 'Personal Roadmap',
+          description: 'Your customized business roadmap',
+          completed: false,
+          link: `/roadmap/${ideaKey}`,
           current: false,
         },
       ];

@@ -245,7 +245,7 @@ export default function Ideas() {
       } else if (!marketingComplete) {
         currentStage = 'Marketing Assets';
         stageName = 'Marketing Assets';
-        link = `/storybrand-wizard?ideaKey=${ideaKey}`;
+        link = `/marketing-assets?ideaKey=${ideaKey}`;
       } else if (!websiteComplete) {
         currentStage = 'Book Discovery Call';
         stageName = 'Book Discovery Call';
@@ -512,7 +512,7 @@ export default function Ideas() {
   const handleViewRoadmap = (ideaId: string) => {
     trackMilestone('idea_selected', { ideaId });
     trackActivity('idea_generated', { ideaId });
-    navigate(`/first-revenue?ideaKey=${ideaId}`);
+    navigate(`/brand-identity?ideaKey=${ideaId}`);
   };
 
   const getDifficultyColor = (difficulty: number) => {
