@@ -177,9 +177,16 @@ Deno.serve(async (req: Request) => {
       case 'pitch': {
         const result = await callOpenAI(
           openaiApiKey,
-          'You write natural, conversational sales pitches. Each sentence should be on its own. 5 sentences max. Sound like a friend texting, not a salesperson.',
-          `${bizContext}\nOffer: ${offer}\nPrice: ${price}\nCustomer name: ${customerName}\nCredibility: ${credibilityStatement}\n\nWrite a 5-sentence personalized pitch to send to ${customerName}. Make it feel like a casual text message. Include the offer, price, and credibility naturally. Number each sentence 1-5.`,
-          200
+          `You write pitches in Alex Hormozi's style. Rules:
+- Lead with their specific pain or desire, not your product
+- Stack the value: name the dream outcome, then make the price feel tiny compared to the result
+- Remove all risk: include a guarantee or "worst case you get X" framing
+- Use casual, direct language — zero fluff, zero corporate speak
+- Create urgency without being fake — reference a real reason to act now
+- Each line should be its own numbered sentence (1-5)
+- Sound like a sharp friend who genuinely wants to help, not a salesperson reading a script`,
+          `${bizContext}\nOffer: ${offer}\nPrice: ${price}\nCustomer name: ${customerName}\nCredibility: ${credibilityStatement}\n\nWrite a 5-line personalized pitch to ${customerName}. Use the Hormozi framework: (1) Call out their pain/desire specifically, (2) Present the offer as the bridge to their dream outcome, (3) Stack the value — make what they get feel 10x the price, (4) Reverse the risk — guarantee or "worst case" framing, (5) Clear single CTA. Number each line 1-5.`,
+          300
         );
         return jsonResponse({ pitch: result });
       }
