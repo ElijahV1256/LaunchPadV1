@@ -23,7 +23,30 @@ export default function BookDiscoveryCall({ businessName, ideaKey, nextPath, nex
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [booked, setBooked] = useState(false);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [widgetReady, setWidgetReady] = useState(false);
+  const calendlyContainerRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
+    const script = document.createElement('script');
+    script.src = 'https://assets.calendly.com/assets/external/widget.js';
+    script.async = true;
+    script.onload = () => setWidgetReady(true);
+    if (!document.querySelector('script[src*="calendly.com/assets/external/widget.js"]')) {
+      document.head.appendChild(script);
+    } else {
+      setWidgetReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!widgetReady) return;
+    const container = document.getElementById('calendly-inline-widget');
+    if (container && (window as any).Calendly) {
+      (window as any).Calendly.initInlineWidget({
+        url: 'https://calendly.com/launchpadbuilder/30min',
+        parentElement: container,
+      });
+    }
+  }, [widgetReady]);
 
   const handleCalendlyMessage = useCallback(
     async (event: MessageEvent) => {
@@ -109,23 +132,19 @@ export default function BookDiscoveryCall({ businessName, ideaKey, nextPath, nex
             ))}
           </div>
 
-          <div>
+          <div ref={calendlyContainerRef}>
             <p className="text-gray-400 text-sm mb-3 text-center">
               Pick a time that works for you
             </p>
             <div className="relative">
-              {!iframeLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white/5 rounded-xl">
+              {!widgetReady && (
+                <div className="flex items-center justify-center py-16 bg-white/5 rounded-xl">
                   <Loader2 className="text-[#2979FF] animate-spin" size={32} />
                 </div>
               )}
-              <iframe
-                src="https://calendly.com/launchpadbuilder/30min"
-                width="100%"
-                height="630"
-                style={{ border: 'none', borderRadius: '12px' }}
-                onLoad={() => setIframeLoaded(true)}
-                title="Book a Discovery Call"
+              <div
+                id="calendly-inline-widget"
+                style={{ minWidth: '320px', height: '630px', borderRadius: '12px', overflow: 'hidden' }}
               />
             </div>
           </div>
