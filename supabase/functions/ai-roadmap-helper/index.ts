@@ -79,30 +79,31 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const brandName = businessName || 'their business';
+    const hasBrandName = businessName && businessName.trim().length > 0;
+    const brandLabel = hasBrandName ? businessName.trim() : 'your business';
 
-    const prompt = `Business name: "${brandName}"
-Description: ${businessDescription || 'A new business venture'}
+    const prompt = `${hasBrandName ? `Business name: "${brandLabel}"` : 'The user has not yet named their business.'}
+${businessDescription ? `Description: ${businessDescription}` : ''}
 
 The user is working on this step for their business: "${step}"
 
-Provide a direct, specific, actionable answer. Use the business name "${brandName}" when referencing the business — for example in testimonials, before/after stories, or marketing copy.
+Provide a direct, specific, actionable answer.${hasBrandName ? ` Use the business name "${brandLabel}" when referencing the business — for example in testimonials, before/after stories, or marketing copy.` : ' Use "your business" as a placeholder when referencing the business.'}
 
 CRITICAL RULES:
-- NEVER use the words "StoryBrand", "StoryBrand framework", "StoryBrand Marketing", or any reference to StoryBrand. This is someone else's brand.
-- ALWAYS use "${brandName}" when referring to the user's business.
+- NEVER use the words "StoryBrand", "StoryBrand framework", "StoryBrand Marketing", or any reference to StoryBrand. This is someone else's brand and trademark.
+- ${hasBrandName ? `ALWAYS use "${brandLabel}" when referring to the user's business.` : 'Use "your business" as a generic reference.'}
 - Do NOT give coaching advice or ask questions. Just provide the answer directly.
-- If the step involves testimonials, write them using "${brandName}" as the business being reviewed.
-- If the step involves before/after stories, frame them around a customer's experience with "${brandName}".
+- If the step involves testimonials, write them referencing ${hasBrandName ? `"${brandLabel}"` : '"your business"'} as the business being reviewed.
+- If the step involves before/after stories, frame them around a customer's experience with ${hasBrandName ? `"${brandLabel}"` : 'the business'}.
 - Keep suggestions specific, concrete, and ready to use.
 
-Examples of what NOT to do:
-- "After implementing the StoryBrand framework..." (WRONG)
-- "Before working with StoryBrand Marketing..." (WRONG)
+Examples of what NEVER to do:
+- "After implementing the StoryBrand framework..." (WRONG - never reference StoryBrand)
+- "Before working with StoryBrand Marketing..." (WRONG - never reference StoryBrand)
 
-Examples of what TO do:
-- "After working with ${brandName}, our sales increased by 30%..." (CORRECT)
-- "Before I found ${brandName}, I was struggling to..." (CORRECT)
+${hasBrandName ? `Examples of correct output:
+- "After working with ${brandLabel}, our sales increased by 30%..." (CORRECT)
+- "Before I found ${brandLabel}, I was struggling to..." (CORRECT)` : ''}
 
 Answer:`;
 

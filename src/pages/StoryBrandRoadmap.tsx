@@ -142,13 +142,29 @@ export default function StoryBrandRoadmap() {
     try {
       const { data: brand } = await supabase
         .from('brand_identity')
-        .select('selected_name, business_description')
+        .select('selected_name, offer_description, target_audience')
         .eq('user_id', currentUser.id)
         .eq('idea_key', ideaKey)
         .maybeSingle();
-      if (brand) {
-        setBrandName(brand.selected_name || '');
-        setBrandDescription(brand.business_description || '');
+      if (brand?.selected_name) {
+        setBrandName(brand.selected_name);
+      }
+      if (brand?.offer_description || brand?.target_audience) {
+        const parts: string[] = [];
+        if (brand.offer_description) parts.push(brand.offer_description);
+        if (brand.target_audience) parts.push(`Target audience: ${brand.target_audience}`);
+        setBrandDescription(parts.join('. '));
+      }
+      if (!brand?.selected_name) {
+        const { data: idea } = await supabase
+          .from('saved_ideas')
+          .select('idea_data')
+          .eq('user_id', currentUser.id)
+          .eq('original_idea_id', ideaKey)
+          .maybeSingle();
+        if (idea?.idea_data?.title) {
+          setBrandName(idea.idea_data.title);
+        }
       }
     } catch (err) {
       console.error('Failed to load brand context:', err);
@@ -172,8 +188,8 @@ export default function StoryBrandRoadmap() {
           },
           body: JSON.stringify({
             step,
-            businessName: brandName || 'My business',
-            businessDescription: brandDescription || 'A new business venture',
+            businessName: brandName || '',
+            businessDescription: brandDescription || '',
             currentAnswer: stepAnswer,
           }),
         }
