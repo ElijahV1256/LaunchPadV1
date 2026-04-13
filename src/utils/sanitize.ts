@@ -5,16 +5,16 @@ export function sanitizeHTML(html: string): string {
     ALLOWED_TAGS: [
       'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
       'ul', 'ol', 'li', 'a', 'img', 'div', 'span', 'section', 'article',
-      'header', 'footer', 'nav', 'button', 'input', 'form', 'label',
+      'header', 'footer', 'nav',
       'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote', 'code', 'pre'
     ],
     ALLOWED_ATTR: [
-      'href', 'src', 'alt', 'title', 'class', 'id', 'style',
-      'target', 'rel', 'type', 'placeholder', 'value', 'name',
+      'href', 'src', 'alt', 'title', 'class', 'id',
+      'target', 'rel',
       'role', 'aria-label', 'aria-labelledby', 'aria-describedby',
-      'tabindex', 'data-*'
+      'tabindex'
     ],
-    ALLOW_DATA_ATTR: true,
+    ALLOW_DATA_ATTR: false,
     ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
   });
 }

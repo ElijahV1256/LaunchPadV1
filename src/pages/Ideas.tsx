@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { BusinessIdea } from '../services/openai';
 import { Rocket, Sparkles, TrendingUp, DollarSign, AlertCircle, Loader2, RefreshCw, PlusCircle, Lightbulb, ArrowRight, CheckCircle2, MapPin, Settings, X, Clock, Briefcase, Bookmark, BookmarkCheck } from 'lucide-react';
 import { trackMilestone, trackActivity } from '../services/tracking';
+import { useLastProgress } from '../hooks/useLastProgress';
 
 export default function Ideas() {
   const [ideas, setIdeas] = useState<BusinessIdea[]>([]);
@@ -19,7 +20,6 @@ export default function Ideas() {
   const [customIdeaDescription, setCustomIdeaDescription] = useState('');
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const [savingCustomIdea, setSavingCustomIdea] = useState(false);
-  const [lastProgress, setLastProgress] = useState<any>(null);
   const [showLocalServices, setShowLocalServices] = useState(false);
   const [userPlan, setUserPlan] = useState<string>('free');
   const [showPreferencesModal, setShowPreferencesModal] = useState(false);
@@ -38,11 +38,11 @@ export default function Ideas() {
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const lastProgress = useLastProgress();
 
   useEffect(() => {
     if (currentUser) {
       loadIdeas();
-      loadLastProgress();
       loadUserPlan();
       loadUserPreferences();
       loadSavedIdeas();
@@ -182,90 +182,6 @@ export default function Ideas() {
       setError(err.message || 'Failed to save idea');
     } finally {
       setSavingIdeaId(null);
-    }
-  };
-
-  const loadLastProgress = async () => {
-    if (!currentUser) return;
-
-    try {
-      const { data: ideas } = await supabase
-        .from('business_ideas')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (!ideas || ideas.length === 0) return;
-
-      const latestIdea = ideas[0];
-      const ideaKey = latestIdea.idea_id;
-
-      const [brandData, storyBrandData, firstRevenueData, marketingData, websiteData, roadmapData] = await Promise.all([
-        supabase.from('brand_identity').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
-        supabase.from('storybrand_roadmap').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
-        supabase.from('first_dollar').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
-        supabase.from('marketing_assets').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
-        supabase.from('websites').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
-        supabase.from('roadmaps').select('*').eq('user_id', currentUser.id).eq('idea_id', ideaKey).maybeSingle(),
-      ]);
-
-      let currentStage = null;
-      let stageName = '';
-      let link = '';
-      let isComplete = false;
-
-      const brandComplete = brandData.data && brandData.data.selected_name && brandData.data.brand_colors && brandData.data.logo_data?.selected;
-      const storyBrandComplete = storyBrandData.data && storyBrandData.data.completed && storyBrandData.data.stages &&
-        storyBrandData.data.completed.length === storyBrandData.data.stages.reduce((acc: number, s: { steps: string[] }) => acc + s.steps.length, 0) &&
-        storyBrandData.data.completed.length > 0;
-      const firstRevenueComplete = firstRevenueData.data && firstRevenueData.data.completed && firstRevenueData.data.completed.length >= 5;
-      const marketingComplete = marketingData.data && marketingData.data.completed_steps && marketingData.data.completed_steps.length >= 4;
-      const websiteComplete = websiteData.data && websiteData.data.completed_steps && websiteData.data.completed_steps.length >= 5;
-      const roadmapComplete = roadmapData.data && roadmapData.data.stages && roadmapData.data.stages.length > 0;
-
-      const hasAnyProgress = brandData.data || storyBrandData.data || firstRevenueData.data || marketingData.data || websiteData.data || roadmapComplete;
-
-      if (!hasAnyProgress) {
-        return;
-      }
-
-      if (!brandComplete) {
-        currentStage = 'Brand Identity';
-        stageName = 'Brand Identity';
-        link = `/brand-identity?ideaKey=${ideaKey}`;
-      } else if (!storyBrandComplete) {
-        currentStage = 'StoryBrand Roadmap';
-        stageName = 'StoryBrand Roadmap';
-        link = `/storybrand-roadmap?ideaKey=${ideaKey}`;
-      } else if (!firstRevenueComplete) {
-        currentStage = 'First Dollar';
-        stageName = 'Get Your First Dollar';
-        link = `/first-revenue?ideaKey=${ideaKey}`;
-      } else if (!marketingComplete) {
-        currentStage = 'Marketing Assets';
-        stageName = 'Marketing Assets';
-        link = `/marketing-assets?ideaKey=${ideaKey}`;
-      } else if (!websiteComplete) {
-        currentStage = 'Book Discovery Call';
-        stageName = 'Book Discovery Call';
-        link = `/website?ideaKey=${ideaKey}`;
-      } else {
-        currentStage = 'Completed';
-        stageName = 'All stages complete!';
-        link = `/roadmap/${ideaKey}`;
-        isComplete = true;
-      }
-
-      setLastProgress({
-        ideaName: latestIdea.name,
-        currentStage,
-        stageName,
-        link,
-        isComplete,
-      });
-    } catch (err) {
-      console.error('Failed to load last progress:', err);
     }
   };
 

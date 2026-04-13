@@ -84,26 +84,16 @@ export async function updateUserMetrics(metrics: {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data: existing } = await supabase
+    await supabase
       .from('user_metrics')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (existing) {
-      await supabase
-        .from('user_metrics')
-        .update({
+      .upsert(
+        {
+          user_id: user.id,
           ...metrics,
           updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id);
-    } else {
-      await supabase.from('user_metrics').insert({
-        user_id: user.id,
-        ...metrics,
-      });
-    }
+        },
+        { onConflict: 'user_id' }
+      );
   } catch (err) {
     console.error('Failed to update metrics:', err);
   }
@@ -192,10 +182,24 @@ function triggerCelebration(milestoneType: MilestoneType) {
     }, 250);
   }
 
+  const end = Date.now() + duration;
+  const interval = setInterval(() => {
+    if (Date.now() > end) { clearInterval(interval); return; }
+    confetti({ particleCount: 30, spread: 60, origin: { y: 0.6 } });
+  }, 400);
+
   const message = MILESTONE_MESSAGES[milestoneType];
   if (message) {
     setTimeout(() => {
-      alert(`🎉 ${message}`);
+      const toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.cssText =
+        'position:fixed;top:24px;left:50%;transform:translateX(-50%);' +
+        'background:#0A192F;color:#fff;padding:16px 32px;border-radius:12px;' +
+        'font-size:16px;font-weight:600;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.3);' +
+        'border:1px solid rgba(41,121,255,0.3);';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
     }, 500);
   }
 }

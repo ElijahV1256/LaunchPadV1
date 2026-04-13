@@ -98,7 +98,7 @@ export default function Dashboard() {
       .maybeSingle();
 
     if (data) {
-      setUserPlan(data.plan);
+      setUserPlan(data.plan || 'free');
     }
 
     const email = currentUser.email || '';

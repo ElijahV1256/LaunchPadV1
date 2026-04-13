@@ -24,7 +24,7 @@ export const useRouteGuard = () => {
           .maybeSingle();
 
         if (!profile || !profile.onboarding_completed) {
-          if (location.pathname !== '/onboarding' && location.pathname !== '/dashboard') {
+          if (location.pathname !== '/onboarding') {
             navigate('/onboarding');
           }
           setLoading(false);

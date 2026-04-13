@@ -151,7 +151,7 @@ export default function BookDiscoveryCall({ businessName, ideaKey, nextPath, nex
 
           <div className="text-center space-y-4">
             <p className="text-gray-500 text-sm">
-              Prefer email? Reach us at hello@yourcompany.com
+              Prefer email? Reach us at support@launchpadai.com
             </p>
             <button
               onClick={() => navigate('/dashboard')}

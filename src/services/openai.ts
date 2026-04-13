@@ -249,7 +249,7 @@ export async function regenerateLogoWithChanges(
         name: originalLogo.name,
         description: `${originalLogo.description} (Modified: ${changeRequest})`,
         imageUrl: concepts[0]?.imageUrl ?? concepts[0]?.image ?? '',
-        prompt: concepts[0].prompt,
+        prompt: concepts[0]?.prompt ?? '',
       };
     } catch (error: any) {
       clearTimeout(timeoutId);

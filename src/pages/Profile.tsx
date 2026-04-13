@@ -26,9 +26,11 @@ export default function Profile() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadData();
-    loadProgressData();
-  }, []);
+    if (currentUser) {
+      loadData();
+      loadProgressData();
+    }
+  }, [currentUser]);
 
   const loadData = async () => {
     if (!currentUser) return;
