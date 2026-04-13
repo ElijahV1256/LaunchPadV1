@@ -87,6 +87,8 @@ export default function StoryBrandRoadmap() {
   const [aiSuggestion, setAiSuggestion] = useState<string>('');
   const [loadingAi, setLoadingAi] = useState(false);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [brandName, setBrandName] = useState<string>('');
+  const [brandDescription, setBrandDescription] = useState<string>('');
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -94,6 +96,7 @@ export default function StoryBrandRoadmap() {
 
   useEffect(() => {
     loadData();
+    loadBrandContext();
   }, [ideaKey]);
 
   useEffect(() => {
@@ -134,6 +137,24 @@ export default function StoryBrandRoadmap() {
     }
   };
 
+  const loadBrandContext = async () => {
+    if (!currentUser || !ideaKey) return;
+    try {
+      const { data: brand } = await supabase
+        .from('brand_identity')
+        .select('selected_name, business_description')
+        .eq('user_id', currentUser.id)
+        .eq('idea_key', ideaKey)
+        .maybeSingle();
+      if (brand) {
+        setBrandName(brand.selected_name || '');
+        setBrandDescription(brand.business_description || '');
+      }
+    } catch (err) {
+      console.error('Failed to load brand context:', err);
+    }
+  };
+
   const handleGetAiHelp = async (step: string) => {
     if (!data) return;
     setLoadingAi(true);
@@ -151,8 +172,8 @@ export default function StoryBrandRoadmap() {
           },
           body: JSON.stringify({
             step,
-            businessName: 'StoryBrand Marketing',
-            businessDescription: 'Building your business story using the StoryBrand framework',
+            businessName: brandName || 'My business',
+            businessDescription: brandDescription || 'A new business venture',
             currentAnswer: stepAnswer,
           }),
         }

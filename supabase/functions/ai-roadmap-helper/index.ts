@@ -79,17 +79,30 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const prompt = `Business: ${businessName || 'Their business'}
+    const brandName = businessName || 'their business';
+
+    const prompt = `Business name: "${brandName}"
 Description: ${businessDescription || 'A new business venture'}
 
-Question: "${step}"
+The user is working on this step for their business: "${step}"
 
-Provide a direct, specific answer to fill in the blank. Do NOT give coaching advice or ask questions. Just answer directly with what they should offer, who they should target, what price to charge, etc.
+Provide a direct, specific, actionable answer. Use the business name "${brandName}" when referencing the business — for example in testimonials, before/after stories, or marketing copy.
 
-Examples:
-- If asked "What should I offer?": Answer with a specific service like "Website design for small businesses" or "1-hour photography sessions"
-- If asked about pricing: Answer with a specific price like "$75" or "$50-$100"
-- If asked about customers: Answer with a specific person like "Local coffee shop owners" or "Busy parents in your neighborhood"
+CRITICAL RULES:
+- NEVER use the words "StoryBrand", "StoryBrand framework", "StoryBrand Marketing", or any reference to StoryBrand. This is someone else's brand.
+- ALWAYS use "${brandName}" when referring to the user's business.
+- Do NOT give coaching advice or ask questions. Just provide the answer directly.
+- If the step involves testimonials, write them using "${brandName}" as the business being reviewed.
+- If the step involves before/after stories, frame them around a customer's experience with "${brandName}".
+- Keep suggestions specific, concrete, and ready to use.
+
+Examples of what NOT to do:
+- "After implementing the StoryBrand framework..." (WRONG)
+- "Before working with StoryBrand Marketing..." (WRONG)
+
+Examples of what TO do:
+- "After working with ${brandName}, our sales increased by 30%..." (CORRECT)
+- "Before I found ${brandName}, I was struggling to..." (CORRECT)
 
 Answer:`;
 
@@ -104,7 +117,7 @@ Answer:`;
         messages: [
           {
             role: 'system',
-            content: 'You provide direct, specific answers to business questions. Never give coaching advice or suggestions. Always answer with concrete, actionable specifics that directly answer the question asked.',
+            content: 'You provide direct, specific answers to business questions. Never give coaching advice or suggestions. Always answer with concrete, actionable specifics that directly answer the question asked. NEVER reference "StoryBrand" or "StoryBrand framework" — always use the actual business name provided. When writing testimonials or success stories, use the business name, not any framework name.',
           },
           {
             role: 'user',
