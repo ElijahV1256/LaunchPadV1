@@ -1,22 +1,27 @@
-import OpenAI from 'openai';
-
-// NOTE: OpenAI client is only created when needed in specific functions
-// The API key should be stored in Supabase Edge Function secrets, not in frontend env vars
-
-// Lazy client initialization - only creates client when actually needed
-let _openaiClient: OpenAI | null = null;
-function getOpenAIClient(): OpenAI {
-  if (!_openaiClient) {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error('OpenAI API key not configured for direct browser calls. All AI features use Supabase edge functions instead.');
+async function callBusinessTools(body: Record<string, unknown>) {
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-business-tools`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
     }
-    _openaiClient = new OpenAI({
-      apiKey,
-      dangerouslyAllowBrowser: true,
-    });
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    let msg = `Edge function error (${response.status})`;
+    try {
+      const parsed = JSON.parse(errorText);
+      msg = parsed.error || msg;
+    } catch { /* use default msg */ }
+    throw new Error(msg);
   }
-  return _openaiClient;
+
+  return response.json();
 }
 
 export interface BusinessIdea {
@@ -38,41 +43,8 @@ export interface RoadmapStage {
 // See: src/pages/Ideas.tsx for the current implementation
 
 export async function generateRoadmap(idea: BusinessIdea): Promise<RoadmapStage[]> {
-  const prompt = `Create a detailed 5-stage startup roadmap for the following business idea:
-
-Business Name: ${idea.name}
-Description: ${idea.description}
-Difficulty: ${idea.difficulty}/5
-Cost Range: ${idea.costRange}
-
-For each of the 5 stages, provide:
-1. A clear stage title (e.g., "Stage 1: Validation", "Stage 2: Setup")
-2. 3-5 specific, actionable steps
-
-Format your response as a JSON array with objects containing: stage, steps (array of strings)
-
-Make the roadmap practical and sequential, taking someone from idea to launch.`;
-
-  const response = await getOpenAIClient().chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content:
-          'You are a business consultant creating actionable startup roadmaps. Always respond with valid JSON only.',
-      },
-      { role: 'user', content: prompt },
-    ],
-    temperature: 0.7,
-  });
-
-  const content = response.choices[0].message.content || '[]';
-  const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  try {
-    return JSON.parse(cleanContent);
-  } catch {
-    throw new Error('Failed to parse roadmap response from AI');
-  }
+  const result = await callBusinessTools({ action: 'generateRoadmap', idea });
+  return result.stages;
 }
 
 export async function generateStepPathway(
@@ -81,38 +53,14 @@ export async function generateStepPathway(
   stageTitle: string,
   stepDescription: string
 ): Promise<string[]> {
-  const prompt = `For a business called "${businessName}" (${businessDescription}), the entrepreneur is working on:
-
-Stage: ${stageTitle}
-Step: ${stepDescription}
-
-Generate 4-6 specific, practical pathways or resources to help them complete this step. Each pathway should be:
-- Actionable and specific
-- Include concrete resources, tools, or tactics
-- Be achievable for a solo entrepreneur or small team
-
-Format your response as a JSON array of strings. Each string should be one complete pathway or approach.`;
-
-  const response = await getOpenAIClient().chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content:
-          'You are a business mentor providing specific, actionable guidance. Always respond with valid JSON only.',
-      },
-      { role: 'user', content: prompt },
-    ],
-    temperature: 0.8,
+  const result = await callBusinessTools({
+    action: 'generateStepPathway',
+    businessName,
+    businessDescription,
+    stageTitle,
+    stepDescription,
   });
-
-  const content = response.choices[0].message.content || '[]';
-  const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  try {
-    return JSON.parse(cleanContent);
-  } catch {
-    throw new Error('Failed to parse pathway response from AI');
-  }
+  return result.pathways;
 }
 
 export interface BusinessPlanData {
@@ -139,54 +87,13 @@ export async function generateBusinessPlan(
   businessDescription: string,
   stepAnswers: Record<string, string>
 ): Promise<BusinessPlanData> {
-  const answersText = Object.entries(stepAnswers)
-    .map(([step, answer]) => `${step}: ${answer}`)
-    .join('\n');
-
-  const prompt = `Based on the following business idea and the entrepreneur's answers to their roadmap steps, create a comprehensive business plan using Donald Miller's StoryBrand framework:
-
-Business: ${businessName}
-Description: ${businessDescription}
-
-Entrepreneur's Roadmap Answers:
-${answersText}
-
-Generate a complete business plan with the following sections based on the StoryBrand framework:
-
-1. Plan Name: A compelling, professional name for this business plan
-2. Character (The Customer): Who is your ideal customer? What do they want?
-3. Problem: What external, internal, and philosophical problems does your customer face?
-4. Guide (Your Business): How does your business position itself as the guide? What empathy and authority do you bring?
-5. Plan: What is your clear process or agreement that makes it easy for customers to do business with you?
-6. Call to Action: What direct and transitional calls to action will you use?
-7. Success: What does success look like for your customer? How will their life improve?
-8. Failure: What's at stake if they don't use your solution?
-9. Transformation: What is the identity transformation your customer will experience?
-
-Format your response as a JSON object with keys: planName, character, problem, guide, plan, callToAction, success, failure, transformation
-
-Make each section detailed, specific, and actionable based on the provided information.`;
-
-  const response = await getOpenAIClient().chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [
-      {
-        role: 'system',
-        content:
-          'You are a business strategist and StoryBrand certified guide helping entrepreneurs create compelling business plans. Always respond with valid JSON only.',
-      },
-      { role: 'user', content: prompt },
-    ],
-    temperature: 0.7,
+  const result = await callBusinessTools({
+    action: 'generateBusinessPlan',
+    businessName,
+    businessDescription,
+    stepAnswers,
   });
-
-  const content = response.choices[0].message.content || '{}';
-  const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  try {
-    return JSON.parse(cleanContent);
-  } catch {
-    throw new Error('Failed to parse business plan response from AI');
-  }
+  return result.planData;
 }
 
 // DEPRECATED: This function is no longer used. Logos are now generated as icon-only
