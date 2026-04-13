@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Home, DollarSign } from 'lucide-react';
+import { Home, DollarSign, ArrowLeft } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { trackMilestone, trackActivity } from '../services/tracking';
 import StepClarifyOffer from '../components/first-dollar/StepClarifyOffer';
@@ -305,13 +305,22 @@ export default function FirstRevenue() {
       <div className="sticky top-0 z-40 bg-[#0A192F]/90 backdrop-blur-md border-b border-white/5">
         <div className="max-w-2xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-3">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-sm"
-            >
-              <Home size={16} />
-              <span className="hidden sm:inline">Dashboard</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors text-sm"
+              >
+                <ArrowLeft size={16} />
+                <span className="hidden sm:inline">Back</span>
+              </button>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-sm"
+              >
+                <Home size={16} />
+                <span className="hidden sm:inline">Dashboard</span>
+              </button>
+            </div>
 
             <div className="flex items-center gap-2">
               <DollarSign size={16} className="text-[#2979FF]" />
