@@ -1,13 +1,28 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Home, CheckCircle2, Circle, Loader2, Sparkles, RefreshCw, CreditCard as Edit2, X, Download, Upload, Bookmark, BookmarkCheck } from 'lucide-react';
-import { generateLogoConcepts, regenerateLogoWithChanges, generateCompleteBrandFoundation } from '../services/openai';
+import { Home, ArrowLeft } from 'lucide-react';
+import { generateLogoConcepts } from '../services/openai';
 import { downloadBrandGuide } from '../utils/brandGuide';
-import RocketGame from '../components/RocketGame';
 
-interface ColorPalette {
+import BrandProgress from '../components/brand-identity/BrandProgress';
+import StepTransition from '../components/brand-identity/StepTransition';
+import StepBusinessName from '../components/brand-identity/StepBusinessName';
+import StepPersonality from '../components/brand-identity/StepPersonality';
+import StepColorPalette from '../components/brand-identity/StepColorPalette';
+import StepLogoGeneration from '../components/brand-identity/StepLogoGeneration';
+import StepBrandReveal from '../components/brand-identity/StepBrandReveal';
+
+interface NameOption {
+  name: string;
+  reason: string;
+  vibe: string;
+}
+
+interface PaletteOption {
+  paletteName: string;
+  mood: string;
   primary: string;
   secondary: string;
   accent: string;
@@ -20,32 +35,30 @@ interface LogoConcept {
   prompt: string;
 }
 
-interface NameOption {
-  name: string;
-  reason: string;
-  tagline?: string;
+interface BrandState {
+  id: string;
+  businessDescription: string;
+  names: NameOption[];
+  selectedName: string | null;
+  personality: string[];
+  palettes: PaletteOption[];
+  selectedPaletteIndex: number | null;
+  logoConcepts: LogoConcept[];
+  selectedLogo: LogoConcept | null;
+  uploadedLogoUrl: string | null;
+  tagline: string | null;
+  completedSteps: string[];
 }
 
-interface BrandData {
-  id: string;
-  business_names: NameOption[];
-  selected_name: string | null;
-  selected_tagline?: string | null;
-  brand_colors: {
-    primary?: string;
-    secondary?: string;
-    accent?: string;
-    palettes?: ColorPalette[];
-    selected_palette_index?: number;
-  };
-  logo_data?: {
-    concepts?: LogoConcept[];
-    selected?: LogoConcept;
-    uploaded_logo_url?: string;
-  };
-  domain_suggestions?: any[];
-  selected_domain?: string | null;
-  completed_steps: string[];
+const STEP_LABELS = ['Name', 'Personality', 'Colors', 'Logo', 'Reveal'];
+const STEP_KEYS = ['name', 'personality', 'colors', 'logo', 'reveal'];
+
+function determineInitialStep(brand: BrandState): number {
+  if (!brand.selectedName) return 0;
+  if (brand.personality.length === 0) return 1;
+  if (brand.selectedPaletteIndex === null) return 2;
+  if (!brand.selectedLogo && !brand.uploadedLogoUrl) return 3;
+  return 4;
 }
 
 export default function BrandIdentity() {
@@ -54,58 +67,28 @@ export default function BrandIdentity() {
   const { currentUser } = useAuth();
   const ideaKey = searchParams.get('ideaKey') || '';
 
-  const [data, setData] = useState<BrandData | null>(null);
-  const [businessIdea, setBusinessIdea] = useState<{name: string; description: string} | null>(null);
+  const [brand, setBrand] = useState<BrandState | null>(null);
+  const [businessIdea, setBusinessIdea] = useState<{ name: string; description: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [generating, setGenerating] = useState(false);
+
+  const [currentStep, setCurrentStep] = useState(0);
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+
+  const [generatingNames, setGeneratingNames] = useState(false);
+  const [generatingPalettes, setGeneratingPalettes] = useState(false);
   const [generatingLogos, setGeneratingLogos] = useState(false);
-
-  const [offerDescription, setOfferDescription] = useState('');
-  const [targetAudience, setTargetAudience] = useState('');
-  const [keywords, setKeywords] = useState('');
-  const [customName, setCustomName] = useState('');
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [generatingLogoConcepts, setGeneratingLogoConcepts] = useState(false);
-  const [logoProgress, setLogoProgress] = useState({ current: 0, total: 6 });
-  const [editingLogo, setEditingLogo] = useState(false);
-  const [customPrompt, setCustomPrompt] = useState('');
-  const [regeneratingLogo, setRegeneratingLogo] = useState(false);
-  const [logoAnswers, setLogoAnswers] = useState({
-    businessDescription: '',
-    targetAudience: '',
-    brandPersonality: '',
-    industry: '',
-    preferredStyle: '',
-  });
-  const [logoSuggestions, setLogoSuggestions] = useState('');
-  const [generatingGuide, setGeneratingGuide] = useState(false);
-  const [generatingOffer, setGeneratingOffer] = useState(false);
-  const [generatingAudience, setGeneratingAudience] = useState(false);
-  const [generatingKeywords, setGeneratingKeywords] = useState(false);
-  const [generatingPersonality, setGeneratingPersonality] = useState(false);
-  const [generatingIndustry, setGeneratingIndustry] = useState(false);
-  const [generatingStyle, setGeneratingStyle] = useState(false);
   const [generatingTagline, setGeneratingTagline] = useState(false);
-  const [uploadedLogoUrl, setUploadedLogoUrl] = useState<string | null>(null);
+  const [generatingGuide, setGeneratingGuide] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  const [customName, setCustomName] = useState('');
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const completionRef = useRef<HTMLDivElement>(null);
-  const nameRef = useRef<HTMLDivElement>(null);
-  const colorsRef = useRef<HTMLDivElement>(null);
-  const logoRef = useRef<HTMLDivElement>(null);
-
-  const normalizeBusinessNames = (names: any): NameOption[] => {
-    if (!names || !Array.isArray(names)) return [];
-
-    return names.map(name => {
-      if (typeof name === 'string') {
-        return { name, reason: 'Generated name', tagline: undefined };
-      }
-      return name;
-    });
-  };
+  const autoGeneratedPalettes = useRef(false);
+  const autoGeneratedLogos = useRef(false);
+  const autoGeneratedTagline = useRef(false);
 
   useEffect(() => {
     if (!currentUser || !ideaKey) {
@@ -120,377 +103,355 @@ export default function BrandIdentity() {
 
     try {
       const [brandResult, ideaResult] = await Promise.all([
-        supabase
-          .from('brand_identity')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .eq('idea_key', ideaKey)
-          .maybeSingle(),
-        supabase
-          .from('business_ideas')
-          .select('name, description')
-          .eq('user_id', currentUser.id)
-          .eq('idea_id', ideaKey)
-          .maybeSingle()
+        supabase.from('brand_identity').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle(),
+        supabase.from('business_ideas').select('name, description').eq('user_id', currentUser.id).eq('idea_id', ideaKey).maybeSingle(),
       ]);
 
-      const { data: existingData, error: fetchError } = brandResult;
-
       if (ideaResult.data) {
-        setBusinessIdea({
-          name: ideaResult.data.name,
-          description: ideaResult.data.description
-        });
+        setBusinessIdea({ name: ideaResult.data.name, description: ideaResult.data.description });
       }
 
-      if (fetchError) throw fetchError;
+      if (brandResult.error) throw brandResult.error;
 
-      if (existingData) {
-        setData({
-          id: existingData.id,
-          business_names: normalizeBusinessNames(existingData.business_names),
-          selected_name: existingData.selected_name,
-          logo_data: existingData.logo_data || {},
-          brand_colors: existingData.brand_colors || {},
-          domain_suggestions: existingData.domain_suggestions || [],
-          selected_domain: existingData.selected_domain,
-          completed_steps: existingData.completed_steps || [],
-        });
-        setUploadedLogoUrl(existingData.logo_data?.uploaded_logo_url || null);
-        setOfferDescription(existingData.offer_description || '');
-        setTargetAudience(existingData.target_audience || '');
-        setKeywords(existingData.brand_keywords || '');
-      } else {
+      let data = brandResult.data;
+      if (!data) {
         const { data: newData, error: insertError } = await supabase
           .from('brand_identity')
-          .insert({
-            user_id: currentUser.id,
-            idea_key: ideaKey,
-          })
+          .insert({ user_id: currentUser.id, idea_key: ideaKey })
           .select()
           .single();
 
         if (insertError) {
           if (insertError.code === '23505') {
-            const { data: existingRetry } = await supabase
-              .from('brand_identity')
-              .select('*')
-              .eq('user_id', currentUser.id)
-              .eq('idea_key', ideaKey)
-              .maybeSingle();
-
-            if (existingRetry) {
-              setData({
-                id: existingRetry.id,
-                business_names: normalizeBusinessNames(existingRetry.business_names),
-                selected_name: existingRetry.selected_name,
-                logo_data: existingRetry.logo_data || {},
-                brand_colors: existingRetry.brand_colors || {},
-                domain_suggestions: existingRetry.domain_suggestions || [],
-                selected_domain: existingRetry.selected_domain,
-                completed_steps: existingRetry.completed_steps || [],
-              });
-              return;
-            }
+            const { data: retryData } = await supabase
+              .from('brand_identity').select('*').eq('user_id', currentUser.id).eq('idea_key', ideaKey).maybeSingle();
+            data = retryData;
+          } else {
+            throw insertError;
           }
-          throw insertError;
+        } else {
+          data = newData;
         }
-
-        setData({
-          id: newData.id,
-          business_names: [],
-          selected_name: null,
-          logo_data: {},
-          brand_colors: {},
-          domain_suggestions: [],
-          selected_domain: null,
-          completed_steps: [],
-        });
       }
+
+      if (!data) throw new Error('Failed to load brand identity');
+
+      const normalizedNames = normalizeNames(data.business_names);
+      const normalizedPalettes = normalizePalettes(data.color_palettes || data.brand_colors?.palettes);
+      const personality: string[] = Array.isArray(data.brand_personality) ? data.brand_personality : [];
+
+      const brandState: BrandState = {
+        id: data.id,
+        businessDescription: data.offer_description || '',
+        names: normalizedNames,
+        selectedName: data.selected_name || null,
+        personality,
+        palettes: normalizedPalettes,
+        selectedPaletteIndex: data.brand_colors?.selected_palette_index ?? null,
+        logoConcepts: data.logo_data?.concepts || [],
+        selectedLogo: data.logo_data?.selected || null,
+        uploadedLogoUrl: data.logo_data?.uploaded_logo_url || null,
+        tagline: data.selected_tagline || null,
+        completedSteps: data.completed_steps || [],
+      };
+
+      setBrand(brandState);
+      setCurrentStep(determineInitialStep(brandState));
     } catch (err: any) {
-      console.error('Error loading brand identity data:', err);
+      console.error('Error loading brand identity:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const saveBusinessDetails = async (overrides?: { offer?: string; audience?: string; keywords?: string }) => {
-    if (!data || !currentUser) return;
+  const normalizeNames = (raw: any): NameOption[] => {
+    if (!raw || !Array.isArray(raw)) return [];
+    return raw.map((n: any) => {
+      if (typeof n === 'string') return { name: n, reason: 'Generated name', vibe: 'Professional' };
+      return { name: n.name, reason: n.reason || n.tagline || '', vibe: n.vibe || 'Professional' };
+    });
+  };
 
+  const normalizePalettes = (raw: any): PaletteOption[] => {
+    if (!raw || !Array.isArray(raw)) return [];
+    return raw.map((p: any) => ({
+      paletteName: p.paletteName || p.name || 'Custom',
+      mood: p.mood || p.description || '',
+      primary: p.primary,
+      secondary: p.secondary,
+      accent: p.accent,
+    }));
+  };
+
+  const saveToDb = useCallback(async (updates: Record<string, any>) => {
+    if (!brand) return;
     try {
       await supabase
         .from('brand_identity')
-        .update({
-          offer_description: overrides?.offer ?? offerDescription,
-          target_audience: overrides?.audience ?? targetAudience,
-          brand_keywords: overrides?.keywords ?? keywords,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data.id);
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', brand.id);
     } catch (err) {
-      console.error('Error saving business details:', err);
+      console.error('Error saving to DB:', err);
     }
+  }, [brand]);
+
+  const goForward = () => {
+    setDirection('forward');
+    setCurrentStep((s) => Math.min(s + 1, 4));
   };
 
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !currentUser || !data) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+  const goBack = () => {
+    if (currentStep === 0) {
+      setShowLeaveConfirm(true);
       return;
     }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
-      return;
-    }
-
-    setUploadingLogo(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${currentUser.id}/${ideaKey}/custom-logo-${Date.now()}.${fileExt}`;
-
-      const { error: uploadError, data: uploadData } = await supabase.storage
-        .from('logos')
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('logos')
-        .getPublicUrl(fileName);
-
-      setUploadedLogoUrl(publicUrl);
-
-      await supabase
-        .from('brand_identity')
-        .update({
-          logo_data: {
-            ...data.logo_data,
-            uploaded_logo_url: publicUrl,
-          },
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data.id);
-
-      setData({
-        ...data,
-        logo_data: {
-          ...data.logo_data,
-          uploaded_logo_url: publicUrl,
-        },
-      });
-
-      alert('Logo uploaded successfully!');
-    } catch (err: any) {
-      console.error('Error uploading logo:', err);
-      alert(`Failed to upload logo: ${err.message}`);
-    } finally {
-      setUploadingLogo(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
+    setDirection('backward');
+    setCurrentStep((s) => Math.max(s - 1, 0));
   };
 
-  const removeUploadedLogo = async () => {
-    if (!data || !uploadedLogoUrl) return;
-
+  const handleGenerateNames = async () => {
+    if (!brand || !brand.businessDescription.trim()) return;
+    setGeneratingNames(true);
     try {
-      await supabase
-        .from('brand_identity')
-        .update({
-          logo_data: {
-            ...data.logo_data,
-            uploaded_logo_url: null,
-          },
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data.id);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      const idea = businessIdea
+        ? `${businessIdea.name}: ${businessIdea.description}. Additional: ${brand.businessDescription}`
+        : brand.businessDescription;
 
-      setUploadedLogoUrl(null);
-      setData({
-        ...data,
-        logo_data: {
-          ...data.logo_data,
-          uploaded_logo_url: undefined,
-        },
-      });
-    } catch (err: any) {
-      console.error('Error removing logo:', err);
-      alert(`Failed to remove logo: ${err.message}`);
-    }
-  };
-
-  const generateNames = async () => {
-    const hasOfferAndAudience = offerDescription.trim() && targetAudience.trim();
-    const hasKeywords = keywords.trim();
-
-    if (!hasOfferAndAudience && !hasKeywords) {
-      alert('Please fill in either offer + audience OR keywords');
-      return;
-    }
-
-    setGenerating(true);
-    try {
-      let idea = '';
-      if (hasOfferAndAudience) {
-        idea = `${offerDescription} for ${targetAudience}`;
-      } else {
-        idea = keywords;
-      }
-
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/business-name`;
-      const headers = {
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-      };
-
-      const response = await fetch(apiUrl, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/business-name`, {
         method: 'POST',
-        headers,
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           idea,
-          keywords: hasKeywords ? keywords : undefined,
           ideaKey,
           userId: currentUser?.id,
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API error:', errorData);
-        throw new Error(errorData.error || 'Failed to generate names');
-      }
-
+      if (!response.ok) throw new Error('Failed to generate names');
       const result = await response.json();
-      console.log('API result:', result);
-      const names: NameOption[] = result.names || [];
-      console.log('Normalized names:', names);
+      const rawNames = result.names || [];
 
-      if (names.length === 0) {
-        alert('No names were generated. Please try again.');
-        return;
-      }
+      const names: NameOption[] = rawNames.map((n: any) => ({
+        name: n.name,
+        reason: n.reason || '',
+        vibe: n.vibe || guessVibe(n.reason || ''),
+      }));
 
-      const { error: updateError } = await supabase
-        .from('brand_identity')
-        .update({
-          business_names: names,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data!.id);
-
-      if (updateError) {
-        console.error('Error saving business names:', updateError);
-        alert('Failed to save business names. Please try again.');
-        return;
-      }
-
-      console.log('Successfully saved names, updating state...');
-      setData({ ...data!, business_names: names });
-
-      if (!data!.completed_steps.includes('generate-names')) {
-        const updatedSteps = [...data!.completed_steps, 'generate-names'];
-        const { error: stepError } = await supabase
-          .from('brand_identity')
-          .update({ completed_steps: updatedSteps })
-          .eq('id', data!.id);
-
-        if (stepError) {
-          console.error('Error updating steps:', stepError);
-        } else {
-          setData({ ...data!, business_names: names, completed_steps: updatedSteps });
-        }
-      }
-    } catch (err) {
+      const newSteps = addStep(brand.completedSteps, 'generate-names');
+      setBrand({ ...brand, names, completedSteps: newSteps });
+      await saveToDb({
+        business_names: names,
+        offer_description: brand.businessDescription,
+        completed_steps: newSteps,
+      });
+    } catch (err: any) {
       console.error('Error generating names:', err);
     } finally {
-      setGenerating(false);
+      setGeneratingNames(false);
     }
   };
 
-  const saveName = async (nameOption: NameOption) => {
-    if (!currentUser || !ideaKey) return;
-
-    try {
-      const { error: saveError } = await supabase
-        .from('saved_business_names')
-        .insert({
-          user_id: currentUser.id,
-          idea_key: ideaKey,
-          name: nameOption.name,
-          tagline: nameOption.tagline || '',
-          description: nameOption.reason,
-        });
-
-      if (saveError) {
-        if (saveError.code === '23505') {
-          alert('This name is already saved!');
-        } else {
-          throw saveError;
-        }
-        return;
-      }
-
-      alert(`"${nameOption.name}" has been saved!`);
-    } catch (err: any) {
-      console.error('Error saving name:', err);
-      alert('Failed to save name. Please try again.');
-    }
+  const handleSelectName = async (name: string) => {
+    if (!brand) return;
+    const newSteps = addStep(brand.completedSteps, 'generate-names');
+    const updated = { ...brand, selectedName: name, completedSteps: newSteps };
+    setBrand(updated);
+    await saveToDb({ selected_name: name, completed_steps: newSteps });
   };
 
-  const selectName = async (name: string) => {
-    try {
-      const isCustomName = !data!.business_names.some(n => n.name === name);
-      const updatedNames = isCustomName
-        ? [...data!.business_names, { name, reason: 'Custom name', tagline: undefined }]
-        : data!.business_names;
-
-      const newCompletedSteps = [...data!.completed_steps];
-      if (!newCompletedSteps.includes('generate-names')) {
-        newCompletedSteps.push('generate-names');
-      }
-
-      const selectedNameOption = updatedNames.find(n => n.name === name);
-      const taglineToUse = selectedNameOption?.tagline || null;
-
-      const { error: updateError } = await supabase
-        .from('brand_identity')
-        .update({
-          business_names: updatedNames,
-          selected_name: name,
-          selected_tagline: taglineToUse,
-          completed_steps: newCompletedSteps,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data!.id);
-
-      if (updateError) {
-        console.error('Error selecting name:', updateError);
-        alert('Failed to save selected name. Please try again.');
-        return;
-      }
-
-      setData({ ...data!, business_names: updatedNames, selected_name: name, selected_tagline: taglineToUse, completed_steps: newCompletedSteps });
-    } catch (err) {
-      console.error('Error selecting name:', err);
-    }
+  const handleUseCustomName = async () => {
+    if (!brand || !customName.trim()) return;
+    const name = customName.trim();
+    const newNames = [...brand.names, { name, reason: 'Custom name', vibe: 'Professional' as const }];
+    const newSteps = addStep(brand.completedSteps, 'generate-names');
+    setBrand({ ...brand, names: newNames, selectedName: name, completedSteps: newSteps });
+    setCustomName('');
+    await saveToDb({
+      business_names: newNames,
+      selected_name: name,
+      completed_steps: newSteps,
+    });
   };
 
-  const handleGenerateTagline = async () => {
-    if (!data?.selected_name) {
-      alert('Please select a business name first');
+  const handleTogglePersonality = async (label: string) => {
+    if (!brand) return;
+    let updated: string[];
+    if (brand.personality.includes(label)) {
+      updated = brand.personality.filter((p) => p !== label);
+    } else if (brand.personality.length < 2) {
+      updated = [...brand.personality, label];
+    } else {
       return;
     }
+    setBrand({ ...brand, personality: updated });
+    await saveToDb({ brand_personality: updated });
+  };
 
+  const handlePersonalityNext = async () => {
+    if (!brand) return;
+    autoGeneratedPalettes.current = false;
+    goForward();
+  };
+
+  useEffect(() => {
+    if (currentStep === 2 && brand && brand.palettes.length === 0 && !generatingPalettes && !autoGeneratedPalettes.current) {
+      autoGeneratedPalettes.current = true;
+      handleGeneratePalettes();
+    }
+  }, [currentStep, brand?.palettes.length]);
+
+  const handleGeneratePalettes = async () => {
+    if (!brand) return;
+    setGeneratingPalettes(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-color-palettes`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName: brand.selectedName,
+          industry: businessIdea?.description || 'general business',
+          personality: brand.personality,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate palettes');
+      const result = await response.json();
+      const palettes: PaletteOption[] = result.palettes || [];
+
+      setBrand((prev) => prev ? { ...prev, palettes } : null);
+      await saveToDb({ color_palettes: palettes });
+    } catch (err) {
+      console.error('Error generating palettes:', err);
+    } finally {
+      setGeneratingPalettes(false);
+    }
+  };
+
+  const handleSelectPalette = async (index: number) => {
+    if (!brand || !brand.palettes[index]) return;
+    const palette = brand.palettes[index];
+    const newSteps = addStep(brand.completedSteps, 'select-colors');
+    const brandColors = {
+      primary: palette.primary,
+      secondary: palette.secondary,
+      accent: palette.accent,
+      palettes: brand.palettes,
+      selected_palette_index: index,
+    };
+    setBrand({ ...brand, selectedPaletteIndex: index, completedSteps: newSteps });
+    await saveToDb({ brand_colors: brandColors, completed_steps: newSteps });
+  };
+
+  const handleCustomizeColor = async (field: 'primary' | 'secondary' | 'accent', value: string) => {
+    if (!brand || brand.selectedPaletteIndex === null) return;
+    const updatedPalettes = [...brand.palettes];
+    updatedPalettes[brand.selectedPaletteIndex] = { ...updatedPalettes[brand.selectedPaletteIndex], [field]: value };
+    const palette = updatedPalettes[brand.selectedPaletteIndex];
+    const brandColors = {
+      primary: palette.primary,
+      secondary: palette.secondary,
+      accent: palette.accent,
+      palettes: updatedPalettes,
+      selected_palette_index: brand.selectedPaletteIndex,
+    };
+    setBrand({ ...brand, palettes: updatedPalettes });
+    await saveToDb({ color_palettes: updatedPalettes, brand_colors: brandColors });
+  };
+
+  useEffect(() => {
+    if (currentStep === 3 && brand && brand.logoConcepts.length === 0 && !generatingLogos && !autoGeneratedLogos.current && brand.selectedName && brand.selectedPaletteIndex !== null) {
+      autoGeneratedLogos.current = true;
+      handleGenerateLogos();
+    }
+  }, [currentStep, brand?.logoConcepts.length, brand?.selectedPaletteIndex]);
+
+  const handleGenerateLogos = async () => {
+    if (!brand || !brand.selectedName || brand.selectedPaletteIndex === null) return;
+    setGeneratingLogos(true);
+    try {
+      const palette = brand.palettes[brand.selectedPaletteIndex];
+      const concepts = await generateLogoConcepts(
+        brand.selectedName,
+        businessIdea?.description || 'general business',
+        { primary: palette.primary, secondary: palette.secondary, accent: palette.accent },
+        brand.businessDescription || businessIdea?.description,
+        brand.personality.join(', '),
+      );
+
+      const newSteps = addStep(brand.completedSteps, 'generate-logo');
+      setBrand((prev) => prev ? { ...prev, logoConcepts: concepts, completedSteps: newSteps } : null);
+      await saveToDb({
+        logo_data: { concepts, selected: brand.selectedLogo },
+        completed_steps: newSteps,
+      });
+    } catch (err) {
+      console.error('Error generating logos:', err);
+    } finally {
+      setGeneratingLogos(false);
+    }
+  };
+
+  const handleSelectLogo = async (logo: LogoConcept) => {
+    if (!brand) return;
+    setBrand({ ...brand, selectedLogo: logo, uploadedLogoUrl: null });
+    await saveToDb({
+      logo_data: { concepts: brand.logoConcepts, selected: logo, uploaded_logo_url: null },
+    });
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser || !brand) return;
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 5 * 1024 * 1024) return;
+
+    setUploadingLogo(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${currentUser.id}/${ideaKey}/custom-logo-${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('logos').upload(fileName, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(fileName);
+      setBrand({ ...brand, uploadedLogoUrl: publicUrl, selectedLogo: null });
+      await saveToDb({
+        logo_data: { concepts: brand.logoConcepts, selected: null, uploaded_logo_url: publicUrl },
+      });
+    } catch (err) {
+      console.error('Error uploading logo:', err);
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleRemoveUpload = async () => {
+    if (!brand) return;
+    setBrand({ ...brand, uploadedLogoUrl: null });
+    await saveToDb({
+      logo_data: { concepts: brand.logoConcepts, selected: brand.selectedLogo, uploaded_logo_url: null },
+    });
+  };
+
+  useEffect(() => {
+    if (currentStep === 4 && brand && !brand.tagline && !generatingTagline && !autoGeneratedTagline.current && brand.selectedName) {
+      autoGeneratedTagline.current = true;
+      handleGenerateTagline();
+    }
+  }, [currentStep, brand?.tagline]);
+
+  const handleGenerateTagline = async () => {
+    if (!brand?.selectedName) return;
     setGeneratingTagline(true);
     try {
-      const businessDesc = logoAnswers.businessDescription || offerDescription || `A business called ${data.selected_name}`;
-      const audience = logoAnswers.targetAudience || targetAudience;
-
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-tagline`, {
         method: 'POST',
         headers: {
@@ -498,346 +459,74 @@ export default function BrandIdentity() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          businessName: data.selected_name,
-          businessDescription: businessDesc,
-          targetAudience: audience,
-          brandPersonality: logoAnswers.brandPersonality,
+          businessName: brand.selectedName,
+          businessDescription: brand.businessDescription || businessIdea?.description || '',
+          brandPersonality: brand.personality.join(', '),
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate tagline');
-      }
-
+      if (!response.ok) throw new Error('Failed to generate tagline');
       const result = await response.json();
-      const tagline = result.tagline;
-
-      await supabase
-        .from('brand_identity')
-        .update({
-          selected_tagline: tagline,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data.id);
-
-      setData({ ...data, selected_tagline: tagline });
+      setBrand((prev) => prev ? { ...prev, tagline: result.tagline } : null);
+      await saveToDb({ selected_tagline: result.tagline });
     } catch (err) {
       console.error('Error generating tagline:', err);
-      alert('Failed to generate tagline. Please try again.');
     } finally {
       setGeneratingTagline(false);
     }
   };
 
-  const generateColorPalettes = async () => {
-    if (selectedColors.length !== 3) {
-      alert('Please select exactly 3 colors first');
-      return;
-    }
-
-    setGeneratingLogos(true);
-    try {
-      const palettes: ColorPalette[] = [];
-
-      for (let i = 0; i < 10; i++) {
-        const shuffled = [...selectedColors].sort(() => Math.random() - 0.5);
-        palettes.push({
-          primary: shuffled[0],
-          secondary: shuffled[1],
-          accent: shuffled[2],
-        });
-      }
-
-      await supabase
-        .from('brand_identity')
-        .update({
-          brand_colors: { ...data!.brand_colors, palettes },
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data!.id);
-
-      setData({ ...data!, brand_colors: { ...data!.brand_colors, palettes } });
-      setShowColorPicker(false);
-
-      if (!data!.completed_steps.includes('generate-logo')) {
-        const updatedSteps = [...data!.completed_steps, 'generate-logo'];
-        await supabase
-          .from('brand_identity')
-          .update({ completed_steps: updatedSteps })
-          .eq('id', data!.id);
-        setData({ ...data!, brand_colors: { ...data!.brand_colors, palettes }, completed_steps: updatedSteps });
-      }
-    } catch (err) {
-      console.error('Error generating color palettes:', err);
-    } finally {
-      setGeneratingLogos(false);
-    }
-  };
-
-  const selectPalette = async (index: number) => {
-    if (!data?.brand_colors?.palettes) return;
-
-    const palette = data.brand_colors.palettes[index];
-
-    try {
-      const newCompletedSteps = [...data!.completed_steps];
-      if (!newCompletedSteps.includes('select-colors')) {
-        newCompletedSteps.push('select-colors');
-      }
-
-      await supabase
-        .from('brand_identity')
-        .update({
-          brand_colors: { ...data!.brand_colors, ...palette, selected_palette_index: index },
-          completed_steps: newCompletedSteps,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data!.id);
-
-      setData({ ...data, brand_colors: { ...data!.brand_colors, ...palette, selected_palette_index: index }, completed_steps: newCompletedSteps });
-    } catch (err) {
-      console.error('Error selecting palette:', err);
-    }
-  };
-
-  const toggleColorSelection = (color: string) => {
-    if (selectedColors.includes(color)) {
-      setSelectedColors(selectedColors.filter(c => c !== color));
-    } else if (selectedColors.length < 3) {
-      setSelectedColors([...selectedColors, color]);
-    }
-  };
-
-  const predefinedColors = [
-    '#2979FF', '#06D6A0', '#EF476F', '#FFD60A', '#FF6B35',
-    '#3D5A80', '#98C1D9', '#EE6C4D', '#293241', '#E0FBFC',
-    '#5F0F40', '#9A031E', '#FB8B24', '#E36414', '#0F4C5C',
-    '#9B5DE5', '#F15BB5', '#FEE440', '#00BBF9', '#00F5FF',
-  ];
-
-  const handleGenerateLogoConcepts = async () => {
-    console.log('=== handleGenerateLogoConcepts called ===');
-    console.log('data:', data);
-    console.log('selected_name:', data?.selected_name);
-    console.log('brand_colors:', data?.brand_colors);
-
-    if (!data?.selected_name || !data.brand_colors.primary) {
-      console.error('Missing required data - selected_name or primary color');
-      alert('Please select a business name and brand colors first');
-      return;
-    }
-
-    setGeneratingLogoConcepts(true);
-    setLogoProgress({ current: 0, total: 3 });
-
-    try {
-      const businessDescription = logoAnswers.businessDescription.trim()
-        ? logoAnswers.businessDescription
-        : offerDescription.trim()
-        ? offerDescription
-        : `A business called ${data.selected_name}`;
-
-      const personalityText = [
-        (logoAnswers.targetAudience || targetAudience) && `Target audience: ${logoAnswers.targetAudience || targetAudience}`,
-        logoAnswers.brandPersonality && `Brand personality: ${logoAnswers.brandPersonality}`,
-        logoAnswers.industry && `Industry: ${logoAnswers.industry}`,
-        logoAnswers.preferredStyle && `Preferred style: ${logoAnswers.preferredStyle}`,
-        logoSuggestions.trim() && `Additional requirements: ${logoSuggestions}`,
-      ].filter(Boolean).join('. ');
-
-      console.log('Calling logo generation...');
-
-      const concepts = await generateLogoConcepts(
-        data.selected_name,
-        logoAnswers.industry || 'general business',
-        {
-          primary: data.brand_colors.primary,
-          secondary: data.brand_colors.secondary || data.brand_colors.primary,
-          accent: data.brand_colors.accent || data.brand_colors.primary,
-        },
-        businessDescription,
-        personalityText || undefined,
-        (current, total) => {
-          setLogoProgress({ current, total });
-        }
-      );
-
-      console.log('Received concepts:', concepts);
-      console.log('Number of concepts:', concepts.length);
-
-      if (concepts.length === 0) {
-        alert('No logos were generated. Please check the browser console for errors.');
-        return;
-      }
-
-      const newCompletedSteps = [...data!.completed_steps];
-      if (!newCompletedSteps.includes('generate-logo')) {
-        newCompletedSteps.push('generate-logo');
-      }
-
-      await supabase
-        .from('brand_identity')
-        .update({
-          logo_data: { concepts, selected: data!.logo_data?.selected },
-          completed_steps: newCompletedSteps,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data!.id);
-
-      setData({ ...data, logo_data: { ...data!.logo_data, concepts }, completed_steps: newCompletedSteps });
-
-      console.log('Logo generation complete!');
-    } catch (err: any) {
-      console.error('Error generating logo concepts:', err);
-      console.error('Error message:', err?.message);
-      console.error('Error stack:', err?.stack);
-      alert(`Failed to generate logos: ${err?.message || 'Unknown error'}. Check console for details.`);
-    } finally {
-      setGeneratingLogoConcepts(false);
-      setLogoProgress({ current: 0, total: 6 });
-    }
-  };
-
-  const selectLogo = async (logoData: any) => {
-    try {
-      await supabase
-        .from('brand_identity')
-        .update({
-          logo_data: { concepts: data!.logo_data?.concepts, selected: logoData },
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data!.id);
-
-      setData({ ...data!, logo_data: { ...data!.logo_data, selected: logoData } });
-      setEditingLogo(false);
-    } catch (err) {
-      console.error('Error selecting logo:', err);
-    }
-  };
-
-  const navigateToLogoEditor = (logoIndex?: number) => {
-    if (!data?.id) return;
-
-    const params = new URLSearchParams({ id: data.id });
-    if (logoIndex !== undefined) {
-      params.append('logo', logoIndex.toString());
-    }
-
-    navigate(`/logo-editor?${params.toString()}`);
-  };
-
-  const handleRegenerateLogoWithChanges = async (promptOverride?: string) => {
-    const promptToUse = promptOverride || customPrompt;
-
-    if (!promptToUse.trim() || !data?.logo_data?.selected) {
-      alert('Please describe what changes you want to make');
-      return;
-    }
-
-    setRegeneratingLogo(true);
-    try {
-      const updatedLogoConcept = await regenerateLogoWithChanges(
-        data.logo_data.selected,
-        data.selected_name!,
-        logoAnswers.industry || 'general business',
-        {
-          primary: data.brand_colors.primary!,
-          secondary: data.brand_colors.secondary || data.brand_colors.primary!,
-          accent: data.brand_colors.accent || data.brand_colors.primary!,
-        },
-        promptToUse
-      );
-
-      await supabase
-        .from('brand_identity')
-        .update({
-          logo_data: { concepts: data!.logo_data?.concepts, selected: updatedLogoConcept },
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', data!.id);
-
-      setData({ ...data!, logo_data: { ...data!.logo_data, selected: updatedLogoConcept } });
-      setCustomPrompt('');
-      setEditingLogo(false);
-    } catch (err) {
-      console.error('Error regenerating logo:', err);
-      alert('Failed to regenerate logo. Please try again.');
-    } finally {
-      setRegeneratingLogo(false);
-    }
-  };
-
-  const handleDownloadBrandGuide = async () => {
-    if (!data?.selected_name || !data?.logo_data?.selected || !data?.brand_colors?.primary) {
-      alert('Please complete your brand identity (name, logo, and colors) before downloading the guide.');
-      return;
-    }
+  const handleDownloadGuide = async () => {
+    if (!brand?.selectedName) return;
+    const logoUrl = brand.uploadedLogoUrl || brand.selectedLogo?.imageUrl;
+    if (!logoUrl) return;
 
     setGeneratingGuide(true);
     try {
-      const businessDesc = logoAnswers.businessDescription || offerDescription || `A business called ${data.selected_name}`;
-      const audience = logoAnswers.targetAudience || targetAudience;
-
-      let slogan = data.selected_tagline;
-      let brandFoundation = undefined;
-
-      // Try to generate slogan if not already set
-      if (!slogan) {
-        try {
-          slogan = await generateSlogan(
-            data.selected_name,
-            businessDesc,
-            audience,
-            logoAnswers.brandPersonality
-          );
-        } catch (err) {
-          console.warn('Could not generate slogan, using default:', err);
-          slogan = `Elevating ${data.selected_name}`;
-        }
-      }
-
-      // Try to generate brand foundation
-      try {
-        brandFoundation = await generateCompleteBrandFoundation(
-          data.selected_name,
-          businessDesc,
-          audience,
-          logoAnswers.brandPersonality,
-          logoAnswers.industry
-        );
-      } catch (err) {
-        console.warn('Could not generate brand foundation, proceeding without it:', err);
-        // brandFoundation remains undefined, guide will still generate without it
-      }
-
+      const palette = brand.selectedPaletteIndex !== null ? brand.palettes[brand.selectedPaletteIndex] : null;
       downloadBrandGuide({
-        businessName: data.selected_name,
-        slogan: slogan,
-        logoUrl: data.logo_data.selected.imageUrl,
+        businessName: brand.selectedName,
+        slogan: brand.tagline || `Elevating ${brand.selectedName}`,
+        logoUrl,
         colors: {
-          primary: data.brand_colors.primary,
-          secondary: data.brand_colors.secondary || data.brand_colors.primary,
-          accent: data.brand_colors.accent || data.brand_colors.primary,
+          primary: palette?.primary || '#2979FF',
+          secondary: palette?.secondary || '#0A192F',
+          accent: palette?.accent || '#06D6A0',
         },
-        businessDescription: businessDesc,
-        targetAudience: audience,
-        brandPersonality: logoAnswers.brandPersonality,
-        industry: logoAnswers.industry,
-        brandFoundation: brandFoundation,
+        businessDescription: brand.businessDescription || businessIdea?.description,
+        brandPersonality: brand.personality.join(', '),
       });
     } catch (err) {
-      console.error('Error generating brand guide:', err);
-      alert(`Failed to generate brand guide: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`);
+      console.error('Error downloading guide:', err);
     } finally {
       setGeneratingGuide(false);
     }
   };
 
+  const handleContinueToMessaging = () => {
+    navigate(`/storybrand-roadmap?ideaKey=${ideaKey}`);
+  };
+
+  const addStep = (steps: string[], step: string): string[] => {
+    return steps.includes(step) ? steps : [...steps, step];
+  };
+
+  const guessVibe = (reason: string): string => {
+    const lower = reason.toLowerCase();
+    if (lower.includes('bold') || lower.includes('strong') || lower.includes('power')) return 'Bold';
+    if (lower.includes('friend') || lower.includes('warm') || lower.includes('approach')) return 'Friendly';
+    if (lower.includes('premium') || lower.includes('luxury') || lower.includes('elegant')) return 'Premium';
+    if (lower.includes('clever') || lower.includes('creative') || lower.includes('play')) return 'Clever';
+    return 'Professional';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0F2847] to-[#0A192F] flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-center">
+          <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-[#2979FF] border-r-transparent mb-4" />
+          <p className="text-gray-400">Loading your brand studio...</p>
+        </div>
       </div>
     );
   }
@@ -859,879 +548,150 @@ export default function BrandIdentity() {
     );
   }
 
-  if (!data) return null;
+  if (!brand) return null;
 
-  const sections = [
-    { name: 'Business Name', ref: nameRef, step: 'generate-names', icon: '✍️' },
-    { name: 'Brand Colors', ref: colorsRef, step: 'select-colors', icon: '🎨' },
-    { name: 'Logo Design', ref: logoRef, step: 'generate-logo', icon: '🎯' },
-  ];
-
-  const completedCount = sections.filter(s => data.completed_steps.includes(s.step)).length;
-  const progressPct = Math.round((completedCount / sections.length) * 100);
-
-  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
-    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  const logoUrl = brand.uploadedLogoUrl || brand.selectedLogo?.imageUrl || '';
+  const palette = brand.selectedPaletteIndex !== null ? brand.palettes[brand.selectedPaletteIndex] : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0F2847] to-[#0A192F]">
-      <div className="flex">
-        <div className="hidden lg:block w-64 fixed left-0 top-0 h-screen bg-[#0A192F]/80 backdrop-blur-sm border-r border-white/10 p-6">
+      <nav className="container mx-auto px-6 py-5">
+        <div className="flex items-center justify-between">
           <button
-            onClick={() => navigate('/dashboard')}
-            className="mb-8 flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            onClick={() => {
+              if (currentStep === 0) {
+                setShowLeaveConfirm(true);
+              } else {
+                goBack();
+              }
+            }}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
           >
-            <Home size={20} />
-            <span>Dashboard</span>
+            {currentStep === 0 ? <Home size={20} /> : <ArrowLeft size={20} />}
+            <span className="text-sm font-medium">
+              {currentStep === 0 ? 'Dashboard' : 'Back'}
+            </span>
           </button>
-
-          <div className="mb-6">
-            <h2 className="text-white font-bold text-lg mb-2">Brand Identity</h2>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex-1 bg-white/10 rounded-full h-2 overflow-hidden">
-                <div
-                  className="h-full bg-[#2979FF] transition-all duration-300"
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
-              <span className="text-xs text-gray-400">{progressPct}%</span>
-            </div>
-          </div>
-
-          <nav className="space-y-2">
-            {sections.map((section, idx) => {
-              const isCompleted = data?.completed_steps.includes(section.step);
-              const isActive = !isCompleted && (idx === 0 || data?.completed_steps.includes(sections[idx - 1].step));
-
-              return (
-                <button
-                  key={section.step}
-                  onClick={() => scrollToSection(section.ref)}
-                  className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
-                    isCompleted
-                      ? 'bg-[#06D6A0]/10 border border-[#06D6A0]/30 text-[#06D6A0]'
-                      : isActive
-                      ? 'bg-[#2979FF]/10 border border-[#2979FF]/30 text-[#2979FF]'
-                      : 'bg-white/5 border border-white/10 text-gray-500'
-                  }`}
-                >
-                  <span className="text-xl">{section.icon}</span>
-                  <div className="flex-1">
-                    <div className="font-semibold text-sm">{section.name}</div>
-                    <div className="text-xs opacity-70">
-                      {isCompleted ? 'Completed' : isActive ? 'In Progress' : 'Locked'}
-                    </div>
-                  </div>
-                  {isCompleted && (
-                    <CheckCircle2 size={16} className="text-[#06D6A0]" />
-                  )}
-                </button>
-              );
-            })}
-
-            {data?.completed_steps.length === 3 && (
-              <button
-                onClick={() => scrollToSection(completionRef)}
-                className="w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 bg-gradient-to-r from-[#2979FF]/20 to-[#06D6A0]/20 border border-[#2979FF]/30 text-white"
-              >
-                <span className="text-xl">🎉</span>
-                <div className="flex-1">
-                  <div className="font-semibold text-sm">Complete</div>
-                  <div className="text-xs opacity-70">Download Guide</div>
-                </div>
-              </button>
-            )}
-          </nav>
+          <h1 className="text-white font-bold text-lg font-['Montserrat'] hidden sm:block">Brand Studio</h1>
+          <div className="w-20" />
         </div>
+      </nav>
 
-        <div className="flex-1 lg:ml-64">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="mb-6 lg:hidden flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-            >
-              <Home size={20} />
-              <span>Back to Dashboard</span>
-            </button>
+      <div className="container mx-auto px-6 pb-16">
+        <BrandProgress
+          currentStep={currentStep}
+          totalSteps={5}
+          stepLabels={STEP_LABELS}
+        />
 
-            <div className="mb-8">
-              <h1 className="text-4xl font-bold text-white mb-3 font-['Montserrat']">
-                🚀 Phase 2 – Brand & Identity
-              </h1>
-              <p className="text-gray-300 text-lg">
-                Create your business name, logo, and claim your domain.
-              </p>
-            </div>
-
-            <div className="mb-8 lg:hidden bg-[#E6EEF5] rounded-full h-4 overflow-hidden">
-              <div
-                className="h-full bg-[#2979FF] transition-all duration-300"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-
-            <div className="space-y-6">
-          <div ref={nameRef} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="mt-1">
-                {data.completed_steps.includes('generate-names') ? (
-                  <CheckCircle2 className="text-[#06D6A0]" size={24} />
-                ) : (
-                  <Circle className="text-gray-500" size={24} />
-                )}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-3">1. Business Name Generator</h3>
-                <p className="text-gray-400 text-sm mb-4">
-                  AI creates 3-5 name options based on your offer and audience.
-                </p>
-                <div className="space-y-3 mb-4">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="What do you offer? (e.g., 'dog walking', 'logo design')"
-                      value={offerDescription}
-                      onChange={(e) => setOfferDescription(e.target.value)}
-                      onBlur={saveBusinessDetails}
-                      className="w-full px-4 py-2 pr-12 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                    />
-                    <button
-                      onClick={async () => {
-                        setGeneratingOffer(true);
-                        try {
-                          const contextStr = businessIdea ? `Business Idea: ${businessIdea.name} - ${businessIdea.description}` : '';
-                          const promptStr = businessIdea
-                            ? 'Based on this business idea, what does this business offer? (1 short phrase)'
-                            : 'Generate a brief, common business service or product offering (1 short phrase, e.g., "dog walking", "web design")';
-
-                          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-suggestions`, {
-                            method: 'POST',
-                            headers: {
-                              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                              'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                              context: contextStr || undefined,
-                              prompt: promptStr
-                            }),
-                          });
-                          const result = await response.json();
-                          const suggestion = result.suggestion || '';
-                          setOfferDescription(suggestion);
-                          await saveBusinessDetails({ offer: suggestion });
-                        } catch (err) {
-                          console.error('Error generating offer:', err);
-                          alert('Failed to generate offer suggestion. Please try again.');
-                        } finally {
-                          setGeneratingOffer(false);
-                        }
-                      }}
-                      disabled={generatingOffer}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#2979FF] hover:text-[#2979FF]/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Generate with AI"
-                    >
-                      {generatingOffer ? (
-                        <Loader2 size={18} className="animate-spin" />
-                      ) : (
-                        <Sparkles size={18} />
-                      )}
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Who is your target audience? (e.g., 'busy pet owners', 'small gyms')"
-                      value={targetAudience}
-                      onChange={(e) => setTargetAudience(e.target.value)}
-                      onBlur={saveBusinessDetails}
-                      className="w-full px-4 py-2 pr-12 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                    />
-                    <button
-                      onClick={async () => {
-                        setGeneratingAudience(true);
-                        try {
-                          let contextStr = '';
-                          if (businessIdea) {
-                            contextStr = `Business Idea: ${businessIdea.name} - ${businessIdea.description}`;
-                            if (offerDescription.trim()) {
-                              contextStr += `\nBusiness offers: ${offerDescription}`;
-                            }
-                          } else if (offerDescription.trim()) {
-                            contextStr = `Business offers: ${offerDescription}`;
-                          }
-
-                          const promptStr = contextStr
-                            ? 'Who is the ideal target audience for this business? (1 short phrase)'
-                            : 'Generate a common target audience for a small business (1 short phrase, e.g., "busy professionals", "pet owners")';
-
-                          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-suggestions`, {
-                            method: 'POST',
-                            headers: {
-                              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                              'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                              context: contextStr || undefined,
-                              prompt: promptStr
-                            }),
-                          });
-                          const result = await response.json();
-                          const suggestion = result.suggestion || '';
-                          setTargetAudience(suggestion);
-                          await saveBusinessDetails({ audience: suggestion });
-                        } catch (err) {
-                          console.error('Error generating audience:', err);
-                          alert('Failed to generate audience suggestion. Please try again.');
-                        } finally {
-                          setGeneratingAudience(false);
-                        }
-                      }}
-                      disabled={generatingAudience}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#2979FF] hover:text-[#2979FF]/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Generate with AI"
-                    >
-                      {generatingAudience ? (
-                        <Loader2 size={18} className="animate-spin" />
-                      ) : (
-                        <Sparkles size={18} />
-                      )}
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-3 my-3">
-                    <div className="flex-1 h-px bg-white/10"></div>
-                    <span className="text-gray-500 text-sm">OR</span>
-                    <div className="flex-1 h-px bg-white/10"></div>
-                  </div>
-
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Enter keywords (e.g., 'fast, fresh, local')"
-                      value={keywords}
-                      onChange={(e) => setKeywords(e.target.value)}
-                      onBlur={saveBusinessDetails}
-                      className="w-full px-4 py-2 pr-12 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                    />
-                    <button
-                      onClick={async () => {
-                        setGeneratingKeywords(true);
-                        try {
-                          let contextStr = '';
-                          if (businessIdea) {
-                            contextStr = `Business Idea: ${businessIdea.name} - ${businessIdea.description}`;
-                            if (offerDescription.trim()) {
-                              contextStr += `\nOffers: ${offerDescription}`;
-                            }
-                            if (targetAudience.trim()) {
-                              contextStr += `\nTarget Audience: ${targetAudience}`;
-                            }
-                          } else if (data?.selected_name || offerDescription.trim()) {
-                            contextStr = `Business: ${data?.selected_name || offerDescription}`;
-                          }
-
-                          const promptStr = contextStr
-                            ? 'Generate 3-5 brand keywords that describe this business (comma-separated)'
-                            : 'Generate 3-5 common brand keywords for a small business (comma-separated, e.g., "fast, fresh, local")';
-
-                          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-suggestions`, {
-                            method: 'POST',
-                            headers: {
-                              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                              'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                              context: contextStr || undefined,
-                              prompt: promptStr
-                            }),
-                          });
-                          const result = await response.json();
-                          const suggestion = result.suggestion || '';
-                          setKeywords(suggestion);
-                          await saveBusinessDetails({ keywords: suggestion });
-                        } catch (err) {
-                          console.error('Error generating keywords:', err);
-                          alert('Failed to generate keywords. Please try again.');
-                        } finally {
-                          setGeneratingKeywords(false);
-                        }
-                      }}
-                      disabled={generatingKeywords}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#2979FF] hover:text-[#2979FF]/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Generate with AI"
-                    >
-                      {generatingKeywords ? (
-                        <Loader2 size={18} className="animate-spin" />
-                      ) : (
-                        <Sparkles size={18} />
-                      )}
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={generateNames}
-                    disabled={generating || (!offerDescription.trim() && !keywords.trim()) || (!targetAudience.trim() && !keywords.trim())}
-                    className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {generating ? (
-                      <>
-                        <Loader2 size={18} className="animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles size={18} />
-                        Generate Names
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-3 my-4">
-                  <div className="flex-1 h-px bg-white/10"></div>
-                  <span className="text-gray-500 text-sm">OR</span>
-                  <div className="flex-1 h-px bg-white/10"></div>
-                </div>
-
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-400">Already have a name in mind?</p>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Enter your own business name"
-                      value={customName}
-                      onChange={(e) => setCustomName(e.target.value)}
-                      className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#2979FF]"
-                    />
-                    <button
-                      onClick={() => {
-                        if (customName.trim()) {
-                          selectName(customName.trim());
-                          setCustomName('');
-                        }
-                      }}
-                      disabled={!customName.trim()}
-                      className="px-6 py-2 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Use This Name
-                    </button>
-                  </div>
-                </div>
-
-                {data.business_names.length > 0 && (
-                  <div className="space-y-2 mt-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm text-gray-400">Select your favorite:</p>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => navigate(`/saved-names?ideaKey=${ideaKey}`)}
-                          className="text-xs text-[#06D6A0] hover:text-[#06D6A0]/80 transition-colors flex items-center gap-1"
-                        >
-                          <BookmarkCheck size={12} />
-                          View Saved
-                        </button>
-                        <button
-                          onClick={generateNames}
-                          disabled={generating}
-                          className="text-xs text-[#2979FF] hover:text-[#2979FF]/80 transition-colors flex items-center gap-1"
-                        >
-                          <RefreshCw size={12} className={generating ? 'animate-spin' : ''} />
-                          Regenerate
-                        </button>
-                      </div>
-                    </div>
-                    {data.business_names.map((nameOption, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <button
-                          onClick={() => selectName(nameOption.name)}
-                          className={`flex-1 px-4 py-3 rounded-lg text-left transition-all ${
-                            data.selected_name === nameOption.name
-                              ? 'bg-[#2979FF] text-white border-2 border-[#2979FF]'
-                              : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
-                          }`}
-                        >
-                          <div className="font-semibold mb-1">{nameOption.name}</div>
-                          {nameOption.tagline && (
-                            <div className="text-sm italic mb-1 opacity-90">{nameOption.tagline}</div>
-                          )}
-                          <div className="text-xs opacity-75">{nameOption.reason}</div>
-                        </button>
-                        <button
-                          onClick={() => saveName(nameOption)}
-                          className="px-3 py-3 bg-[#06D6A0]/20 border border-[#06D6A0]/30 text-[#06D6A0] rounded-lg hover:bg-[#06D6A0]/30 transition-all flex items-center justify-center"
-                          title="Save this name"
-                        >
-                          <Bookmark size={18} />
-                        </button>
-                      </div>
-                    ))}
-
-                    {data.selected_name && (
-                      <div className="mt-4 p-4 bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1">
-                            <div className="text-white font-bold text-lg mb-2">{data.selected_name}</div>
-                            {data.selected_tagline ? (
-                              <div className="text-gray-300 italic text-sm">"{data.selected_tagline}"</div>
-                            ) : (
-                              <div className="text-gray-400 text-sm">No tagline yet</div>
-                            )}
-                          </div>
-                          <button
-                            onClick={handleGenerateTagline}
-                            disabled={generatingTagline}
-                            className="px-4 py-2 bg-[#2979FF] text-white rounded-lg text-sm font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
-                          >
-                            {generatingTagline ? (
-                              <>
-                                <Loader2 size={14} className="animate-spin" />
-                                Generating...
-                              </>
-                            ) : (
-                              <>
-                                <RefreshCw size={14} />
-                                {data.selected_tagline ? 'Regenerate' : 'Generate'} Tagline
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div ref={colorsRef} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="mt-1">
-                {data.completed_steps.includes('select-colors') ? (
-                  <CheckCircle2 className="text-[#06D6A0]" size={24} />
-                ) : (
-                  <Circle className="text-gray-500" size={24} />
-                )}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-3">2. Logo & Brand Colors</h3>
-                <p className="text-gray-400 text-sm mb-4">
-                  Select 3 colors, then generate 10 different palette combinations.
-                </p>
-
-                {!showColorPicker && !data.brand_colors?.palettes && (
-                  <button
-                    onClick={() => setShowColorPicker(true)}
-                    disabled={!data.selected_name}
-                    className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mb-4"
-                  >
-                    <Sparkles size={18} />
-                    Choose Colors
-                  </button>
-                )}
-
-                {showColorPicker && (
-                  <div className="space-y-4 mb-4">
-                    <div>
-                      <p className="text-sm text-gray-400 mb-3">
-                        Select 3 colors ({selectedColors.length}/3):
-                      </p>
-                      <div className="grid grid-cols-10 gap-2">
-                        {predefinedColors.map((color, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => toggleColorSelection(color)}
-                            className={`h-10 w-10 rounded-lg transition-all ${
-                              selectedColors.includes(color)
-                                ? 'ring-4 ring-white scale-110'
-                                : 'hover:scale-105'
-                            }`}
-                            style={{ backgroundColor: color }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={generateColorPalettes}
-                      disabled={generatingLogos || selectedColors.length !== 3}
-                      className="px-6 py-2 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      {generatingLogos ? (
-                        <>
-                          <Loader2 size={18} className="animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles size={18} />
-                          Generate 10 Palettes
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-
-                {data.brand_colors?.palettes && data.brand_colors.palettes.length > 0 && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-400">Choose your favorite palette:</p>
-                      <button
-                        onClick={() => {
-                          setShowColorPicker(true);
-                          setSelectedColors([]);
-                        }}
-                        className="text-sm text-[#2979FF] hover:text-[#2979FF]/80 flex items-center gap-1"
-                      >
-                        <RefreshCw size={14} />
-                        Generate New
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {data.brand_colors.palettes!.map((palette, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => selectPalette(idx)}
-                          className={`w-full p-4 rounded-lg transition-all ${
-                            data.brand_colors?.selected_palette_index === idx
-                              ? 'bg-[#2979FF]/20 border-2 border-[#2979FF]'
-                              : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                          }`}
-                        >
-                          <div className="flex gap-3">
-                            <div className="flex-1 flex gap-2">
-                              <div className="flex-1 space-y-1">
-                                <div
-                                  className="h-16 rounded"
-                                  style={{ backgroundColor: palette.primary }}
-                                />
-                                <p className="text-xs text-gray-400">Primary</p>
-                                <p className="text-xs text-white font-mono">{palette.primary}</p>
-                              </div>
-                              <div className="flex-1 space-y-1">
-                                <div
-                                  className="h-16 rounded"
-                                  style={{ backgroundColor: palette.secondary }}
-                                />
-                                <p className="text-xs text-gray-400">Secondary</p>
-                                <p className="text-xs text-white font-mono">{palette.secondary}</p>
-                              </div>
-                              <div className="flex-1 space-y-1">
-                                <div
-                                  className="h-16 rounded"
-                                  style={{ backgroundColor: palette.accent }}
-                                />
-                                <p className="text-xs text-gray-400">Accent</p>
-                                <p className="text-xs text-white font-mono">{palette.accent}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div ref={logoRef} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="mt-1">
-                {data.completed_steps.includes('generate-logo') ? (
-                  <CheckCircle2 className="text-[#06D6A0]" size={24} />
-                ) : (
-                  <Circle className="text-gray-500" size={24} />
-                )}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-3">3. Logo Creation</h3>
-                <p className="text-gray-400 text-sm mb-4">
-                  AI generates 6 premium logo designs featuring your business name with minimal text and clean icons using your brand colors.
-                </p>
-
-                <div className="flex gap-3 mb-4">
-                  <button
-                    onClick={handleGenerateLogoConcepts}
-                    disabled={generatingLogoConcepts || !data.selected_name || !data.brand_colors.primary}
-                    className="px-6 py-2 bg-[#2979FF] text-white rounded-lg font-semibold hover:bg-[#2979FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {generatingLogoConcepts ? (
-                      <>
-                        <Loader2 size={18} className="animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles size={18} />
-                        Generate Logo Concepts
-                      </>
-                    )}
-                  </button>
-
-                  <div className="flex-1">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoUpload}
-                      className="hidden"
-                      id="logo-upload"
-                    />
-                    <label
-                      htmlFor="logo-upload"
-                      className={`px-6 py-2 bg-white/5 border border-white/20 text-white rounded-lg font-semibold hover:bg-white/10 transition-colors flex items-center gap-2 justify-center cursor-pointer ${
-                        uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
-                    >
-                      {uploadingLogo ? (
-                        <>
-                          <Loader2 size={18} className="animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload size={18} />
-                          Upload Your Own Logo
-                        </>
-                      )}
-                    </label>
-                  </div>
-                </div>
-
-                {uploadedLogoUrl && (
-                  <div className="bg-[#06D6A0]/10 border border-[#06D6A0]/30 rounded-lg p-4 mb-4">
-                    <div className="flex items-start gap-4">
-                      <div className="w-24 h-24 bg-white rounded-lg overflow-hidden flex-shrink-0">
-                        <img
-                          src={uploadedLogoUrl}
-                          alt="Uploaded logo"
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-white font-semibold mb-1">Your Uploaded Logo</h4>
-                        <p className="text-sm text-gray-400 mb-3">
-                          This logo will be used when generating your brand guide
-                        </p>
-                        <button
-                          onClick={removeUploadedLogo}
-                          className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1"
-                        >
-                          <X size={14} />
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {generatingLogoConcepts && (
-                  <div className="bg-white/5 rounded-lg p-6 border border-white/10 mb-4">
-                    <div className="text-center mb-4">
-                      <h3 className="text-lg font-semibold text-white mb-1">Creating Your Logos</h3>
-                      <p className="text-sm text-gray-400">Play while you wait! Use arrow keys to dodge asteroids.</p>
-                    </div>
-                    <RocketGame
-                      progress={Math.floor((logoProgress.current / logoProgress.total) * 100)}
-                      stage={
-                        logoProgress.current === 0 ? 'Starting AI generation...' :
-                        logoProgress.current >= 1 && logoProgress.current < logoProgress.total / 3 ? 'Creating first concepts...' :
-                        logoProgress.current >= logoProgress.total / 3 && logoProgress.current < (logoProgress.total * 2) / 3 ? 'Halfway there!' :
-                        logoProgress.current >= (logoProgress.total * 2) / 3 && logoProgress.current < logoProgress.total ? 'Almost done!' :
-                        'Finalizing your logos...'
-                      }
-                    />
-                  </div>
-                )}
-
-                {data.logo_data?.concepts && data.logo_data.concepts.length > 0 && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm text-gray-400">Choose your favorite logo design:</p>
-                      <button
-                        onClick={() => {
-                          if (confirm('Generate new logos? Your current logos will be replaced.')) {
-                            handleGenerateLogoConcepts();
-                          }
-                        }}
-                        disabled={generatingLogoConcepts}
-                        className="px-4 py-2 bg-white/5 text-white rounded-lg text-sm hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 border border-white/10"
-                      >
-                        {generatingLogoConcepts ? (
-                          <>
-                            <Loader2 size={14} className="animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles size={14} />
-                            Generate New Logos
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {generatingLogoConcepts && (
-                      <div className="bg-[#2979FF]/10 border border-[#2979FF]/30 rounded-lg p-4 mb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-white">
-                            Creating Logo {Math.floor(logoProgress.current)} of {logoProgress.total}
-                          </span>
-                          <span className="text-sm text-[#2979FF] font-semibold">
-                            {Math.floor((logoProgress.current / logoProgress.total) * 100)}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-white/10 rounded-full h-2.5 overflow-hidden">
-                          <div
-                            className="h-full bg-[#2979FF] transition-all duration-500 ease-out"
-                            style={{ width: `${(logoProgress.current / logoProgress.total) * 100}%` }}
-                          />
-                        </div>
-                        <p className="text-xs text-gray-400 mt-2">
-                          {logoProgress.current === 0 && 'Initializing logo generation...'}
-                          {logoProgress.current > 0 && logoProgress.current < logoProgress.total && 'Generating professional logo concepts with AI...'}
-                          {logoProgress.current === logoProgress.total && 'Finalizing your logos...'}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                      {data.logo_data.concepts.map((concept, idx) => (
-                        <div key={idx} className="relative">
-                          <button
-                            onClick={() => selectLogo(concept)}
-                            className={`w-full p-4 rounded-lg transition-all ${
-                              data.logo_data?.selected?.name === concept.name
-                                ? 'bg-[#2979FF]/20 border-2 border-[#2979FF]'
-                                : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                            }`}
-                          >
-                            <div className="w-full aspect-square mb-3 bg-white rounded-lg overflow-hidden flex items-center justify-center p-4 relative group">
-                              <div className="text-center">
-                                <img
-                                  src={concept.imageUrl}
-                                  alt={concept.name}
-                                  className="w-full h-auto object-contain mb-2"
-                                />
-                                {data.selected_tagline && (
-                                  <p className="text-xs text-gray-600 italic mt-2">"{data.selected_tagline}"</p>
-                                )}
-                              </div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigateToLogoEditor(idx);
-                                }}
-                                className="absolute top-2 right-2 p-2 bg-[#2979FF] text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#2979FF]/90 z-10"
-                                title="Edit this logo"
-                              >
-                                <Edit2 size={16} />
-                              </button>
-                            </div>
-                            <p className="text-sm font-semibold text-white text-center mb-1">{concept.name}</p>
-                            <p className="text-xs text-gray-400 text-center">{concept.description}</p>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-
-                    {data.logo_data?.selected && (
-                      <div className="mt-6 space-y-4">
-                        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-white font-semibold">Selected Logo</h4>
-                            <button
-                              onClick={() => navigateToLogoEditor()}
-                              className="px-3 py-1 bg-[#2979FF] text-white rounded-lg text-sm flex items-center gap-2 hover:bg-[#2979FF]/90 transition-colors"
-                            >
-                              <Edit2 size={14} />
-                              Edit Logo
-                            </button>
-                          </div>
-
-                          <div className="flex gap-4">
-                            <div className="w-32 h-32 bg-white rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
-                              <img
-                                src={data.logo_data.selected.imageUrl}
-                                alt={data.logo_data.selected.name}
-                                className="w-full h-full object-contain"
-                              />
-                            </div>
-
-                            <div className="flex-1">
-                              <p className="text-white font-medium mb-1">{data.logo_data.selected.name}</p>
-                              <p className="text-gray-400 text-xs mb-2">{data.logo_data.selected.description}</p>
-                              <p className="text-gray-500 text-xs mb-3">AI-generated using GPT Image</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {data.completed_steps.includes('generate-names') &&
-                         data.completed_steps.includes('select-colors') &&
-                         data.completed_steps.includes('generate-logo') && (
-                          <div className="flex justify-end mt-6">
-                            <button
-                              onClick={() => scrollToSection(completionRef)}
-                              className="px-6 py-3 bg-[#06D6A0] text-white rounded-lg font-semibold hover:bg-[#06D6A0]/90 transition-colors flex items-center gap-2"
-                            >
-                              View Completion
-                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                              </svg>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {data.completed_steps.includes('generate-names') &&
-           data.completed_steps.includes('select-colors') &&
-           data.completed_steps.includes('generate-logo') && (
-            <div ref={completionRef} className="bg-gradient-to-r from-[#2979FF]/20 to-[#2979FF]/10 backdrop-blur-sm border border-[#2979FF]/30 rounded-2xl p-8">
-              <h2 className="text-3xl font-bold text-white mb-4 text-center font-['Montserrat']">
-                Brand Identity Complete! 🎉
-              </h2>
-              <p className="text-gray-300 mb-6 text-center">
-                You've created your brand foundation. Download your brand guide or continue to the next phase.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  onClick={handleDownloadBrandGuide}
-                  disabled={generatingGuide}
-                  className="px-8 py-3 bg-[#06D6A0] text-white rounded-lg font-bold text-lg hover:bg-[#06D6A0]/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {generatingGuide ? (
-                    <>
-                      <Loader2 size={20} className="animate-spin" />
-                      Generating Guide...
-                    </>
-                  ) : (
-                    <>
-                      <Download size={20} />
-                      Download Brand Guide
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => navigate(`/storybrand-roadmap?ideaKey=${ideaKey}`)}
-                  className="px-8 py-3 bg-[#2979FF] text-white rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all duration-300"
-                >
-                  Continue to StoryBrand Roadmap →
-                </button>
-              </div>
-            </div>
+        <StepTransition stepKey={currentStep} direction={direction}>
+          {currentStep === 0 && (
+            <StepBusinessName
+              businessDescription={brand.businessDescription}
+              names={brand.names}
+              selectedName={brand.selectedName}
+              customName={customName}
+              generating={generatingNames}
+              onDescriptionChange={(desc) => setBrand({ ...brand, businessDescription: desc })}
+              onGenerate={handleGenerateNames}
+              onSelectName={handleSelectName}
+              onCustomNameChange={setCustomName}
+              onUseCustomName={handleUseCustomName}
+              onNext={goForward}
+            />
           )}
+
+          {currentStep === 1 && (
+            <StepPersonality
+              selectedPersonalities={brand.personality}
+              onToggle={handleTogglePersonality}
+              onNext={handlePersonalityNext}
+              onBack={goBack}
+            />
+          )}
+
+          {currentStep === 2 && (
+            <StepColorPalette
+              palettes={brand.palettes}
+              selectedIndex={brand.selectedPaletteIndex}
+              loading={generatingPalettes}
+              onSelectPalette={handleSelectPalette}
+              onCustomizeColor={handleCustomizeColor}
+              onRegenerate={() => {
+                autoGeneratedPalettes.current = false;
+                setBrand((prev) => prev ? { ...prev, palettes: [], selectedPaletteIndex: null } : null);
+              }}
+              onNext={goForward}
+              onBack={goBack}
+            />
+          )}
+
+          {currentStep === 3 && (
+            <StepLogoGeneration
+              concepts={brand.logoConcepts}
+              selectedLogo={brand.selectedLogo}
+              generating={generatingLogos}
+              uploadedLogoUrl={brand.uploadedLogoUrl}
+              uploadingLogo={uploadingLogo}
+              onSelectLogo={handleSelectLogo}
+              onRegenerate={() => {
+                autoGeneratedLogos.current = false;
+                setBrand((prev) => prev ? { ...prev, logoConcepts: [] } : null);
+              }}
+              onUpload={handleLogoUpload}
+              onRemoveUpload={handleRemoveUpload}
+              onNext={goForward}
+              onBack={goBack}
+            />
+          )}
+
+          {currentStep === 4 && (
+            <StepBrandReveal
+              businessName={brand.selectedName || ''}
+              tagline={brand.tagline}
+              personality={brand.personality}
+              colors={{
+                primary: palette?.primary || '#2979FF',
+                secondary: palette?.secondary || '#0A192F',
+                accent: palette?.accent || '#06D6A0',
+              }}
+              logoUrl={logoUrl}
+              generatingTagline={generatingTagline}
+              generatingGuide={generatingGuide}
+              onRegenerateTagline={() => {
+                autoGeneratedTagline.current = false;
+                handleGenerateTagline();
+              }}
+              onDownloadGuide={handleDownloadGuide}
+              onContinue={handleContinueToMessaging}
+              onBack={goBack}
+            />
+          )}
+        </StepTransition>
+      </div>
+
+      {showLeaveConfirm && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#0D2847] border border-white/10 rounded-2xl p-8 max-w-md w-full">
+            <h3 className="text-xl font-bold text-white mb-3">Leave Brand Studio?</h3>
+            <p className="text-gray-400 mb-6">Your progress will be saved.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLeaveConfirm(false)}
+                className="flex-1 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-semibold hover:bg-white/10 transition-all"
+              >
+                Stay
+              </button>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="flex-1 py-3 bg-[#2979FF] text-white rounded-xl font-semibold hover:bg-[#2979FF]/90 transition-all"
+              >
+                Leave
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
