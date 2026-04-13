@@ -15,9 +15,11 @@ import {
 interface BookDiscoveryCallProps {
   businessName?: string;
   ideaKey?: string;
+  nextPath?: string;
+  nextLabel?: string;
 }
 
-export default function BookDiscoveryCall({ businessName, ideaKey }: BookDiscoveryCallProps) {
+export default function BookDiscoveryCall({ businessName, ideaKey, nextPath, nextLabel }: BookDiscoveryCallProps) {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [booked, setBooked] = useState(false);
@@ -150,17 +152,24 @@ export default function BookDiscoveryCall({ businessName, ideaKey }: BookDiscove
             live within 24 hours of your call.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            {ideaKey && (
+            {nextPath ? (
+              <button
+                onClick={() => navigate(nextPath)}
+                className="px-8 py-3 bg-[#2979FF] text-white rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all"
+              >
+                {nextLabel || 'Continue'} →
+              </button>
+            ) : ideaKey ? (
               <button
                 onClick={() => navigate(`/roadmap/${ideaKey}`)}
                 className="px-8 py-3 bg-[#2979FF] text-white rounded-lg font-bold text-lg hover:bg-[#2979FF]/90 transition-all"
               >
                 Continue to Personal Roadmap →
               </button>
-            )}
+            ) : null}
             <button
               onClick={() => navigate('/dashboard')}
-              className={`px-8 py-3 ${ideaKey ? 'bg-white/10 border border-white/20' : 'bg-[#2979FF]'} text-white rounded-lg font-bold text-lg hover:bg-white/20 transition-all`}
+              className={`px-8 py-3 ${nextPath || ideaKey ? 'bg-white/10 border border-white/20' : 'bg-[#2979FF]'} text-white rounded-lg font-bold text-lg hover:bg-white/20 transition-all`}
             >
               Go to Dashboard
             </button>

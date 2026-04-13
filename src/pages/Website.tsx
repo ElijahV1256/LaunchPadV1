@@ -114,7 +114,12 @@ export default function Website() {
             </div>
           )}
 
-          <BookDiscoveryCall businessName={brandName} ideaKey={ideaKey || undefined} />
+          <BookDiscoveryCall
+            businessName={brandName}
+            ideaKey={ideaKey || undefined}
+            nextPath={isPlaybookFlow ? `/marketing-assets?ideaKey=${ideaKey}` : undefined}
+            nextLabel={isPlaybookFlow ? 'Continue to Marketing Playbook' : undefined}
+          />
 
           {isPlaybookFlow && (
             <div className="mt-6 text-center">

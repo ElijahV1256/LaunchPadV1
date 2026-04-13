@@ -444,7 +444,7 @@ export default function FirstRevenue() {
                 next_action: progress.next_action,
               }}
               onBack={() => goToStep(5)}
-              onContinue={() => navigate(`/marketing-assets?ideaKey=${ideaKey}`)}
+              onContinue={() => navigate(`/website?ideaKey=${ideaKey}&next=playbook`)}
               callAI={callAI}
               onUpdateCelebration={handleCelebrationUpdate}
             />

@@ -150,7 +150,7 @@ export default function StepCelebrate({ revenue, businessName, celebrationData, 
             onClick={onContinue}
             className="w-full py-4 bg-[#2979FF] text-white rounded-xl font-bold text-base hover:bg-[#2979FF]/90 transition-all flex items-center justify-center gap-2"
           >
-            Continue to Marketing Assets
+            Continue to Your Website
             <ArrowRight size={18} />
           </motion.button>
         </div>
