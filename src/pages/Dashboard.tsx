@@ -594,6 +594,17 @@ export default function Dashboard() {
                     <h3 className="text-lg font-bold text-white mb-2">Local Opportunities</h3>
                     <p className="text-gray-300 text-sm">Find winning niches in your area</p>
                   </button>
+                  <button
+                    onClick={() => navigate('/mission-control')}
+                    className="p-6 bg-gradient-to-br from-sky-500/20 to-cyan-500/20 border border-sky-400/30 rounded-lg hover:from-sky-500/30 hover:to-cyan-500/30 transition-all text-left group"
+                  >
+                    <Rocket
+                      className="text-sky-400 mb-3 group-hover:scale-110 transition-transform"
+                      size={32}
+                    />
+                    <h3 className="text-lg font-bold text-white mb-2">Mission Control</h3>
+                    <p className="text-gray-300 text-sm">Your daily business command center</p>
+                  </button>
                 </div>
               </div>
 

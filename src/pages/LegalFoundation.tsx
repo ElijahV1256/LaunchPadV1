@@ -17,6 +17,7 @@ import {
   Star,
   Users,
   Award,
+  Rocket,
 } from 'lucide-react';
 import { LEGAL_STEPS, NORTHWEST_LINK } from '../data/legal-steps';
 import { useLegalProgress } from '../components/legal/useLegalProgress';
@@ -235,6 +236,33 @@ export default function LegalFoundation() {
                 </div>
               ))}
             </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+          className="mt-10"
+        >
+          <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center gap-5 px-6 py-6 rounded-2xl border border-[#2979FF]/10 bg-gradient-to-r from-[#2979FF]/[0.06] to-transparent hover:border-[#2979FF]/20 transition-all duration-300 group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#2979FF]/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="w-12 h-12 bg-[#2979FF]/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <Rocket size={24} className="text-[#2979FF]" />
+            </div>
+            <div className="flex-1 min-w-0 relative">
+              <h3 className="text-white font-bold text-base mb-1">Ready for Mission Control?</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Your daily command center -- track stats, manage priorities, and run your business from one dashboard.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/mission-control')}
+              className="relative flex items-center gap-2 px-6 py-3 bg-[#2979FF] text-white rounded-xl text-sm font-semibold hover:bg-[#3d88ff] transition-all shadow-lg shadow-[#2979FF]/15 whitespace-nowrap group/btn"
+            >
+              Open Mission Control
+              <ArrowRight size={15} className="group-hover/btn:translate-x-0.5 transition-transform" />
+            </button>
           </div>
         </motion.div>
 
