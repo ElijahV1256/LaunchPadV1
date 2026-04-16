@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useRouteGuard } from './hooks/useRouteGuard';
+import MissionControlFAB from './components/MissionControlFAB';
 
 const Homepage = lazy(() => import('./pages/Homepage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
@@ -358,6 +359,7 @@ function App() {
             }
           />
           </Routes>
+          <MissionControlFAB />
         </Suspense>
       </AuthProvider>
     </Router>
