@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Rocket,
   ArrowLeft,
@@ -17,6 +17,7 @@ import {
   Star,
   ArrowDown,
   Shield,
+  X,
   Instagram,
   Facebook,
   Youtube,
@@ -277,6 +278,7 @@ function FoundationCard({ section }: { section: FoundationSection }) {
 export default function MarketingPlaybook() {
   const navigate = useNavigate();
   const [viewedPlatforms, setViewedPlatforms] = useState<Set<string>>(new Set());
+  const [showLegalPopup, setShowLegalPopup] = useState(false);
   const foundationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -284,6 +286,13 @@ export default function MarketingPlaybook() {
     if (stored) {
       setViewedPlatforms(new Set(JSON.parse(stored)));
     }
+  }, []);
+
+  useEffect(() => {
+    const dismissed = sessionStorage.getItem('legal_popup_dismissed');
+    if (dismissed) return;
+    const timer = setTimeout(() => setShowLegalPopup(true), 30000);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -476,6 +485,47 @@ export default function MarketingPlaybook() {
           </motion.div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showLegalPopup && (
+          <motion.div
+            initial={{ y: 120, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 120, opacity: 0 }}
+            transition={{ type: 'spring', damping: 22, stiffness: 260 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-2xl"
+          >
+            <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-5 rounded-2xl border border-[#06D6A0]/15 bg-[#0c1e30]/95 backdrop-blur-xl shadow-2xl shadow-black/40">
+              <button
+                onClick={() => {
+                  setShowLegalPopup(false);
+                  sessionStorage.setItem('legal_popup_dismissed', 'true');
+                }}
+                className="absolute top-3 right-3 text-gray-500 hover:text-white transition-colors"
+              >
+                <X size={16} />
+              </button>
+              <div className="absolute top-0 right-0 w-48 h-48 bg-[#06D6A0]/[0.04] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              <div className="w-11 h-11 bg-[#06D6A0]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Shield className="text-[#06D6A0]" size={22} />
+              </div>
+              <div className="flex-1 min-w-0 relative pr-4">
+                <h3 className="text-white font-bold text-sm mb-0.5">Make Your Business Legal</h3>
+                <p className="text-gray-500 text-xs leading-relaxed">
+                  Form your LLC, get an EIN, and set up your business the right way.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/legal')}
+                className="relative flex items-center gap-2 px-5 py-2.5 bg-[#06D6A0] text-[#060d19] rounded-xl text-sm font-semibold hover:bg-[#05c490] transition-all shadow-lg shadow-[#06D6A0]/15 whitespace-nowrap group/btn"
+              >
+                Start Legal Setup
+                <ArrowRight size={14} className="group-hover/btn:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
