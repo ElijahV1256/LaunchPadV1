@@ -31,6 +31,8 @@ const StoryBrandWizard = lazy(() => import('./pages/StoryBrandWizard'));
 const Website = lazy(() => import('./pages/Website'));
 const ManageWebsite = lazy(() => import('./pages/ManageWebsite'));
 const MarketingStrategy = lazy(() => import('./pages/MarketingStrategy'));
+const MarketingPlaybook = lazy(() => import('./pages/MarketingPlaybook'));
+const PlatformPlaybook = lazy(() => import('./pages/PlatformPlaybook'));
 
 function LoadingFallback() {
   return (
@@ -264,6 +266,22 @@ function App() {
             element={
               <PrivateRoute>
                 <MarketingStrategy />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/playbook"
+            element={
+              <PrivateRoute>
+                <MarketingPlaybook />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/playbook/:slug"
+            element={
+              <PrivateRoute>
+                <PlatformPlaybook />
               </PrivateRoute>
             }
           />
