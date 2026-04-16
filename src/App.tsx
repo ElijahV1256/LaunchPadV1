@@ -33,6 +33,13 @@ const ManageWebsite = lazy(() => import('./pages/ManageWebsite'));
 const MarketingStrategy = lazy(() => import('./pages/MarketingStrategy'));
 const MarketingPlaybook = lazy(() => import('./pages/MarketingPlaybook'));
 const PlatformPlaybook = lazy(() => import('./pages/PlatformPlaybook'));
+const LegalFoundation = lazy(() => import('./pages/LegalFoundation'));
+const LegalStructure = lazy(() => import('./pages/legal/LegalStructure'));
+const FormLLC = lazy(() => import('./pages/legal/FormLLC'));
+const GetEIN = lazy(() => import('./pages/legal/GetEIN'));
+const BusinessBank = lazy(() => import('./pages/legal/BusinessBank'));
+const BusinessInsurance = lazy(() => import('./pages/legal/BusinessInsurance'));
+const LocalLicenses = lazy(() => import('./pages/legal/LocalLicenses'));
 
 function LoadingFallback() {
   return (
@@ -282,6 +289,62 @@ function App() {
             element={
               <PrivateRoute>
                 <PlatformPlaybook />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/legal"
+            element={
+              <PrivateRoute>
+                <LegalFoundation />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/legal/structure"
+            element={
+              <PrivateRoute>
+                <LegalStructure />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/legal/form-llc"
+            element={
+              <PrivateRoute>
+                <FormLLC />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/legal/ein"
+            element={
+              <PrivateRoute>
+                <GetEIN />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/legal/bank"
+            element={
+              <PrivateRoute>
+                <BusinessBank />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/legal/insurance"
+            element={
+              <PrivateRoute>
+                <BusinessInsurance />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/legal/licenses"
+            element={
+              <PrivateRoute>
+                <LocalLicenses />
               </PrivateRoute>
             }
           />

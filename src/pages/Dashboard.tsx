@@ -20,6 +20,7 @@ import {
   DollarSign,
   BarChart3,
   Globe,
+  Shield,
 } from 'lucide-react';
 import { BusinessIdea, RoadmapStage } from '../services/openai';
 import { getRecentActivities, getMilestones, getUserMetrics } from '../services/tracking';
@@ -532,7 +533,7 @@ export default function Dashboard() {
                 <h2 className="text-2xl font-bold text-white mb-6 font-['Montserrat']">
                   Quick Actions
                 </h2>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <button
                     onClick={() => navigate('/playbook')}
                     className="p-6 bg-gradient-to-br from-pink-500/20 to-rose-500/20 border border-pink-400/30 rounded-lg hover:from-pink-500/30 hover:to-rose-500/30 transition-all text-left group"
@@ -565,6 +566,17 @@ export default function Dashboard() {
                     />
                     <h3 className="text-lg font-bold text-white mb-2">Operations & Tracking</h3>
                     <p className="text-gray-300 text-sm">Track profit, goals & get AI insights</p>
+                  </button>
+                  <button
+                    onClick={() => navigate('/legal')}
+                    className="p-6 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-400/20 rounded-lg hover:from-emerald-500/20 hover:to-teal-500/20 transition-all text-left group"
+                  >
+                    <Shield
+                      className="text-emerald-400 mb-3 group-hover:scale-110 transition-transform"
+                      size={32}
+                    />
+                    <h3 className="text-lg font-bold text-white mb-2">Legal Foundation</h3>
+                    <p className="text-gray-300 text-sm">Form your LLC & make it official</p>
                   </button>
                   <button
                     onClick={() => navigate('/local')}
