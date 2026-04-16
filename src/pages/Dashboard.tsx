@@ -260,6 +260,13 @@ export default function Dashboard() {
               </div>
             )}
             <button
+              onClick={() => navigate('/mission-control')}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#2979FF] text-white rounded-lg font-semibold text-sm hover:bg-[#3d88ff] transition-all shadow-lg shadow-[#2979FF]/20"
+            >
+              <Rocket size={16} />
+              <span className="hidden sm:inline">Mission Control</span>
+            </button>
+            <button
               onClick={() => navigate('/profile')}
               className="flex items-center gap-2 px-4 py-2 text-gray-300 hover:text-white transition-colors"
             >
