@@ -194,7 +194,7 @@ function App() {
             path="/marketing-assets"
             element={
               <PrivateRoute>
-                <MarketingAssets />
+                <MarketingPlaybook />
               </PrivateRoute>
             }
           />
