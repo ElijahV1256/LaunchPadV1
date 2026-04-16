@@ -43,6 +43,7 @@ const PLATFORMS = [
     key: 'instagram',
     label: 'Instagram',
     tagline: 'Visual storytelling & reels',
+    taglineWithBrand: (name: string) => `Grow ${name} with reels & stories`,
     icon: '\uD83D\uDCF8',
     color: '#E1306C',
     bgGradient: 'linear-gradient(135deg, rgba(225,48,108,0.12) 0%, rgba(252,175,69,0.08) 100%)',
@@ -52,6 +53,7 @@ const PLATFORMS = [
     key: 'meta_ads',
     label: 'Meta Ads',
     tagline: 'Paid reach & conversions',
+    taglineWithBrand: (name: string) => `Run targeted ads for ${name}`,
     icon: '\uD83C\uDFAF',
     color: '#1877F2',
     bgGradient: 'linear-gradient(135deg, rgba(24,119,242,0.12) 0%, rgba(66,183,245,0.06) 100%)',
@@ -61,6 +63,7 @@ const PLATFORMS = [
     key: 'tiktok',
     label: 'TikTok',
     tagline: 'Short-form viral content',
+    taglineWithBrand: (name: string) => `Get ${name} trending on TikTok`,
     icon: '\uD83C\uDFAC',
     color: '#00F2EA',
     bgGradient: 'linear-gradient(135deg, rgba(0,242,234,0.10) 0%, rgba(255,0,80,0.06) 100%)',
@@ -70,6 +73,7 @@ const PLATFORMS = [
     key: 'mass_text',
     label: 'Mass Text',
     tagline: 'Direct SMS campaigns',
+    taglineWithBrand: (name: string) => `Text campaigns for ${name}`,
     icon: '\uD83D\uDCF1',
     color: '#06D6A0',
     bgGradient: 'linear-gradient(135deg, rgba(6,214,160,0.12) 0%, rgba(6,214,160,0.04) 100%)',
@@ -79,6 +83,7 @@ const PLATFORMS = [
     key: 'email',
     label: 'Email',
     tagline: 'Nurture & convert leads',
+    taglineWithBrand: (name: string) => `Build ${name}'s email list`,
     icon: '\u2709\uFE0F',
     color: '#FF6B35',
     bgGradient: 'linear-gradient(135deg, rgba(255,107,53,0.12) 0%, rgba(255,190,11,0.06) 100%)',
@@ -113,15 +118,19 @@ export default function MarketingAssets() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate('/auth'); return; }
 
+      let brandQuery = supabase
+        .from('brand_identity')
+        .select('selected_name, offer_description, target_audience')
+        .eq('user_id', user.id);
+
       if (ideaKey) {
-        const { data: brand } = await supabase
-          .from('brand_identity')
-          .select('selected_name, offer_description, target_audience')
-          .eq('user_id', user.id)
-          .eq('idea_key', ideaKey)
-          .maybeSingle();
-        if (brand) setBrandData(brand);
+        brandQuery = brandQuery.eq('idea_key', ideaKey);
+      } else {
+        brandQuery = brandQuery.order('created_at', { ascending: false }).limit(1);
       }
+
+      const { data: brand } = await brandQuery.maybeSingle();
+      if (brand) setBrandData(brand);
 
       const { data: playbook } = await supabase
         .from('marketing_playbook')
@@ -334,12 +343,21 @@ export default function MarketingAssets() {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2979FF]/20 to-[#2979FF]/5 flex items-center justify-center">
                   <Target className="text-[#2979FF]" size={20} />
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                  Marketing Playbook
-                </h1>
+                <div>
+                  {brandData?.selected_name && (
+                    <p className="text-[#2979FF] text-xs font-semibold tracking-wider uppercase mb-0.5">
+                      {brandData.selected_name}
+                    </p>
+                  )}
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                    Marketing Playbook
+                  </h1>
+                </div>
               </div>
               <p className="text-gray-500 text-[15px] leading-relaxed max-w-lg pl-[52px]">
-                AI-powered strategies and ready-to-post content for every channel. Pick one or generate them all.
+                {brandData?.selected_name
+                  ? `Ready-to-post content and channel strategies tailored for ${brandData.selected_name}.`
+                  : 'AI-powered strategies and ready-to-post content for every channel. Pick one or generate them all.'}
               </p>
             </div>
 
@@ -478,7 +496,9 @@ export default function MarketingAssets() {
                     </div>
 
                     <h3 className="text-white font-bold text-base mb-1">{platform.label}</h3>
-                    <p className="text-gray-500 text-[13px] leading-relaxed mb-5">{platform.tagline}</p>
+                    <p className="text-gray-500 text-[13px] leading-relaxed mb-5">
+                      {brandData?.selected_name ? platform.taglineWithBrand(brandData.selected_name) : platform.tagline}
+                    </p>
 
                     {isReady ? (
                       <div className="flex items-center gap-2">
@@ -543,9 +563,13 @@ export default function MarketingAssets() {
               <Globe className="text-[#2979FF]" size={24} />
             </div>
             <div className="flex-1 min-w-0 relative">
-              <h3 className="text-white font-bold text-base mb-1">Need a Website?</h3>
+              <h3 className="text-white font-bold text-base mb-1">
+                {brandData?.selected_name ? `Get ${brandData.selected_name} Online` : 'Need a Website?'}
+              </h3>
               <p className="text-gray-500 text-sm leading-relaxed">
-                Book a free 30-minute discovery call. We'll build your custom site and have it live within 24 hours.
+                {brandData?.selected_name
+                  ? `Book a free 30-minute call and we'll build a custom website for ${brandData.selected_name} within 24 hours.`
+                  : 'Book a free 30-minute discovery call. We\'ll build your custom site and have it live within 24 hours.'}
               </p>
             </div>
             <button
