@@ -175,6 +175,9 @@ function renderSection(section: PlatformSection, color: string) {
       return (
         <SectionCard key={section.id}>
           <SectionHeading icon={Lightbulb} title={section.title} color={color} />
+          {section.intro && (
+            <p className="text-gray-300 text-[15px] leading-relaxed mb-5 italic">{section.intro}</p>
+          )}
           {section.items && section.items.length > 0 ? (
             <div className="space-y-3">
               {section.items.map((item, i) => (
@@ -196,6 +199,7 @@ function renderSection(section: PlatformSection, color: string) {
               ))}
             </div>
           )}
+          {section.callout && <CalloutBox callout={section.callout} color={color} />}
         </SectionCard>
       );
 
@@ -206,9 +210,18 @@ function renderSection(section: PlatformSection, color: string) {
           {section.intro && (
             <p className="text-gray-300 text-[15px] leading-relaxed mb-5 italic">{section.intro}</p>
           )}
-          {section.items?.map((item, i) => (
-            item.title && <h3 key={i} className="text-white font-semibold mb-3">{item.title}</h3>
-          ))}
+          {section.items && section.items.length > 0 && (
+            <div className="space-y-3 mb-4">
+              {section.items.map((item, i) => (
+                <div key={i} className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-4">
+                  <span className="text-white font-semibold text-sm">{item.title}</span>
+                  {item.description && (
+                    <p className="text-gray-400 text-sm mt-1 leading-relaxed">{item.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
           {section.bullets && (
             <div className="space-y-2">
               {section.bullets.map((bullet, i) => (
@@ -435,7 +448,7 @@ function renderSection(section: PlatformSection, color: string) {
             <div className="flex items-center gap-2 mb-2">
               <Calendar size={20} style={{ color }} />
               <span className="text-sm font-bold uppercase tracking-widest" style={{ color }}>
-                30-Day Kickstart Plan
+                Kickstart Plan
               </span>
             </div>
             <h2 className="text-2xl font-bold text-white font-['Montserrat'] mb-6">
