@@ -147,6 +147,7 @@ function renderSection(section: PlatformSection, color: string) {
               </div>
             ))}
           </div>
+          {section.callout && <CalloutBox callout={section.callout} color={color} />}
         </SectionCard>
       );
 
@@ -174,14 +175,27 @@ function renderSection(section: PlatformSection, color: string) {
       return (
         <SectionCard key={section.id}>
           <SectionHeading icon={Lightbulb} title={section.title} color={color} />
-          <div className="grid sm:grid-cols-2 gap-3">
-            {section.bullets?.map((idea, i) => (
-              <div key={i} className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.05] rounded-xl p-4">
-                <div className="flex-shrink-0 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-                <span className="text-gray-300 text-sm">{idea}</span>
-              </div>
-            ))}
-          </div>
+          {section.items && section.items.length > 0 ? (
+            <div className="space-y-3">
+              {section.items.map((item, i) => (
+                <div key={i} className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-4">
+                  <span className="text-white font-semibold text-sm">{item.title}</span>
+                  {item.description && (
+                    <p className="text-gray-400 text-sm mt-1 leading-relaxed">{item.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-3">
+              {section.bullets?.map((idea, i) => (
+                <div key={i} className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.05] rounded-xl p-4">
+                  <div className="flex-shrink-0 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+                  <span className="text-gray-300 text-sm">{idea}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </SectionCard>
       );
 
@@ -237,8 +251,8 @@ function renderSection(section: PlatformSection, color: string) {
           </div>
           {section.leadGenReasons && (
             <div className="mt-6">
-              <h4 className="text-white font-semibold mb-3">Why This Works</h4>
-              <div className="grid sm:grid-cols-2 gap-2">
+              <h4 className="text-white font-semibold mb-3">What to Expect</h4>
+              <div className="grid sm:grid-cols-1 gap-2">
                 {section.leadGenReasons.map((reason, i) => (
                   <div key={i} className="flex items-start gap-3 bg-white/[0.03] border border-white/[0.05] rounded-xl p-4">
                     <CheckCircle2 size={16} style={{ color }} className="flex-shrink-0 mt-0.5" />
@@ -248,6 +262,7 @@ function renderSection(section: PlatformSection, color: string) {
               </div>
             </div>
           )}
+          {section.callout && <CalloutBox callout={section.callout} color={color} />}
         </SectionCard>
       );
 
@@ -276,6 +291,16 @@ function renderSection(section: PlatformSection, color: string) {
               ))}
             </div>
           )}
+          {section.bioTemplate && (
+            <div className="space-y-2 mb-6">
+              {section.bioTemplate.map((line, i) => (
+                <div key={i} className="flex items-start gap-3 bg-white/[0.03] border border-white/[0.05] rounded-xl p-4">
+                  <div className="flex-shrink-0 w-1.5 h-1.5 mt-2 rounded-full" style={{ backgroundColor: color }} />
+                  <span className="text-gray-300 text-sm leading-relaxed">{line}</span>
+                </div>
+              ))}
+            </div>
+          )}
           {section.bioExample && (
             <div
               className="rounded-xl p-5 border"
@@ -289,6 +314,7 @@ function renderSection(section: PlatformSection, color: string) {
               </div>
             </div>
           )}
+          {section.callout && <CalloutBox callout={section.callout} color={color} />}
         </SectionCard>
       );
 
@@ -387,6 +413,7 @@ function renderSection(section: PlatformSection, color: string) {
               </div>
             ))}
           </div>
+          {section.callout && <CalloutBox callout={section.callout} color={color} />}
         </SectionCard>
       );
 
