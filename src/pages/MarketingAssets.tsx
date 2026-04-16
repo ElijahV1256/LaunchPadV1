@@ -16,6 +16,7 @@ import {
   Target,
   BarChart3,
   Clock,
+  Shield,
 } from 'lucide-react';
 import PlatformPanel from '../components/playbook/PlatformPanel';
 
@@ -556,27 +557,27 @@ export default function MarketingAssets() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.4 }}
         >
-          <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center gap-5 px-6 py-6 rounded-2xl border border-[#2979FF]/10 bg-gradient-to-r from-[#2979FF]/[0.06] to-transparent hover:border-[#2979FF]/20 transition-all duration-300 group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#2979FF]/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center gap-5 px-6 py-6 rounded-2xl border border-[#06D6A0]/10 bg-gradient-to-r from-[#06D6A0]/[0.06] to-transparent hover:border-[#06D6A0]/20 transition-all duration-300 group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#06D6A0]/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
-            <div className="w-12 h-12 bg-[#2979FF]/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-              <Globe className="text-[#2979FF]" size={24} />
+            <div className="w-12 h-12 bg-[#06D6A0]/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <Shield className="text-[#06D6A0]" size={24} />
             </div>
             <div className="flex-1 min-w-0 relative">
               <h3 className="text-white font-bold text-base mb-1">
-                {brandData?.selected_name ? `Get ${brandData.selected_name} Online` : 'Need a Website?'}
+                {brandData?.selected_name ? `Make ${brandData.selected_name} Legal` : 'Make Your Business Legal'}
               </h3>
               <p className="text-gray-500 text-sm leading-relaxed">
                 {brandData?.selected_name
-                  ? `Book a free 30-minute call and we'll build a custom website for ${brandData.selected_name} within 24 hours.`
-                  : 'Book a free 30-minute discovery call. We\'ll build your custom site and have it live within 24 hours.'}
+                  ? `Form your LLC, get an EIN, and set up ${brandData.selected_name} the right way — step by step.`
+                  : 'Form your LLC, get an EIN, and legally set up your business — without the headaches.'}
               </p>
             </div>
             <button
-              onClick={() => navigate(`/website${ideaKey ? `?ideaKey=${ideaKey}` : ''}`)}
-              className="relative flex items-center gap-2 px-6 py-3 bg-[#2979FF] text-white rounded-xl text-sm font-semibold hover:bg-[#3d88ff] transition-all shadow-lg shadow-[#2979FF]/15 whitespace-nowrap group/btn"
+              onClick={() => navigate('/legal')}
+              className="relative flex items-center gap-2 px-6 py-3 bg-[#06D6A0] text-[#060d19] rounded-xl text-sm font-semibold hover:bg-[#05c490] transition-all shadow-lg shadow-[#06D6A0]/15 whitespace-nowrap group/btn"
             >
-              Book Discovery Call
+              Start Legal Setup
               <ArrowRight size={15} className="group-hover/btn:translate-x-0.5 transition-transform" />
             </button>
           </div>
