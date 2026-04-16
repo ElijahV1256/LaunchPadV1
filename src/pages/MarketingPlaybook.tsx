@@ -289,6 +289,10 @@ export default function MarketingPlaybook() {
   }, []);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     const dismissed = sessionStorage.getItem('legal_popup_dismissed');
     if (dismissed) return;
     const timer = setTimeout(() => setShowLegalPopup(true), 30000);
