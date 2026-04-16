@@ -93,7 +93,7 @@ Make each piece completely different from typical content. Be specific, direct, 
             "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
-            model: "claude-3-5-sonnet-20241022",
+            model: "claude-sonnet-4-20250514",
             max_tokens: 2000,
             temperature: 0.8,
             messages: [{ role: "user", content: morePrompt }],
@@ -151,7 +151,7 @@ Keep everything short, direct, and actionable. No fluff. Write like Hormozi — 
           "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({
-          model: "claude-3-5-sonnet-20241022",
+          model: "claude-sonnet-4-20250514",
           max_tokens: 2500,
           temperature: 0.7,
           messages: [{ role: "user", content: prompt }],

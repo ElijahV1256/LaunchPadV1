@@ -11,9 +11,9 @@ import {
   Globe,
   ArrowRight,
   ChevronRight,
-  BarChart3,
   TrendingUp,
   RefreshCw,
+  Eye,
 } from 'lucide-react';
 import PlatformPanel from '../components/playbook/PlatformPanel';
 
@@ -37,11 +37,11 @@ interface BrandData {
 }
 
 const PLATFORMS = [
-  { key: 'instagram', label: 'Instagram', emoji: '\uD83D\uDCF1', color: '#E1306C', colorLight: 'rgba(225, 48, 108, 0.12)' },
-  { key: 'meta_ads', label: 'Meta Ads', emoji: '\uD83D\uDCD8', color: '#1877F2', colorLight: 'rgba(24, 119, 242, 0.12)' },
-  { key: 'tiktok', label: 'TikTok', emoji: '\uD83C\uDFB5', color: '#00F2EA', colorLight: 'rgba(0, 242, 234, 0.10)' },
-  { key: 'mass_text', label: 'Mass Text', emoji: '\uD83D\uDCAC', color: '#06D6A0', colorLight: 'rgba(6, 214, 160, 0.12)' },
-  { key: 'email', label: 'Email', emoji: '\uD83D\uDCE7', color: '#FF6B35', colorLight: 'rgba(255, 107, 53, 0.12)' },
+  { key: 'instagram', label: 'Instagram', icon: '\uD83D\uDCF8', color: '#E1306C', gradient: 'from-rose-500/20 to-orange-500/10' },
+  { key: 'meta_ads', label: 'Meta Ads', icon: '\uD83C\uDFAF', color: '#1877F2', gradient: 'from-blue-500/20 to-cyan-500/10' },
+  { key: 'tiktok', label: 'TikTok', icon: '\uD83C\uDFAC', color: '#00F2EA', gradient: 'from-teal-400/20 to-cyan-400/10' },
+  { key: 'mass_text', label: 'Mass Text', icon: '\uD83D\uDCF1', color: '#06D6A0', gradient: 'from-emerald-500/20 to-teal-500/10' },
+  { key: 'email', label: 'Email', icon: '\u2709\uFE0F', color: '#FF6B35', gradient: 'from-orange-500/20 to-amber-500/10' },
 ];
 
 export default function MarketingAssets() {
@@ -248,7 +248,7 @@ export default function MarketingAssets() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0F2847] to-[#0A192F] flex items-center justify-center">
+      <div className="min-h-screen bg-[#060d19] flex items-center justify-center">
         <Loader2 className="text-[#2979FF] animate-spin" size={48} />
       </div>
     );
@@ -256,7 +256,7 @@ export default function MarketingAssets() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0F2847] to-[#0A192F] flex items-center justify-center p-8">
+      <div className="min-h-screen bg-[#060d19] flex items-center justify-center p-8">
         <div className="max-w-lg text-center">
           <div className="text-red-400 text-xl mb-4">Failed to load data</div>
           <div className="text-gray-400 mb-6">{error}</div>
@@ -272,192 +272,169 @@ export default function MarketingAssets() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0A192F] via-[#0F2847] to-[#0A192F]">
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="mb-8 flex items-center gap-2 text-gray-500 hover:text-gray-300 transition-colors text-sm group"
-        >
-          <Home size={15} />
-          <span>Dashboard</span>
-          <ChevronRight size={14} className="text-gray-600" />
-          <span className="text-gray-400">Marketing Playbook</span>
-        </button>
+    <div className="min-h-screen bg-[#060d19]">
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 pb-20">
 
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10">
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-3">
-                Your Marketing Playbook
-              </h1>
-              <p className="text-gray-400 text-lg max-w-xl leading-relaxed">
-                Pick a platform, get your strategy and content. Come back anytime for fresh ideas.
-              </p>
-            </motion.div>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="flex items-center gap-3 flex-shrink-0"
+        <nav className="flex items-center gap-1.5 text-sm mb-10">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-1.5 text-gray-500 hover:text-gray-300 transition-colors"
           >
-            <div className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl">
-              <BarChart3 size={15} className="text-gray-500" />
-              <span className="text-sm text-gray-400">
-                <span className="text-white font-semibold">{readyCount}</span>/{PLATFORMS.length} ready
-              </span>
+            <Home size={14} />
+            Dashboard
+          </button>
+          <ChevronRight size={13} className="text-gray-700" />
+          <span className="text-gray-300 font-medium">Marketing</span>
+        </nav>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="mb-10"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
+                Marketing Playbook
+              </h1>
+              <p className="text-gray-500 text-[15px] leading-relaxed max-w-md">
+                Generate AI-powered strategies and ready-to-post content for each channel.
+              </p>
             </div>
 
             <AnimatePresence mode="wait">
               {generatingAllComplete ? (
                 <motion.div
-                  key="complete"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 rounded-xl font-semibold text-sm"
+                  key="done"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-sm font-medium"
                 >
-                  <CheckCircle2 size={16} />
-                  All platforms ready
+                  <CheckCircle2 size={15} />
+                  All done
                 </motion.div>
               ) : generatingAll ? (
                 <motion.div
-                  key="generating"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex items-center gap-2.5 px-5 py-2.5 bg-[#2979FF]/10 border border-[#2979FF]/25 text-[#2979FF] rounded-xl font-semibold text-sm"
+                  key="progress"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-2.5 px-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm"
                 >
-                  <Loader2 size={15} className="animate-spin" />
-                  <span>Generating {PLATFORMS[generatingAllIndex]?.label}...</span>
-                  <span className="text-[#2979FF]/60 text-xs">({generatingAllIndex + 1}/{PLATFORMS.length})</span>
+                  <Loader2 size={14} className="text-[#2979FF] animate-spin" />
+                  <span className="text-gray-300">{PLATFORMS[generatingAllIndex]?.label}</span>
+                  <span className="text-gray-600">{generatingAllIndex + 1}/{PLATFORMS.length}</span>
                 </motion.div>
               ) : (
                 <motion.button
-                  key="button"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  key="cta"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
                   onClick={generateAllPlatforms}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#2979FF] to-[#2979FF]/80 text-white rounded-xl font-semibold text-sm shadow-lg shadow-[#2979FF]/20 hover:shadow-[#2979FF]/30 transition-shadow"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-[#2979FF] text-white rounded-lg text-sm font-semibold hover:bg-[#3d88ff] transition-colors"
                 >
-                  <Zap size={15} />
-                  Generate All Platforms
+                  <Zap size={14} />
+                  Generate All ({readyCount}/{PLATFORMS.length})
                 </motion.button>
               )}
             </AnimatePresence>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+        <div className="space-y-3 mb-12">
           {PLATFORMS.map((platform, i) => {
             const entry = entries[platform.key];
             const isReady = !!entry?.strategy;
             const isGenerating = generating === platform.key;
             const isCurrentlyGeneratingAll = generatingAll && generatingAllIndex === i;
+            const busy = isGenerating || isCurrentlyGeneratingAll;
 
             return (
               <motion.div
                 key={platform.key}
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.07, duration: 0.4 }}
-                className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${
-                  isReady
-                    ? 'bg-white/[0.04] hover:bg-white/[0.07]'
-                    : 'bg-white/[0.03] hover:bg-white/[0.05]'
-                }`}
+                transition={{ delay: i * 0.05, duration: 0.35 }}
+                className="group"
               >
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{
-                    background: `radial-gradient(circle at 50% 0%, ${platform.colorLight}, transparent 70%)`,
-                  }}
-                />
-
-                <div className={`relative border rounded-2xl p-5 transition-colors duration-300 ${
+                <div className={`relative flex items-center gap-4 sm:gap-5 px-4 sm:px-5 py-4 rounded-xl border transition-all duration-200 ${
                   isReady
-                    ? 'border-white/[0.08] group-hover:border-white/[0.15]'
-                    : 'border-white/[0.06] group-hover:border-white/[0.12]'
+                    ? 'bg-white/[0.03] border-white/[0.07] hover:border-white/[0.14]'
+                    : 'bg-white/[0.02] border-white/[0.05] hover:border-white/[0.1]'
                 }`}>
-                  <div className="flex items-start justify-between mb-5">
-                    <div className="flex items-center gap-3.5">
-                      <div
-                        className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-transform duration-300 group-hover:scale-110"
-                        style={{ backgroundColor: platform.colorLight }}
-                      >
-                        {platform.emoji}
-                      </div>
-                      <div>
-                        <h3 className="text-white font-bold text-[17px] leading-tight">{platform.label}</h3>
-                        {entry?.generated_at && (
-                          <p className="text-gray-500 text-xs mt-1">
-                            Updated {formatDate(entry.generated_at)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    {isReady ? (
-                      <span className="flex items-center gap-1 px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg text-[11px] font-semibold tracking-wide uppercase">
-                        <CheckCircle2 size={11} />
-                        Ready
-                      </span>
-                    ) : isGenerating || isCurrentlyGeneratingAll ? (
-                      <span className="flex items-center gap-1.5 px-2 py-1 bg-[#2979FF]/10 text-[#2979FF] rounded-lg text-[11px] font-semibold tracking-wide uppercase">
-                        <Loader2 size={11} className="animate-spin" />
-                        Building
-                      </span>
-                    ) : null}
+
+                  <div
+                    className="flex-shrink-0 w-11 h-11 rounded-lg flex items-center justify-center text-xl"
+                    style={{ backgroundColor: `${platform.color}15` }}
+                  >
+                    {platform.icon}
                   </div>
 
-                  {isReady ? (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setSelectedPlatform(platform.key)}
-                        className="flex-1 py-2.5 bg-white/[0.08] border border-white/[0.1] text-white rounded-xl font-semibold text-sm hover:bg-white/[0.14] transition-all flex items-center justify-center gap-2"
-                      >
-                        <TrendingUp size={14} />
-                        View Strategy
-                      </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2.5">
+                      <h3 className="text-white font-semibold text-[15px]">{platform.label}</h3>
+                      {isReady && (
+                        <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 rounded text-[10px] font-semibold uppercase tracking-wider">
+                          <CheckCircle2 size={10} />
+                          Ready
+                        </span>
+                      )}
+                      {busy && (
+                        <span className="flex items-center gap-1 px-1.5 py-0.5 bg-[#2979FF]/10 text-[#2979FF] rounded text-[10px] font-semibold uppercase tracking-wider">
+                          <Loader2 size={10} className="animate-spin" />
+                          Building
+                        </span>
+                      )}
+                    </div>
+                    {entry?.generated_at && (
+                      <p className="text-gray-600 text-xs mt-0.5">
+                        Last updated {formatDate(entry.generated_at)}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {isReady ? (
+                      <>
+                        <button
+                          onClick={() => setSelectedPlatform(platform.key)}
+                          className="flex items-center gap-1.5 px-3.5 py-2 bg-white/[0.07] text-white rounded-lg text-sm font-medium hover:bg-white/[0.12] transition-colors"
+                        >
+                          <Eye size={14} />
+                          <span className="hidden sm:inline">View</span>
+                        </button>
+                        <button
+                          onClick={() => generatePlatform(platform.key)}
+                          disabled={isGenerating || generatingAll}
+                          className="p-2 text-gray-500 hover:text-white hover:bg-white/[0.07] rounded-lg transition-all disabled:opacity-30"
+                          title="Regenerate"
+                        >
+                          {isGenerating ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
+                        </button>
+                      </>
+                    ) : (
                       <button
                         onClick={() => generatePlatform(platform.key)}
-                        disabled={isGenerating || generatingAll}
-                        className="px-3.5 py-2.5 bg-white/[0.04] border border-white/[0.08] text-gray-400 rounded-xl text-sm hover:bg-white/[0.08] hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                        title="Regenerate"
+                        disabled={busy || generatingAll}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40"
+                        style={{
+                          backgroundColor: `${platform.color}18`,
+                          color: platform.color,
+                        }}
                       >
-                        {isGenerating ? (
-                          <Loader2 size={15} className="animate-spin" />
+                        {busy ? (
+                          <><Loader2 size={13} className="animate-spin" /> Generating...</>
                         ) : (
-                          <RefreshCw size={15} />
+                          <><Sparkles size={13} /> Generate</>
                         )}
                       </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => generatePlatform(platform.key)}
-                      disabled={isGenerating || generatingAll}
-                      className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      style={{
-                        backgroundColor: platform.colorLight,
-                        color: platform.color,
-                        borderWidth: 1,
-                        borderColor: `${platform.color}25`,
-                      }}
-                    >
-                      {isGenerating || isCurrentlyGeneratingAll ? (
-                        <><Loader2 size={14} className="animate-spin" /> Building playbook...</>
-                      ) : (
-                        <><Sparkles size={14} /> Generate Strategy</>
-                      )}
-                    </button>
-                  )}
+                    )}
+                  </div>
                 </div>
               </motion.div>
             );
@@ -465,31 +442,27 @@ export default function MarketingAssets() {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.4 }}
-          className="group relative rounded-2xl overflow-hidden"
+          transition={{ delay: 0.3, duration: 0.35 }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-[#2979FF]/[0.06] via-transparent to-[#2979FF]/[0.04]" />
-          <div className="relative border border-white/[0.08] rounded-2xl p-6 md:p-8 hover:border-[#2979FF]/20 transition-colors">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-              <div className="w-14 h-14 bg-[#2979FF]/10 border border-[#2979FF]/20 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                <Globe className="text-[#2979FF]" size={26} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-bold text-white mb-1">Your Website</h3>
-                <p className="text-gray-400 text-[15px] leading-relaxed">
-                  Book a free 30-minute discovery call. We'll build your custom website and have it live within 24 hours.
-                </p>
-              </div>
-              <button
-                onClick={() => navigate(`/website${ideaKey ? `?ideaKey=${ideaKey}` : ''}`)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#2979FF] text-white rounded-xl font-semibold text-sm hover:bg-[#2979FF]/90 transition-all shadow-lg shadow-[#2979FF]/15 hover:shadow-[#2979FF]/25 whitespace-nowrap group/btn"
-              >
-                Book Your Discovery Call
-                <ArrowRight size={16} className="group-hover/btn:translate-x-0.5 transition-transform" />
-              </button>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 px-5 py-5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:border-[#2979FF]/15 transition-colors">
+            <div className="w-11 h-11 bg-[#2979FF]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Globe className="text-[#2979FF]" size={22} />
             </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-white font-semibold text-[15px] mb-0.5">Your Website</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Book a free 30-minute discovery call. Custom website live within 24 hours.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate(`/website${ideaKey ? `?ideaKey=${ideaKey}` : ''}`)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#2979FF] text-white rounded-lg text-sm font-semibold hover:bg-[#3d88ff] transition-colors whitespace-nowrap group/btn"
+            >
+              Book Discovery Call
+              <ArrowRight size={15} className="group-hover/btn:translate-x-0.5 transition-transform" />
+            </button>
           </div>
         </motion.div>
       </div>
@@ -500,7 +473,7 @@ export default function MarketingAssets() {
           onClose={() => setSelectedPlatform(null)}
           platformKey={selectedPlatformData.key}
           platformLabel={selectedPlatformData.label}
-          platformEmoji={selectedPlatformData.emoji}
+          platformEmoji={selectedPlatformData.icon}
           strategy={selectedEntry?.strategy || null}
           content={selectedEntry?.content || []}
           onGenerateMore={generateMoreContent}
