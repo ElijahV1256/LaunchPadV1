@@ -322,6 +322,55 @@ function renderSection(section: PlatformSection, color: string) {
         </SectionCard>
       );
 
+    case 'page-setup':
+      return (
+        <SectionCard key={section.id}>
+          <SectionHeading icon={User} title={section.title} color={color} />
+          {section.intro && (
+            <p className="text-gray-300 text-[15px] leading-relaxed mb-5">{section.intro}</p>
+          )}
+          {section.items && (
+            <div className="space-y-3">
+              {section.items.map((item, i) => (
+                <div key={i} className="flex items-start gap-4 bg-white/[0.03] border border-white/[0.05] rounded-xl p-4">
+                  <span
+                    className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
+                    style={{ backgroundColor: `${color}20`, color }}
+                  >
+                    {i + 1}
+                  </span>
+                  <div className="pt-0.5">
+                    <span className="text-white font-semibold text-sm">{item.title}: </span>
+                    <span className="text-gray-400 text-sm">{item.description}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </SectionCard>
+      );
+
+    case 'stats-grid':
+      return (
+        <SectionCard key={section.id}>
+          <SectionHeading icon={BarChart3} title={section.title} color={color} />
+          {section.intro && (
+            <p className="text-gray-300 text-[15px] leading-relaxed mb-5">{section.intro}</p>
+          )}
+          {section.stats && (
+            <div className="grid sm:grid-cols-3 gap-3">
+              {section.stats.map((stat, i) => (
+                <div key={i} className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-5 text-center">
+                  <p className="text-2xl font-bold mb-1" style={{ color }}>{stat.value}</p>
+                  <p className="text-gray-400 text-sm">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {section.callout && <CalloutBox callout={section.callout} color={color} />}
+        </SectionCard>
+      );
+
     case 'cadence':
       return (
         <SectionCard key={section.id}>

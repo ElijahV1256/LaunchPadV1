@@ -1,6 +1,6 @@
 export interface PlatformSection {
   id: string;
-  type: 'intro' | 'list-grid' | 'content-mix' | 'formula-steps' | 'hooks' | 'content-ideas' | 'text-section' | 'lead-gen' | 'bio-template' | 'hashtag' | 'cadence' | 'kickstart' | 'one-rule';
+  type: 'intro' | 'list-grid' | 'content-mix' | 'formula-steps' | 'hooks' | 'content-ideas' | 'text-section' | 'lead-gen' | 'bio-template' | 'hashtag' | 'cadence' | 'kickstart' | 'one-rule' | 'stats-grid' | 'page-setup';
   title: string;
   subtitle?: string;
   intro?: string;
@@ -19,6 +19,7 @@ export interface PlatformSection {
   leadGenSteps?: { title: string; description: string }[];
   leadGenReasons?: string[];
   paragraphs?: string[];
+  stats?: { label: string; value: string }[];
   oneRule?: { title: string; description: string };
 }
 
@@ -255,52 +256,153 @@ export const platforms: PlatformData[] = [
     color: '#1877F2',
     colorLight: 'rgba(24, 119, 242, 0.15)',
     icon: 'facebook',
-    whatItDoes: 'Turns strangers into community members and community members into customers through groups and trust.',
-    whatItsNotFor: 'Viral discovery. Facebook rewards depth over reach.',
+    whatItDoes: 'Reaches older demographics, builds local community, and converts through Groups and Marketplace.',
+    whatItsNotFor: 'Viral growth. Facebook rewards depth of relationship, not flash.',
     sections: [
       {
         id: 'who-its-for',
         type: 'list-grid',
         title: 'Who Facebook Is Best For',
         bullets: [
-          'Local service businesses (plumbers, landscapers, cleaners)',
-          'Coaches and consultants targeting experienced professionals',
-          'Community-driven brands and membership businesses',
-          'Event-based businesses and nonprofits',
+          'Local service businesses (anything hiring a contractor, trades, home services)',
+          'Businesses targeting customers 35+',
+          'Community-driven brands',
+          'B2C businesses in smaller towns and regional markets',
         ],
+        callout: {
+          title: '',
+          body: ['If your customer is a homeowner, parent, or small business owner in a specific city \u2014 Facebook is still one of the highest-converting platforms on the planet.'],
+        },
       },
       {
         id: 'content-mix',
         type: 'content-mix',
-        title: 'Content Mix (Post This Weekly)',
+        title: 'Content Mix',
         contentMix: [
-          { type: 'Group Posts', frequency: 'Daily', description: 'Ask questions, share tips, celebrate wins. Your group is your goldmine.' },
-          { type: 'Video/Reels', frequency: '2\u20133x/week', description: 'Facebook Reels get massive organic reach right now. Repurpose from Instagram.' },
-          { type: 'Text Posts', frequency: '2\u20133x/week', description: 'Long-form storytelling posts perform incredibly well. Share your journey and lessons.' },
-          { type: 'Live Video', frequency: '1x/week', description: 'Go live in your group or on your page. Q&As, tutorials, and behind-the-scenes.' },
+          { type: 'Long-Form Text Posts', frequency: '2\u20133x/week', description: 'Facebook loves text. Long-form posts with hooks outperform almost everything else.' },
+          { type: 'Video Posts', frequency: '1\u20132x/week', description: 'Native upload, not YouTube links. Facebook pushes native video hard.' },
+          { type: 'Local Group Activity', frequency: 'Daily', description: 'Engage in 3\u20135 local groups. 10\u201315 min/day giving value.' },
+          { type: 'Marketplace Listings', frequency: 'As needed', description: 'If you sell anything tangible, list it on Facebook Marketplace.' },
         ],
       },
       {
-        id: 'formula',
+        id: 'long-form-formula',
         type: 'formula-steps',
-        title: 'The Facebook Post Formula',
+        title: 'The Long-Form Post Formula',
+        intro: 'Facebook\u2019s algorithm rewards people who stop scrolling. Long text posts with hooks outperform almost everything else.',
         formulaSteps: [
-          { label: 'Hook', text: 'First 2 lines must create curiosity. Facebook truncates posts after ~3 lines, so your hook determines if they click \u201cSee More.\u201d' },
-          { label: 'Value', text: 'Tell stories. Be personal. Share specific numbers, timelines, and results. Facebook audiences love authenticity over polish.' },
-          { label: 'CTA', text: '\u201cDrop a [emoji] if you relate,\u201d \u201cComment [word] and I\'ll send you the guide,\u201d or \u201cShare this with someone who needs it.\u201d' },
+          { label: 'Line 1', text: 'A specific, curiosity-driven hook.' },
+          { label: 'Line 2', text: 'A line break (this forces people to click \u201csee more\u201d).' },
+          { label: 'Middle', text: 'Tell a story. Share a win. Break down a lesson. Make it human.' },
+          { label: 'End', text: 'Ask a question to drive comments. The algorithm eats that up.' },
         ],
       },
       {
-        id: 'lead-gen',
+        id: 'long-form-hooks',
+        type: 'hooks',
+        title: 'Long-Form Hook Examples',
+        hooks: [
+          '\u201cI almost lost my business 3 years ago. Here\u2019s what saved it.\u201d',
+          '\u201cA customer called me yesterday crying. This is what happened.\u201d',
+          '\u201cI made a $10,000 mistake last month. So you don\u2019t have to.\u201d',
+          '\u201cMost [industry] companies are doing this wrong. Here\u2019s proof.\u201d',
+          '\u201cThis one change doubled my revenue in 6 months.\u201d',
+        ],
+      },
+      {
+        id: 'why-long-text',
+        type: 'content-ideas',
+        title: 'Why Long Text Wins on Facebook',
+        bullets: [
+          'It feels like a real person, not an ad',
+          'It makes the reader stop and read',
+          'Comments drive reach, and stories drive comments',
+          'Facebook hides links \u2014 text-only posts get 3\u20135x the reach',
+        ],
+      },
+      {
+        id: 'video-strategy',
+        type: 'text-section',
+        title: 'Video Strategy on Facebook',
+        intro: 'Facebook still pushes native video hard \u2014 but only if you upload directly. Don\u2019t share a YouTube link. Upload the video to Facebook.',
+        items: [
+          { title: 'What Works', description: '' },
+        ],
+        bullets: [
+          'Customer testimonial videos (2\u20133 minutes, raw and unpolished)',
+          'Behind-the-scenes of your work (5\u201310 minutes of you actually doing the job)',
+          'Talking head videos where you answer common questions',
+          'Before & after videos for any visual transformation',
+        ],
+        callout: {
+          title: '',
+          body: ['Don\u2019t overthink production. Real beats polished on Facebook.'],
+        },
+      },
+      {
+        id: 'groups-goldmine',
+        type: 'text-section',
+        title: 'Facebook Groups: The Goldmine',
+        intro: 'This is where Facebook prints money for small businesses. Most people miss it.',
+        items: [
+          { title: 'The Strategy', description: '' },
+        ],
+        bullets: [
+          'Join 10 local groups where your customers hang out: neighborhood groups, parenting groups, industry groups, hobby groups, buy/sell/trade groups',
+          'Rule of thumb: Give 10x before you ask. Answer questions. Help people. Never pitch in the group.',
+          'When someone asks about your service (and they will), comment with genuine help \u2014 then follow up in DMs.',
+          'Create your own Facebook Group around the problem you solve \u2014 not your service. Example: \u201cRedding Homeowner Tips\u201d not \u201cCannon Tree Service Customers.\u201d',
+        ],
+        callout: {
+          title: 'Why Your Own Group Works',
+          body: [
+            'You become the authority in that space. Members get notifications from your posts. You can run events, Q&As, and live streams to the whole group. Every new member is a warm lead.',
+          ],
+        },
+      },
+      {
+        id: 'lead-ads',
         type: 'lead-gen',
-        title: 'Lead Generation Strategy',
-        subtitle: 'The Facebook Group Funnel',
+        title: 'Facebook Lead Ads: The Cheat Code',
+        leadGenIntro: 'If you have even $5/day, Facebook Lead Ads are one of the highest-ROI paid channels for local service businesses.',
+        subtitle: 'What Makes a Great Lead Ad',
         leadGenSteps: [
-          { title: 'Create a Facebook Group', description: 'Name it after the transformation, not your business. Example: \u201cFirst-Time Homebuyers Success Circle\u201d not \u201cBob\u2019s Realty Group.\u201d' },
-          { title: 'Set Up Entry Questions', description: 'Ask 3 questions when people join. The last one: \u201cWhat\u2019s your email so I can send you our free [resource]?\u201d' },
-          { title: 'Post Value Daily', description: 'Alternate between teaching, asking questions, and sharing wins. Make members feel like insiders.' },
-          { title: 'Run Weekly Live Sessions', description: 'Go live once a week to answer questions. This builds trust faster than any other content type.' },
-          { title: 'Convert with DMs', description: 'When someone is actively engaged, reach out personally. Offer a free call or resource.' },
+          { title: 'An irresistible offer', description: '\u201cFree tree health inspection\u201d / \u201cFree quote within 24 hours\u201d / \u201cFirst service 20% off\u201d' },
+          { title: 'A clear image', description: 'Your work, your face, or your team. Not stock photos.' },
+          { title: 'Simple copy', description: 'Problem they have \u2192 Solution you offer \u2192 Clear CTA.' },
+          { title: 'Minimal form fields', description: 'Name + phone only. Every extra field cuts your conversion rate.' },
+        ],
+        leadGenReasons: [
+          'Cost per lead: $3\u2013$15 for most local service businesses',
+          'Lead-to-customer rate: 10\u201330% (depending on follow-up)',
+          'Call leads within 5 minutes \u2014 every hour you wait cuts conversion in half',
+        ],
+      },
+      {
+        id: 'lead-gen-system',
+        type: 'lead-gen',
+        title: 'Lead Generation Strategy on Facebook',
+        leadGenIntro: 'Your complete system for turning Facebook into a lead machine:',
+        leadGenSteps: [
+          { title: 'Post 4\u20135x per week on your business page', description: 'Mostly long-form text + 1\u20132 videos.' },
+          { title: 'Engage in 3\u20135 local groups daily', description: '10\u201315 min/day, giving value.' },
+          { title: 'Create your own Facebook Group in month 2\u20133', description: 'Once you\u2019ve built credibility in other groups.' },
+          { title: 'Run simple Lead Ads', description: 'Your best offer with a $5\u2013$20/day budget.' },
+          { title: 'Respond to every message within 5 minutes', description: 'During business hours. Speed is everything.' },
+        ],
+      },
+      {
+        id: 'page-setup',
+        type: 'page-setup',
+        title: 'Your Facebook Page Setup',
+        intro: 'Most business pages are dead. Here\u2019s how to fix yours:',
+        items: [
+          { title: 'Cover photo', description: 'Shows your work or your team (not a logo)' },
+          { title: 'Profile photo', description: 'Your face or your logo \u2014 pick one and stick with it' },
+          { title: 'About section', description: 'Written in first person (\u201cI started this business because...\u201d)' },
+          { title: 'Pinned post', description: 'Your best testimonial + a CTA' },
+          { title: 'Services tab', description: 'Every service you offer, with clear pricing ranges' },
+          { title: 'Reviews enabled', description: 'Ask every customer to leave one' },
         ],
       },
       {
@@ -308,13 +410,10 @@ export const platforms: PlatformData[] = [
         type: 'cadence',
         title: 'Posting Cadence',
         postingCadence: [
-          { label: 'Monday', content: 'Question post in Group (spark discussion)' },
-          { label: 'Tuesday', content: 'Teaching post or video (solve a problem)' },
-          { label: 'Wednesday', content: 'Story post (personal or client story)' },
-          { label: 'Thursday', content: 'Live Q&A session in Group' },
-          { label: 'Friday', content: 'Win celebration (yours or a member\u2019s)' },
-          { label: 'Saturday', content: 'Reel or short video (repurpose)' },
-          { label: 'Sunday', content: 'Rest or light engagement post' },
+          { label: 'Business Page Posts', content: '4\u20135 per week' },
+          { label: 'Group Engagement', content: 'Daily (10\u201315 min)' },
+          { label: 'Group Posts', content: '1 per week (value-only, no pitch)' },
+          { label: 'Stories', content: '1\u20132 per day (underused \u2014 high reach)' },
         ],
       },
       {
@@ -322,19 +421,19 @@ export const platforms: PlatformData[] = [
         type: 'kickstart',
         title: 'The 30-Day Facebook Kickstart',
         kickstart: [
-          { week: 'Week 1', description: 'Create Facebook Group with clear name and description. Set up 3 entry questions (including email capture). Invite 50 people you know who fit your target audience.' },
-          { week: 'Week 2', description: 'Post daily in your group (value + engagement). Share group in relevant communities. Do your first Facebook Live.' },
-          { week: 'Week 3', description: 'Create a pinned post with your best free resource. Run a mini challenge or themed week in the group. Post 2\u20133 Reels on your business page.' },
-          { week: 'Week 4', description: 'Review group growth and engagement metrics. Make your first offer to the group (soft sell). Identify your top 10 most engaged members and nurture those relationships.' },
+          { week: 'Week 1', description: 'Optimize your business page. Join 10 local groups. Invite your current customers to follow your page.' },
+          { week: 'Week 2', description: 'Post 3 long-form text posts about customer wins, lessons learned, or common problems. Comment in groups daily.' },
+          { week: 'Week 3', description: 'Upload 1 video. Launch a simple offer for new customers. Start collecting reviews.' },
+          { week: 'Week 4', description: 'Test a $5/day Lead Ad with your best offer. Create or announce your own community group.' },
         ],
       },
       {
         id: 'one-rule',
         type: 'one-rule',
-        title: 'The Rule That Beats Every Tactic',
+        title: 'The Facebook Rule That Changes Everything',
         oneRule: {
-          title: 'The group is the product.',
-          description: 'Your Facebook Group is not a marketing channel \u2014 it\u2019s the experience itself. When people feel like they belong to something valuable, they naturally want more of what you offer. Build the community first, and the sales will follow.',
+          title: 'Be the helpful local.',
+          description: 'Facebook isn\u2019t a stage \u2014 it\u2019s a town square. The business owner who helps most wins the trust of the community. Trust converts into customers. Every time.',
         },
       },
     ],
