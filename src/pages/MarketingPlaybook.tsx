@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import {
   Rocket,
   ArrowLeft,
+  ArrowRight,
   BookOpen,
   ChevronRight,
   Target,
@@ -15,6 +16,7 @@ import {
   CheckCircle2,
   Star,
   ArrowDown,
+  Shield,
   Instagram,
   Facebook,
   Youtube,
@@ -444,6 +446,34 @@ export default function MarketingPlaybook() {
               );
             })}
           </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            className="mt-16"
+          >
+            <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center gap-5 px-6 py-6 rounded-2xl border border-[#06D6A0]/10 bg-gradient-to-r from-[#06D6A0]/[0.06] to-transparent hover:border-[#06D6A0]/20 transition-all duration-300 group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#06D6A0]/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              <div className="w-12 h-12 bg-[#06D6A0]/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                <Shield className="text-[#06D6A0]" size={24} />
+              </div>
+              <div className="flex-1 min-w-0 relative">
+                <h3 className="text-white font-bold text-base mb-1">Make Your Business Legal</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">
+                  Form your LLC, get an EIN, and legally set up your business — step by step.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/legal')}
+                className="relative flex items-center gap-2 px-6 py-3 bg-[#06D6A0] text-[#060d19] rounded-xl text-sm font-semibold hover:bg-[#05c490] transition-all shadow-lg shadow-[#06D6A0]/15 whitespace-nowrap group/btn"
+              >
+                Start Legal Setup
+                <ArrowRight size={15} className="group-hover/btn:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>
