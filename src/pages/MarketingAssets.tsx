@@ -11,9 +11,11 @@ import {
   Globe,
   ArrowRight,
   ChevronRight,
-  TrendingUp,
   RefreshCw,
   Eye,
+  Target,
+  BarChart3,
+  Clock,
 } from 'lucide-react';
 import PlatformPanel from '../components/playbook/PlatformPanel';
 
@@ -37,11 +39,51 @@ interface BrandData {
 }
 
 const PLATFORMS = [
-  { key: 'instagram', label: 'Instagram', icon: '\uD83D\uDCF8', color: '#E1306C', gradient: 'from-rose-500/20 to-orange-500/10' },
-  { key: 'meta_ads', label: 'Meta Ads', icon: '\uD83C\uDFAF', color: '#1877F2', gradient: 'from-blue-500/20 to-cyan-500/10' },
-  { key: 'tiktok', label: 'TikTok', icon: '\uD83C\uDFAC', color: '#00F2EA', gradient: 'from-teal-400/20 to-cyan-400/10' },
-  { key: 'mass_text', label: 'Mass Text', icon: '\uD83D\uDCF1', color: '#06D6A0', gradient: 'from-emerald-500/20 to-teal-500/10' },
-  { key: 'email', label: 'Email', icon: '\u2709\uFE0F', color: '#FF6B35', gradient: 'from-orange-500/20 to-amber-500/10' },
+  {
+    key: 'instagram',
+    label: 'Instagram',
+    tagline: 'Visual storytelling & reels',
+    icon: '\uD83D\uDCF8',
+    color: '#E1306C',
+    bgGradient: 'linear-gradient(135deg, rgba(225,48,108,0.12) 0%, rgba(252,175,69,0.08) 100%)',
+    borderHover: 'rgba(225,48,108,0.35)',
+  },
+  {
+    key: 'meta_ads',
+    label: 'Meta Ads',
+    tagline: 'Paid reach & conversions',
+    icon: '\uD83C\uDFAF',
+    color: '#1877F2',
+    bgGradient: 'linear-gradient(135deg, rgba(24,119,242,0.12) 0%, rgba(66,183,245,0.06) 100%)',
+    borderHover: 'rgba(24,119,242,0.35)',
+  },
+  {
+    key: 'tiktok',
+    label: 'TikTok',
+    tagline: 'Short-form viral content',
+    icon: '\uD83C\uDFAC',
+    color: '#00F2EA',
+    bgGradient: 'linear-gradient(135deg, rgba(0,242,234,0.10) 0%, rgba(255,0,80,0.06) 100%)',
+    borderHover: 'rgba(0,242,234,0.35)',
+  },
+  {
+    key: 'mass_text',
+    label: 'Mass Text',
+    tagline: 'Direct SMS campaigns',
+    icon: '\uD83D\uDCF1',
+    color: '#06D6A0',
+    bgGradient: 'linear-gradient(135deg, rgba(6,214,160,0.12) 0%, rgba(6,214,160,0.04) 100%)',
+    borderHover: 'rgba(6,214,160,0.35)',
+  },
+  {
+    key: 'email',
+    label: 'Email',
+    tagline: 'Nurture & convert leads',
+    icon: '\u2709\uFE0F',
+    color: '#FF6B35',
+    bgGradient: 'linear-gradient(135deg, rgba(255,107,53,0.12) 0%, rgba(255,190,11,0.06) 100%)',
+    borderHover: 'rgba(255,107,53,0.35)',
+  },
 ];
 
 export default function MarketingAssets() {
@@ -69,10 +111,7 @@ export default function MarketingAssets() {
   const loadData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/auth');
-        return;
-      }
+      if (!user) { navigate('/auth'); return; }
 
       if (ideaKey) {
         const { data: brand } = await supabase
@@ -81,7 +120,6 @@ export default function MarketingAssets() {
           .eq('user_id', user.id)
           .eq('idea_key', ideaKey)
           .maybeSingle();
-
         if (brand) setBrandData(brand);
       }
 
@@ -92,9 +130,7 @@ export default function MarketingAssets() {
 
       if (playbook) {
         const map: Record<string, PlaybookEntry> = {};
-        playbook.forEach((entry: PlaybookEntry) => {
-          map[entry.platform] = entry;
-        });
+        playbook.forEach((entry: PlaybookEntry) => { map[entry.platform] = entry; });
         setEntries(map);
       }
     } catch (err: any) {
@@ -117,7 +153,6 @@ export default function MarketingAssets() {
     try {
       const headers = await getAuthHeaders();
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-playbook`;
-
       const res = await fetch(apiUrl, {
         method: 'POST',
         headers,
@@ -128,7 +163,6 @@ export default function MarketingAssets() {
           targetCustomer: brandData?.target_audience || '',
         }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Generation failed');
 
@@ -160,7 +194,6 @@ export default function MarketingAssets() {
       try {
         const headers = await getAuthHeaders();
         const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-playbook`;
-
         const res = await fetch(apiUrl, {
           method: 'POST',
           headers,
@@ -171,7 +204,6 @@ export default function MarketingAssets() {
             targetCustomer: brandData?.target_audience || '',
           }),
         });
-
         const data = await res.json();
         if (res.ok) {
           setEntries(prev => ({
@@ -199,11 +231,9 @@ export default function MarketingAssets() {
   const generateMoreContent = async () => {
     if (!selectedPlatform) return;
     setGeneratingMore(true);
-
     try {
       const headers = await getAuthHeaders();
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-playbook`;
-
       const res = await fetch(apiUrl, {
         method: 'POST',
         headers,
@@ -215,7 +245,6 @@ export default function MarketingAssets() {
           targetCustomer: brandData?.target_audience || '',
         }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Generation failed');
 
@@ -249,7 +278,19 @@ export default function MarketingAssets() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#060d19] flex items-center justify-center">
-        <Loader2 className="text-[#2979FF] animate-spin" size={48} />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="relative">
+            <div className="w-16 h-16 rounded-2xl bg-[#2979FF]/10 flex items-center justify-center">
+              <Loader2 className="text-[#2979FF] animate-spin" size={32} />
+            </div>
+            <div className="absolute -inset-3 rounded-3xl bg-[#2979FF]/5 animate-pulse" />
+          </div>
+          <p className="text-gray-500 text-sm">Loading your playbook...</p>
+        </motion.div>
       </div>
     );
   }
@@ -260,10 +301,7 @@ export default function MarketingAssets() {
         <div className="max-w-lg text-center">
           <div className="text-red-400 text-xl mb-4">Failed to load data</div>
           <div className="text-gray-400 mb-6">{error}</div>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors"
-          >
+          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors">
             Back to Dashboard
           </button>
         </div>
@@ -276,10 +314,7 @@ export default function MarketingAssets() {
       <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 pb-20">
 
         <nav className="flex items-center gap-1.5 text-sm mb-10">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-1.5 text-gray-500 hover:text-gray-300 transition-colors"
-          >
+          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-1.5 text-gray-500 hover:text-gray-300 transition-colors">
             <Home size={14} />
             Dashboard
           </button>
@@ -288,154 +323,209 @@ export default function MarketingAssets() {
         </nav>
 
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
+          transition={{ duration: 0.4 }}
           className="mb-10"
         >
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
-                Marketing Playbook
-              </h1>
-              <p className="text-gray-500 text-[15px] leading-relaxed max-w-md">
-                Generate AI-powered strategies and ready-to-post content for each channel.
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2979FF]/20 to-[#2979FF]/5 flex items-center justify-center">
+                  <Target className="text-[#2979FF]" size={20} />
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                  Marketing Playbook
+                </h1>
+              </div>
+              <p className="text-gray-500 text-[15px] leading-relaxed max-w-lg pl-[52px]">
+                AI-powered strategies and ready-to-post content for every channel. Pick one or generate them all.
               </p>
             </div>
 
-            <AnimatePresence mode="wait">
-              {generatingAllComplete ? (
-                <motion.div
-                  key="done"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-sm font-medium"
-                >
-                  <CheckCircle2 size={15} />
-                  All done
-                </motion.div>
-              ) : generatingAll ? (
-                <motion.div
-                  key="progress"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="flex items-center gap-2.5 px-4 py-2 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm"
-                >
-                  <Loader2 size={14} className="text-[#2979FF] animate-spin" />
-                  <span className="text-gray-300">{PLATFORMS[generatingAllIndex]?.label}</span>
-                  <span className="text-gray-600">{generatingAllIndex + 1}/{PLATFORMS.length}</span>
-                </motion.div>
-              ) : (
-                <motion.button
-                  key="cta"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  onClick={generateAllPlatforms}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-[#2979FF] text-white rounded-lg text-sm font-semibold hover:bg-[#3d88ff] transition-colors"
-                >
-                  <Zap size={14} />
-                  Generate All ({readyCount}/{PLATFORMS.length})
-                </motion.button>
-              )}
-            </AnimatePresence>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                <BarChart3 size={14} className="text-gray-500" />
+                <div className="flex gap-0.5">
+                  {PLATFORMS.map((p) => (
+                    <div
+                      key={p.key}
+                      className="w-2 h-5 rounded-sm transition-all duration-500"
+                      style={{
+                        backgroundColor: entries[p.key]?.strategy ? p.color : 'rgba(255,255,255,0.06)',
+                        opacity: entries[p.key]?.strategy ? 0.8 : 1,
+                      }}
+                    />
+                  ))}
+                </div>
+                <span className="text-gray-500 text-xs font-medium ml-1">{readyCount}/{PLATFORMS.length}</span>
+              </div>
+
+              <AnimatePresence mode="wait">
+                {generatingAllComplete ? (
+                  <motion.div
+                    key="done"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-sm font-semibold"
+                  >
+                    <CheckCircle2 size={15} />
+                    All done!
+                  </motion.div>
+                ) : generatingAll ? (
+                  <motion.div
+                    key="progress"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex items-center gap-2.5 px-4 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm"
+                  >
+                    <Loader2 size={14} className="text-[#2979FF] animate-spin" />
+                    <span className="text-gray-300 font-medium">{PLATFORMS[generatingAllIndex]?.label}</span>
+                    <span className="text-gray-600 text-xs">{generatingAllIndex + 1}/{PLATFORMS.length}</span>
+                  </motion.div>
+                ) : (
+                  <motion.button
+                    key="cta"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    onClick={generateAllPlatforms}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="relative flex items-center gap-2 px-5 py-2.5 bg-[#2979FF] text-white rounded-xl text-sm font-semibold shadow-lg shadow-[#2979FF]/20 hover:shadow-[#2979FF]/30 transition-shadow overflow-hidden group"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                    <Zap size={14} />
+                    Generate All
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </motion.div>
 
-        <div className="space-y-3 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
           {PLATFORMS.map((platform, i) => {
             const entry = entries[platform.key];
             const isReady = !!entry?.strategy;
             const isGenerating = generating === platform.key;
             const isCurrentlyGeneratingAll = generatingAll && generatingAllIndex === i;
             const busy = isGenerating || isCurrentlyGeneratingAll;
+            const pastInGenerateAll = generatingAll && i < generatingAllIndex;
 
             return (
               <motion.div
                 key={platform.key}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05, duration: 0.35 }}
-                className="group"
+                transition={{ delay: i * 0.07, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
               >
-                <div className={`relative flex items-center gap-4 sm:gap-5 px-4 sm:px-5 py-4 rounded-xl border transition-all duration-200 ${
-                  isReady
-                    ? 'bg-white/[0.03] border-white/[0.07] hover:border-white/[0.14]'
-                    : 'bg-white/[0.02] border-white/[0.05] hover:border-white/[0.1]'
-                }`}>
+                <motion.div
+                  whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                  className="group relative rounded-2xl border overflow-hidden transition-all duration-300 cursor-pointer h-full"
+                  style={{
+                    background: isReady ? platform.bgGradient : 'rgba(255,255,255,0.015)',
+                    borderColor: isReady ? `${platform.color}20` : 'rgba(255,255,255,0.06)',
+                  }}
+                  onClick={() => {
+                    if (isReady) setSelectedPlatform(platform.key);
+                    else if (!busy && !generatingAll) generatePlatform(platform.key);
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor = platform.borderHover;
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor = isReady ? `${platform.color}20` : 'rgba(255,255,255,0.06)';
+                  }}
+                >
+                  {busy && (
+                    <motion.div
+                      className="absolute bottom-0 left-0 h-[2px]"
+                      style={{ backgroundColor: platform.color }}
+                      initial={{ width: '0%' }}
+                      animate={{ width: '100%' }}
+                      transition={{ duration: 12, ease: 'linear' }}
+                    />
+                  )}
 
-                  <div
-                    className="flex-shrink-0 w-11 h-11 rounded-lg flex items-center justify-center text-xl"
-                    style={{ backgroundColor: `${platform.color}15` }}
-                  >
-                    {platform.icon}
-                  </div>
+                  <div className="p-5">
+                    <div className="flex items-start justify-between mb-4">
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-transform duration-300 group-hover:scale-110"
+                        style={{ backgroundColor: `${platform.color}12` }}
+                      >
+                        {platform.icon}
+                      </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2.5">
-                      <h3 className="text-white font-semibold text-[15px]">{platform.label}</h3>
                       {isReady && (
-                        <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 rounded text-[10px] font-semibold uppercase tracking-wider">
-                          <CheckCircle2 size={10} />
-                          Ready
-                        </span>
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 400 }}
+                        >
+                          <CheckCircle2 size={18} style={{ color: platform.color }} />
+                        </motion.div>
                       )}
+
                       {busy && (
-                        <span className="flex items-center gap-1 px-1.5 py-0.5 bg-[#2979FF]/10 text-[#2979FF] rounded text-[10px] font-semibold uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-semibold" style={{ backgroundColor: `${platform.color}15`, color: platform.color }}>
                           <Loader2 size={10} className="animate-spin" />
                           Building
-                        </span>
+                        </div>
                       )}
                     </div>
-                    {entry?.generated_at && (
-                      <p className="text-gray-600 text-xs mt-0.5">
-                        Last updated {formatDate(entry.generated_at)}
-                      </p>
-                    )}
-                  </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <h3 className="text-white font-bold text-base mb-1">{platform.label}</h3>
+                    <p className="text-gray-500 text-[13px] leading-relaxed mb-5">{platform.tagline}</p>
+
                     {isReady ? (
-                      <>
+                      <div className="flex items-center gap-2">
                         <button
-                          onClick={() => setSelectedPlatform(platform.key)}
-                          className="flex items-center gap-1.5 px-3.5 py-2 bg-white/[0.07] text-white rounded-lg text-sm font-medium hover:bg-white/[0.12] transition-colors"
+                          onClick={(e) => { e.stopPropagation(); setSelectedPlatform(platform.key); }}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
+                          style={{ backgroundColor: `${platform.color}15`, color: platform.color }}
                         >
                           <Eye size={14} />
-                          <span className="hidden sm:inline">View</span>
+                          View Strategy
                         </button>
                         <button
-                          onClick={() => generatePlatform(platform.key)}
+                          onClick={(e) => { e.stopPropagation(); generatePlatform(platform.key); }}
                           disabled={isGenerating || generatingAll}
-                          className="p-2 text-gray-500 hover:text-white hover:bg-white/[0.07] rounded-lg transition-all disabled:opacity-30"
+                          className="p-2.5 rounded-xl text-gray-500 hover:text-white transition-all disabled:opacity-30"
+                          style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
                           title="Regenerate"
                         >
-                          {isGenerating ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
+                          {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
                         </button>
-                      </>
+                      </div>
                     ) : (
                       <button
-                        onClick={() => generatePlatform(platform.key)}
+                        onClick={(e) => { e.stopPropagation(); if (!busy && !generatingAll) generatePlatform(platform.key); }}
                         disabled={busy || generatingAll}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-40"
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-40"
                         style={{
-                          backgroundColor: `${platform.color}18`,
+                          backgroundColor: busy ? `${platform.color}10` : `${platform.color}12`,
                           color: platform.color,
                         }}
                       >
                         {busy ? (
-                          <><Loader2 size={13} className="animate-spin" /> Generating...</>
+                          <><Loader2 size={14} className="animate-spin" /> Generating...</>
                         ) : (
-                          <><Sparkles size={13} /> Generate</>
+                          <><Sparkles size={14} /> Generate Strategy</>
                         )}
                       </button>
                     )}
+
+                    {entry?.generated_at && (
+                      <div className="flex items-center gap-1 mt-3 text-gray-600 text-[11px]">
+                        <Clock size={10} />
+                        Updated {formatDate(entry.generated_at)}
+                      </div>
+                    )}
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
             );
           })}
@@ -444,21 +534,23 @@ export default function MarketingAssets() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.35 }}
+          transition={{ delay: 0.4, duration: 0.4 }}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 px-5 py-5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:border-[#2979FF]/15 transition-colors">
-            <div className="w-11 h-11 bg-[#2979FF]/10 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Globe className="text-[#2979FF]" size={22} />
+          <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center gap-5 px-6 py-6 rounded-2xl border border-[#2979FF]/10 bg-gradient-to-r from-[#2979FF]/[0.06] to-transparent hover:border-[#2979FF]/20 transition-all duration-300 group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#2979FF]/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+            <div className="w-12 h-12 bg-[#2979FF]/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+              <Globe className="text-[#2979FF]" size={24} />
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-white font-semibold text-[15px] mb-0.5">Your Website</h3>
+            <div className="flex-1 min-w-0 relative">
+              <h3 className="text-white font-bold text-base mb-1">Need a Website?</h3>
               <p className="text-gray-500 text-sm leading-relaxed">
-                Book a free 30-minute discovery call. Custom website live within 24 hours.
+                Book a free 30-minute discovery call. We'll build your custom site and have it live within 24 hours.
               </p>
             </div>
             <button
               onClick={() => navigate(`/website${ideaKey ? `?ideaKey=${ideaKey}` : ''}`)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#2979FF] text-white rounded-lg text-sm font-semibold hover:bg-[#3d88ff] transition-colors whitespace-nowrap group/btn"
+              className="relative flex items-center gap-2 px-6 py-3 bg-[#2979FF] text-white rounded-xl text-sm font-semibold hover:bg-[#3d88ff] transition-all shadow-lg shadow-[#2979FF]/15 whitespace-nowrap group/btn"
             >
               Book Discovery Call
               <ArrowRight size={15} className="group-hover/btn:translate-x-0.5 transition-transform" />
