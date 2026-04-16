@@ -2,168 +2,196 @@ export interface FoundationSection {
   id: string;
   title: string;
   subtitle?: string;
-  content: string[];
-  items?: { title: string; description: string }[];
+  paragraphs?: string[];
+  formula?: string;
+  formulaPlain?: string;
+  questions?: string[];
+  items?: FoundationItem[];
   numbered?: boolean;
+  phases?: FoundationPhase[];
+  funnelSteps?: string[];
+  callout?: { title: string; body: string[] };
 }
+
+export interface FoundationItem {
+  title: string;
+  description: string;
+  example?: string;
+}
+
+export interface FoundationPhase {
+  title: string;
+  description?: string;
+  bullets?: string[];
+}
+
+export const introSection = {
+  title: 'Before You Post a Single Thing: Read This',
+  paragraphs: [
+    'Most business owners post on social media and wonder why nothing happens. Here\'s why: they\'re talking about themselves. They\'re the hero of their own story. Big mistake.',
+    'Your customer is the hero. You are the guide.',
+    'Think of every great story. Luke Skywalker had Yoda. Frodo had Gandalf. Rocky had Mickey. The hero has a problem \u2014 the guide has a plan to solve it.',
+  ],
+  threeThings: [
+    'Show your customer you understand their problem',
+    'Position yourself as the guide with the plan',
+    'Give them so much value upfront they feel stupid not calling you',
+  ],
+  closing: 'If you do those three things on every post, every platform, every day \u2014 you win. Period.',
+};
 
 export const foundationSections: FoundationSection[] = [
   {
-    id: 'hero-guide',
-    title: 'The Hero / Guide Principle',
-    subtitle: 'You are not the hero. Your customer is.',
-    content: [
-      'Every piece of content you post should position your customer as the hero of the story and your business as the guide that helps them win.',
-      'Stop talking about yourself. Start talking about their problems, desires, and transformation.',
+    id: 'core-formula',
+    title: 'The Core Formula (Use This Everywhere)',
+    subtitle: 'Before we break down each platform, memorize this. It\'s the backbone of everything that follows.',
+    formula: 'Dream Outcome \u00d7 Likelihood of Success \u00f7 (Time Delay \u00d7 Effort Required) = Perceived Value',
+    formulaPlain: 'In plain English: Make the result sound amazing, believable, fast, and easy \u2014 and people will buy.',
+    questions: [
+      '\u201cWhat do I want?\u201d (dream outcome)',
+      '\u201cWill this actually work for me?\u201d (proof)',
+      '\u201cHow fast can I get it?\u201d (speed)',
+      '\u201cIs this going to be a pain?\u201d (ease)',
     ],
-    items: [
-      {
-        title: 'The Hero',
-        description: 'Your customer — they have a problem, a desire, and a journey ahead of them.',
-      },
-      {
-        title: 'The Guide',
-        description: 'Your business — you have the empathy to understand their pain and the authority to help them solve it.',
-      },
-      {
-        title: 'The Plan',
-        description: 'Your content — it shows the hero how to get from where they are to where they want to be.',
-      },
+    paragraphs: [
+      'If your post doesn\'t answer one of these \u2014 don\'t post it.',
     ],
   },
   {
-    id: 'value-equation',
-    title: 'The Value Equation',
-    subtitle: 'Why people actually buy',
-    content: [
-      'People don\'t buy products. They buy outcomes. The faster and easier you can deliver a dream outcome with the least effort and risk, the more valuable your offer becomes.',
+    id: 'content-framework',
+    title: 'The Universal Content Framework',
+    subtitle: 'Every post on every platform should follow this structure:',
+    paragraphs: [
+      'HOOK \u2192 VALUE \u2192 CTA',
     ],
     items: [
       {
-        title: 'Dream Outcome',
-        description: 'What does your customer actually want? Not your product — their end result.',
+        title: 'Hook (first 3 seconds or first line)',
+        description: 'Stop the scroll. Make them curious or emotional.',
       },
       {
-        title: 'Perceived Likelihood of Achievement',
-        description: 'Do they believe you can actually deliver? Proof, testimonials, and specificity increase this.',
+        title: 'Value',
+        description: 'Give them something useful they can use right now \u2014 even if they never buy from you.',
       },
       {
-        title: 'Time Delay',
-        description: 'How long until they see results? Shorter = more valuable.',
-      },
-      {
-        title: 'Effort & Sacrifice',
-        description: 'How much work do they have to put in? Less = more valuable.',
+        title: 'CTA',
+        description: 'Tell them exactly what to do next. One action. No choices.',
       },
     ],
-  },
-  {
-    id: 'hook-value-cta',
-    title: 'Hook → Value → CTA',
-    subtitle: 'The 3-part framework for every post',
-    content: [
-      'Every single piece of content you create — whether it\'s a reel, a tweet, a carousel, or a blog post — should follow this structure:',
-    ],
-    items: [
-      {
-        title: '1. Hook (first 1-3 seconds)',
-        description: 'Stop the scroll. Ask a provocative question, state a bold claim, or call out your audience directly. If the hook fails, nothing else matters.',
-      },
-      {
-        title: '2. Value (the body)',
-        description: 'Teach something, tell a story, or share a perspective that makes the viewer think "I needed this." Don\'t hold back — free value builds trust faster than anything.',
-      },
-      {
-        title: '3. CTA (the close)',
-        description: 'Tell them exactly what to do next. Follow, save, comment, DM, click the link. One clear action. Never leave them wondering.',
-      },
-    ],
+    callout: {
+      title: 'Remember',
+      body: [
+        'If you give enough value, asking for the sale feels natural.',
+        'If you give no value, asking for the sale feels desperate.',
+      ],
+    },
   },
   {
     id: 'hook-templates',
-    title: '7 Hook Templates That Work Everywhere',
-    subtitle: 'Swipe these and customize for your niche',
-    content: [
-      'These hooks have been tested across thousands of posts in every niche. Use them as starting points and adapt the specifics to your audience.',
-    ],
+    title: 'The 7 Hook Templates That Always Work',
+    subtitle: 'Swipe these. Adapt them to your business. Use them forever.',
+    numbered: true,
     items: [
       {
-        title: 'The Contrarian',
-        description: '"Stop [common advice]. Here\'s what actually works..."',
+        title: 'If you [problem], stop doing [wrong thing] and do this instead.',
+        description: '',
+        example: 'If your tree service is losing money, stop discounting and do this instead.',
       },
       {
-        title: 'The Curiosity Gap',
-        description: '"I tried [X] for 30 days. Here\'s what happened..."',
+        title: 'I tried [thing] for [time]. Here\'s what happened.',
+        description: '',
+        example: 'I tried cold calling for 90 days. Here\'s what worked.',
       },
       {
-        title: 'The Callout',
-        description: '"If you\'re a [type of person] struggling with [problem], read this."',
+        title: 'The #1 mistake [your customer type] makes with [topic].',
+        description: '',
+        example: 'The #1 mistake homeowners make when hiring a tree service.',
       },
       {
-        title: 'The Number',
-        description: '"[X] things I wish I knew before [starting/doing something]."',
+        title: 'Nobody talks about this, but it\'s costing you [money/time/results].',
+        description: '',
+        example: 'Nobody talks about this, but it\'s costing contractors thousands.',
       },
       {
-        title: 'The Story',
-        description: '"Last year I was [situation]. Today I [transformation]. Here\'s how..."',
+        title: 'How to [desired result] without [thing they hate].',
+        description: '',
+        example: 'How to get more clients without spending a dollar on ads.',
       },
       {
-        title: 'The Question',
-        description: '"Why do most [people/businesses] fail at [X]?"',
+        title: '[Number] things I wish I knew before [starting X].',
+        description: '',
+        example: '5 things I wish I knew before starting my business.',
       },
       {
-        title: 'The Bold Claim',
-        description: '"You don\'t need [thing everyone thinks you need] to [desired outcome]."',
+        title: 'This is the [tool/strategy/script] that [specific result].',
+        description: '',
+        example: 'This is the email script that booked me 14 clients last month.',
       },
     ],
-    numbered: true,
   },
   {
     id: '90-day-plan',
     title: 'The 90-Day Launch Plan',
-    subtitle: 'Your roadmap from zero to generating leads',
-    content: [
-      'Don\'t try to do everything at once. Follow this phased approach to build momentum without burning out.',
-    ],
-    items: [
+    subtitle: 'Don\'t try to master all six platforms at once. You\'ll burn out. Here\'s the order:',
+    phases: [
       {
-        title: 'Days 1-30: Foundation',
-        description: 'Pick ONE platform. Optimize your profile. Post 3-5x per week using Hook → Value → CTA. Study what performs. Engage 15 minutes daily with your target audience. Set up your lead capture (link in bio, DM automation, or landing page).',
+        title: 'Days 1\u201330: Pick Your Primary Platform',
+        description: 'Choose one platform where your ideal customer already hangs out. Post there daily. Ignore everything else for 30 days.',
+        bullets: [
+          'Local service business? \u2192 Instagram + Facebook',
+          'B2B / professional services? \u2192 LinkedIn',
+          'Younger consumer / lifestyle? \u2192 TikTok',
+          'Education-heavy / high-ticket? \u2192 YouTube',
+        ],
       },
       {
-        title: 'Days 31-60: Acceleration',
-        description: 'Double down on what\'s working. Start conversations in DMs with engaged followers. Create your first lead magnet (free guide, checklist, or template). Test different content formats. Build a simple email sequence for new leads.',
+        title: 'Days 31\u201360: Add a Second Platform',
+        description: 'Pick one that complements your first (usually a short-form video platform if you started with written content, or vice versa). Repurpose your content between the two.',
       },
       {
-        title: 'Days 61-90: Conversion',
-        description: 'Launch your first offer or service to warm leads. Use social proof from early wins. Create case studies and testimonials. Refine your content pillars based on data. Systematize your posting and engagement routine.',
+        title: 'Days 61\u201390: Build the Funnel',
+        description: 'By now, you should know what content works. Set up:',
+        bullets: [
+          'A simple landing page with one offer',
+          'An email list capture',
+          'A DM follow-up script for each platform',
+        ],
       },
     ],
   },
   {
     id: 'lead-capture',
     title: 'The Lead Capture System',
-    subtitle: 'Turn followers into real contacts',
-    content: [
-      'Followers are vanity. Leads are money. Every platform strategy should funnel people into a system you own — your email list, your phone contacts, your CRM.',
+    subtitle: 'Content without capture = wasted effort. Here\'s the simplest system that works.',
+    paragraphs: ['The One-Page Funnel'],
+    funnelSteps: [
+      'Social media post \u2192 value + DM keyword or link',
+      'Link goes to a simple landing page with one offer (free guide, free consultation, free audit \u2014 whatever fits your business)',
+      'They enter name + email + phone to get the free thing',
+      'Automated text + email goes out immediately with the free resource + a question (\u201cWhat\u2019s your biggest challenge with [X]?\u201d)',
+      'They reply. You have a conversation. You book the call.',
+    ],
+    callout: {
+      title: 'That\'s it.',
+      body: ['That\'s the whole system. Don\'t overcomplicate it.'],
+    },
+  },
+  {
+    id: 'one-rule',
+    title: 'The One Rule That Beats Every Strategy',
+    paragraphs: [
+      'Show up every day. For at least a year.',
+      'Most businesses quit at 90 days because they don\'t see results. The ones who make it to 12 months win, because by then:',
     ],
     items: [
-      {
-        title: 'Lead Magnet',
-        description: 'Create something free and valuable that solves a specific, small problem. A checklist, template, mini-guide, or free consultation. This is your "ethical bribe" to get contact info.',
-      },
-      {
-        title: 'Landing Page',
-        description: 'A simple page with one job: collect their name and email in exchange for the lead magnet. No distractions, no navigation, just the offer.',
-      },
-      {
-        title: 'DM Strategy',
-        description: 'When someone engages with your content, start a real conversation. Don\'t pitch immediately. Ask questions, provide value, and when the time is right, share your offer.',
-      },
-      {
-        title: 'Follow-Up Sequence',
-        description: 'Once you have their email, send 3-5 value-packed emails before making an offer. Build trust first, sell second.',
-      },
+      { title: 'The algorithms know what you do', description: '' },
+      { title: 'Your best content compounds', description: '' },
+      { title: 'Your audience trusts you', description: '' },
+      { title: 'Your offer is dialed in', description: '' },
     ],
+    callout: {
+      title: 'You don\'t need to be the best.',
+      body: ['You need to be the one who didn\'t quit.'],
+    },
   },
 ];

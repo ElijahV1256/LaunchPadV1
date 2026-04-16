@@ -13,13 +13,16 @@ import {
   Calendar,
   Users,
   CheckCircle2,
+  Star,
+  ArrowDown,
   Instagram,
   Facebook,
   Youtube,
   Twitter,
   Linkedin,
 } from 'lucide-react';
-import { foundationSections } from '../data/playbook/foundation';
+import { foundationSections, introSection } from '../data/playbook/foundation';
+import type { FoundationSection } from '../data/playbook/foundation';
 import { platforms } from '../data/playbook/platforms';
 
 const TikTokIcon = () => (
@@ -37,7 +40,237 @@ const platformIcons: Record<string, React.ReactNode> = {
   twitter: <Twitter className="w-8 h-8" />,
 };
 
-const sectionIcons = [Target, Zap, MessageSquare, Lightbulb, Calendar, Users];
+const sectionIcons: Record<string, typeof Target> = {
+  'core-formula': Zap,
+  'content-framework': MessageSquare,
+  'hook-templates': Lightbulb,
+  '90-day-plan': Calendar,
+  'lead-capture': Target,
+  'one-rule': Star,
+};
+
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      className="mb-16"
+    >
+      <div className="flex items-center gap-3 mb-2">
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent to-[#2979FF]/30" />
+        <span className="text-[#2979FF] font-semibold text-sm uppercase tracking-widest">{label}</span>
+        <div className="h-px flex-1 bg-gradient-to-l from-transparent to-[#2979FF]/30" />
+      </div>
+    </motion.div>
+  );
+}
+
+function FoundationCard({ section }: { section: FoundationSection }) {
+  const Icon = sectionIcons[section.id] || Target;
+
+  if (section.id === 'one-rule') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-60px' }}
+        transition={{ duration: 0.5 }}
+        className="relative rounded-2xl overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-[#2979FF]/10 to-transparent" />
+        <div className="relative border border-[#2979FF]/20 rounded-2xl p-8 md:p-10">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-[#2979FF]/10 border border-[#2979FF]/20 rounded-xl flex items-center justify-center">
+              <Star className="text-[#2979FF]" size={22} />
+            </div>
+            <h3 className="text-xl md:text-2xl font-bold text-white font-['Montserrat']">
+              {section.title}
+            </h3>
+          </div>
+
+          {section.paragraphs?.map((p, i) => (
+            <p key={i} className={`leading-relaxed text-[15px] ${i === 0 ? 'text-2xl md:text-3xl font-extrabold text-white font-[\'Montserrat\'] mb-4' : 'text-gray-300 mb-4'}`}>
+              {p}
+            </p>
+          ))}
+
+          {section.items && (
+            <div className="grid sm:grid-cols-2 gap-3 my-6">
+              {section.items.map((item, i) => (
+                <div key={i} className="flex items-center gap-3 bg-white/[0.05] border border-white/[0.08] rounded-xl p-4">
+                  <CheckCircle2 className="text-[#2979FF] flex-shrink-0" size={18} />
+                  <span className="text-white font-medium text-sm">{item.title}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {section.callout && (
+            <div className="mt-6 text-center">
+              <p className="text-2xl md:text-3xl font-extrabold text-white font-['Montserrat'] mb-2">
+                {section.callout.title}
+              </p>
+              {section.callout.body.map((line, i) => (
+                <p key={i} className="text-xl text-[#2979FF] font-semibold">{line}</p>
+              ))}
+            </div>
+          )}
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.5, delay: 0.1 }}
+      className="bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] rounded-2xl p-6 md:p-8 hover:border-[#2979FF]/20 transition-colors"
+    >
+      <div className="flex items-start gap-4 mb-5">
+        <div className="flex-shrink-0 w-12 h-12 bg-[#2979FF]/10 border border-[#2979FF]/20 rounded-xl flex items-center justify-center">
+          <Icon className="text-[#2979FF]" size={22} />
+        </div>
+        <div>
+          <h3 className="text-xl md:text-2xl font-bold text-white font-['Montserrat']">
+            {section.title}
+          </h3>
+          {section.subtitle && (
+            <p className="text-gray-400 font-medium mt-1 text-[15px]">{section.subtitle}</p>
+          )}
+        </div>
+      </div>
+
+      {section.formula && (
+        <div className="bg-gradient-to-r from-[#2979FF]/10 to-teal-500/10 border border-[#2979FF]/20 rounded-xl p-5 mb-5">
+          <p className="text-white font-mono text-sm md:text-base font-semibold text-center leading-relaxed">
+            {section.formula}
+          </p>
+        </div>
+      )}
+
+      {section.formulaPlain && (
+        <p className="text-gray-300 leading-relaxed mb-4 text-[15px] italic">{section.formulaPlain}</p>
+      )}
+
+      {section.questions && (
+        <div className="mb-4">
+          <p className="text-gray-300 text-[15px] mb-3">Every piece of content you make should answer at least one of these questions for your ideal customer:</p>
+          <div className="space-y-2">
+            {section.questions.map((q, i) => (
+              <div key={i} className="flex items-start gap-3 bg-white/[0.03] border border-white/[0.05] rounded-lg p-3">
+                <div className="flex-shrink-0 w-1.5 h-1.5 mt-2 bg-[#2979FF] rounded-full" />
+                <span className="text-gray-300 text-sm">{q}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {section.paragraphs?.map((p, i) => (
+        <p key={i} className={`leading-relaxed mb-4 text-[15px] ${section.id === 'content-framework' && i === 0 ? 'text-xl font-bold text-[#2979FF]' : section.id === 'lead-capture' && i === 0 ? 'text-lg font-bold text-white' : 'text-gray-300'}`}>
+          {p}
+        </p>
+      ))}
+
+      {section.items && (
+        <div className={`grid gap-3 mt-4 ${section.items.length > 4 && !section.numbered ? 'md:grid-cols-2' : ''}`}>
+          {section.items.map((item, i) => (
+            <div
+              key={i}
+              className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 hover:bg-white/[0.05] transition-colors"
+            >
+              <div className="flex items-start gap-3">
+                {section.numbered ? (
+                  <span className="flex-shrink-0 w-8 h-8 bg-[#2979FF]/15 text-[#2979FF] rounded-lg flex items-center justify-center text-sm font-bold">
+                    {i + 1}
+                  </span>
+                ) : (
+                  <div className="flex-shrink-0 w-1.5 h-1.5 mt-2.5 bg-[#2979FF] rounded-full" />
+                )}
+                <div className="flex-1">
+                  <h4 className="text-white font-semibold text-sm mb-1">
+                    {section.numbered ? `"${item.title}"` : item.title}
+                  </h4>
+                  {item.description && (
+                    <p className="text-gray-400 text-sm leading-relaxed">{item.description}</p>
+                  )}
+                  {item.example && (
+                    <p className="text-gray-500 text-xs mt-2 italic">
+                      Example: "{item.example}"
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {section.phases && (
+        <div className="space-y-6 mt-4">
+          {section.phases.map((phase, i) => (
+            <div key={i}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-[#2979FF]/15 text-[#2979FF] rounded-lg flex items-center justify-center text-sm font-bold">
+                  {i + 1}
+                </div>
+                <h4 className="text-white font-bold text-lg">{phase.title}</h4>
+              </div>
+              {phase.description && (
+                <p className="text-gray-300 text-sm leading-relaxed ml-[52px] mb-3">{phase.description}</p>
+              )}
+              {phase.bullets && (
+                <div className="ml-[52px] space-y-2">
+                  {phase.bullets.map((bullet, bIdx) => (
+                    <div key={bIdx} className="flex items-start gap-3 bg-white/[0.03] border border-white/[0.05] rounded-lg p-3">
+                      <ChevronRight className="text-[#2979FF] flex-shrink-0 mt-0.5" size={14} />
+                      <span className="text-gray-400 text-sm">{bullet}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {i < section.phases!.length - 1 && (
+                <div className="ml-[18px] mt-3 h-4 border-l-2 border-dashed border-[#2979FF]/20" />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {section.funnelSteps && (
+        <div className="space-y-0 mt-4">
+          {section.funnelSteps.map((step, i) => (
+            <div key={i}>
+              <div className="flex items-start gap-4 bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+                <div className="flex-shrink-0 w-8 h-8 bg-[#2979FF]/15 text-[#2979FF] rounded-full flex items-center justify-center text-xs font-bold">
+                  {i + 1}
+                </div>
+                <p className="text-gray-300 text-sm leading-relaxed pt-1">{step}</p>
+              </div>
+              {i < section.funnelSteps!.length - 1 && (
+                <div className="flex justify-center py-1">
+                  <ArrowDown className="text-[#2979FF]/30" size={16} />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {section.callout && (
+        <div className="mt-6 bg-[#2979FF]/10 border border-[#2979FF]/20 rounded-xl p-5 text-center">
+          <p className="text-white font-bold text-lg">{section.callout.title}</p>
+          {section.callout.body.map((line, i) => (
+            <p key={i} className="text-gray-300 text-sm mt-1">{line}</p>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
 
 export default function MarketingPlaybook() {
   const navigate = useNavigate();
@@ -94,7 +327,7 @@ export default function MarketingPlaybook() {
               The Launchpad<br />Marketing Playbook
             </h1>
             <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
-              How to Generate Real Leads on Social Media — Without Guessing, Gimmicks, or Wasting Money
+              How to Generate Real Leads on Social Media &mdash; Without Guessing, Gimmicks, or Wasting Money
             </p>
             <button
               onClick={() => foundationRef.current?.scrollIntoView({ behavior: 'smooth' })}
@@ -109,102 +342,67 @@ export default function MarketingPlaybook() {
 
       <div ref={foundationRef} className="container mx-auto px-6 pb-24">
         <div className="max-w-4xl mx-auto">
+
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mb-16"
+            transition={{ duration: 0.5 }}
+            className="bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] rounded-2xl p-6 md:p-8 mb-12"
           >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent to-[#2979FF]/30" />
-              <span className="text-[#2979FF] font-semibold text-sm uppercase tracking-widest">Part One</span>
-              <div className="h-px flex-1 bg-gradient-to-l from-transparent to-[#2979FF]/30" />
+            <div className="flex items-start gap-4 mb-5">
+              <div className="flex-shrink-0 w-12 h-12 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-center">
+                <Target className="text-red-400" size={22} />
+              </div>
+              <h3 className="text-xl md:text-2xl font-bold text-white font-['Montserrat'] pt-2">
+                {introSection.title}
+              </h3>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white font-['Montserrat'] text-center mt-4 mb-2">
-              The Foundation
-            </h2>
-            <p className="text-gray-400 text-center text-lg">
-              Core frameworks that work on every platform
-            </p>
+
+            {introSection.paragraphs.map((p, i) => (
+              <p key={i} className={`leading-relaxed mb-4 text-[15px] ${i === 1 ? 'text-xl font-bold text-white' : 'text-gray-300'}`}>
+                {p}
+              </p>
+            ))}
+
+            <p className="text-gray-300 text-[15px] mb-3">Your job on social media is simple:</p>
+            <div className="space-y-2 mb-5">
+              {introSection.threeThings.map((thing, i) => (
+                <div key={i} className="flex items-start gap-3 bg-white/[0.04] border border-white/[0.06] rounded-xl p-4">
+                  <span className="flex-shrink-0 w-7 h-7 bg-[#2979FF]/15 text-[#2979FF] rounded-lg flex items-center justify-center text-sm font-bold">
+                    {i + 1}
+                  </span>
+                  <span className="text-white font-medium text-sm pt-0.5">{thing}</span>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-[#2979FF] font-bold text-lg">{introSection.closing}</p>
           </motion.div>
 
+          <SectionDivider label="The Foundation" />
+
           <div className="space-y-12">
-            {foundationSections.map((section, idx) => {
-              const Icon = sectionIcons[idx % sectionIcons.length];
-              return (
-                <motion.div
-                  key={section.id}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  className="bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] rounded-2xl p-6 md:p-8 hover:border-[#2979FF]/20 transition-colors"
-                >
-                  <div className="flex items-start gap-4 mb-5">
-                    <div className="flex-shrink-0 w-12 h-12 bg-[#2979FF]/10 border border-[#2979FF]/20 rounded-xl flex items-center justify-center">
-                      <Icon className="text-[#2979FF]" size={22} />
-                    </div>
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-bold text-white font-['Montserrat']">
-                        {section.title}
-                      </h3>
-                      {section.subtitle && (
-                        <p className="text-[#2979FF] font-medium mt-1">{section.subtitle}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {section.content.map((paragraph, pIdx) => (
-                    <p key={pIdx} className="text-gray-300 leading-relaxed mb-4 text-[15px]">
-                      {paragraph}
-                    </p>
-                  ))}
-
-                  {section.items && (
-                    <div className={`grid gap-3 mt-6 ${section.items.length > 4 ? 'md:grid-cols-2' : ''}`}>
-                      {section.items.map((item, iIdx) => (
-                        <div
-                          key={iIdx}
-                          className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 hover:bg-white/[0.05] transition-colors"
-                        >
-                          <div className="flex items-start gap-3">
-                            {section.numbered ? (
-                              <span className="flex-shrink-0 w-7 h-7 bg-[#2979FF]/15 text-[#2979FF] rounded-lg flex items-center justify-center text-sm font-bold">
-                                {iIdx + 1}
-                              </span>
-                            ) : (
-                              <div className="flex-shrink-0 w-1.5 h-1.5 mt-2.5 bg-[#2979FF] rounded-full" />
-                            )}
-                            <div>
-                              <h4 className="text-white font-semibold text-sm mb-1">{item.title}</h4>
-                              <p className="text-gray-400 text-sm leading-relaxed">{item.description}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-              );
-            })}
+            {foundationSections.map((section) => (
+              <FoundationCard key={section.id} section={section} />
+            ))}
           </div>
 
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="mt-24 mb-16"
+            className="mt-24 mb-6"
           >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent to-[#2979FF]/30" />
-              <span className="text-[#2979FF] font-semibold text-sm uppercase tracking-widest">Part Two</span>
-              <div className="h-px flex-1 bg-gradient-to-l from-transparent to-[#2979FF]/30" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white font-['Montserrat'] text-center mt-4 mb-2">
+            <SectionDivider label="Pick Your Platform" />
+            <h2 className="text-3xl md:text-4xl font-bold text-white font-['Montserrat'] text-center mb-2">
               Platform Playbooks
             </h2>
-            <p className="text-gray-400 text-center text-lg">
-              Pick your platform and get a step-by-step game plan
+            <p className="text-gray-400 text-center text-lg mb-4">
+              Click any platform below to get the full playbook
+            </p>
+            <p className="text-center text-sm text-gray-500 mb-10">
+              The question isn&rsquo;t whether this works. The question is: are you going to do it?
             </p>
           </motion.div>
 
