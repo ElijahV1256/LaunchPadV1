@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   ScrollText,
   ExternalLink,
+  Rocket,
 } from 'lucide-react';
 import { LEGAL_STEPS, NORTHWEST_LINK } from '../../data/legal-steps';
 
@@ -171,13 +172,21 @@ export default function LegalStepLayout({
                 Completed
               </span>
             )}
-            {nextStep && (
+            {nextStep ? (
               <button
                 onClick={() => navigate(nextStep.path)}
                 className="flex items-center gap-2 px-5 py-2.5 bg-[#2979FF] text-white rounded-xl text-sm font-semibold hover:bg-[#3d88ff] transition-all"
               >
                 Next: {nextStep.shortTitle}
                 <ArrowRight size={15} />
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate('/mission-control')}
+                className="flex items-center gap-2 px-5 py-2.5 bg-[#2979FF] text-white rounded-xl text-sm font-semibold hover:bg-[#3d88ff] transition-all shadow-lg shadow-[#2979FF]/20"
+              >
+                <Rocket size={15} />
+                Mission Control
               </button>
             )}
           </div>
